@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -318,6 +318,8 @@ export default function App(){
   const[sortBy,setSortBy]=useState("default");
   const[showWarn,setShowWarn]=useState(true);
   const[aboutTab,setAboutTab]=useState("overview"); // overview, checklist, mistakes, modorder
+  const[mob,setMob]=useState(false);
+  useEffect(()=>{const check=()=>setMob(window.innerWidth<640);check();window.addEventListener("resize",check);return()=>window.removeEventListener("resize",check);},[]);
 
   const make=MAKES.find(m=>m.id===makeId);
   const plat=PLATFORMS.find(p=>p.id===platId);
@@ -334,6 +336,49 @@ export default function App(){
   const maxSk=bParts.length?Math.max(...bParts.map(p=>p.sk)):0;
   const bLeft=budget-tCost;
   const bPct=budget>0?Math.min((tCost/budget)*100,100):0;
+
+  // ═══ DELUSION METER ═══
+  const delusion = useMemo(() => {
+    if (bParts.length === 0) return null;
+    let score = 0;
+    let flags = [];
+    const cats = bParts.map(p => p.cat);
+    const hasJunk = bParts.some(p => p.cat === "junk");
+    const hasTune = cats.includes("tune");
+    const hasExhaust = cats.includes("exhaust");
+    const hasIntake = cats.includes("intake");
+    const hasSusp = cats.includes("susp");
+    const hasExt = cats.includes("ext");
+    const hasInt = cats.includes("int");
+    const powerParts = bParts.filter(p => p.hp > 0 || p.tq > 0).length;
+    const cosmeticParts = bParts.filter(p => p.cat === "ext" || p.cat === "int").length;
+    const brands = [...new Set(bParts.map(p => p.brand))];
+    // Scoring
+    if (bParts.length >= 8) { score += 15; flags.push("Full send — 8+ parts deep"); }
+    if (tCost > 5000) { score += 10; flags.push("Deep pockets activated"); }
+    if (tCost < 200 && bParts.length >= 3) { score += 20; flags.push("Maximum vibes, minimum wallet"); }
+    if (hasJunk) { score += 25; flags.push("Junkyard archaeologist"); }
+    if (hasJunk && bParts.filter(p => p.cat === "junk").length >= 2) { score += 15; flags.push("Pick-n-Pull frequent flyer"); }
+    if (hasExhaust && !hasTune) { score += 10; flags.push("All bark, no tune"); }
+    if (brands.length >= 5) { score += 15; flags.push("The 'I Know a Guy' special — " + brands.length + " different brands"); }
+    if (cosmeticParts > powerParts && cosmeticParts >= 2) { score += 10; flags.push("Looks > speed"); }
+    if (powerParts >= 4 && !hasSusp) { score += 10; flags.push("All power, no handling — straight line hero"); }
+    if (tHp > 80) { score += 10; flags.push("Serious power territory"); }
+    if (tHp > 80 && !cats.includes("clutch") && !cats.includes("ic")) { score += 10; flags.push("Sending it on stock cooling/clutch"); }
+    if (maxSk >= 5) { score += 5; flags.push("Shop-level difficulty — hope you know a guy"); }
+    if (bParts.every(p => p.price < 200)) { score += 15; flags.push("Budget build supremacy"); }
+    if (bParts.some(p => p.price === 0)) { score += 10; flags.push("Found the free mods"); }
+    score = Math.min(score, 100);
+    let tier, tierColor, tierEmoji;
+    if (score < 15) { tier = "Stock+"; tierColor = "#8A8AA0"; tierEmoji = "😴"; }
+    else if (score < 30) { tier = "Reasonable Build"; tierColor = "#2EC4B6"; tierEmoji = "👍"; }
+    else if (score < 50) { tier = "The 'I Know a Guy'"; tierColor = "#FFB703"; tierEmoji = "🤝"; }
+    else if (score < 65) { tier = "The Sawzall Special"; tierColor = "#FB8500"; tierEmoji = "🪚"; }
+    else if (score < 80) { tier = "The Wiring Nightmare"; tierColor = "#E63946"; tierEmoji = "⚡"; }
+    else if (score < 90) { tier = "The Purist's Heart Attack"; tierColor = "#D4380D"; tierEmoji = "💀"; }
+    else { tier = "The Chronically Offline"; tierColor = "#FF6B6B"; tierEmoji = "🏴‍☠️"; }
+    return { score, tier, tierColor, tierEmoji, flags };
+  }, [bParts, tCost, tHp, maxSk]);
 
   const pickParts=useMemo(()=>{if(!picker)return[];let pts=pp.filter(p=>p.cat===picker);switch(sortBy){case"price-asc":return[...pts].sort((a,b)=>a.price-b.price);case"price-desc":return[...pts].sort((a,b)=>b.price-a.price);case"power":return[...pts].sort((a,b)=>(b.hp+b.tq)-(a.hp+a.tq));case"skill":return[...pts].sort((a,b)=>a.sk-b.sk);default:return pts;}},[picker,pp,sortBy]);
 
@@ -467,7 +512,7 @@ export default function App(){
 
             {/* TABLE */}
             <div style={{background:C.s1,borderRadius:8,border:`1px solid ${C.bdr}`,overflow:"hidden"}}>
-              <div style={{display:"grid",gridTemplateColumns:"38px 110px 1fr 56px 50px 42px 26px",padding:"0.3rem 0.45rem",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.1em",color:C.td}}><span/><span>Category</span><span>Part</span><span style={{textAlign:"right"}}>Price</span><span style={{textAlign:"right"}}>Power</span><span style={{textAlign:"right"}}>Skill</span><span/></div>
+              {!mob&&<div style={{display:"grid",gridTemplateColumns:"38px 110px 1fr 56px 50px 42px 26px",padding:"0.3rem 0.45rem",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.1em",color:C.td}}><span/><span>Category</span><span>Part</span><span style={{textAlign:"right"}}>Price</span><span style={{textAlign:"right"}}>Power</span><span style={{textAlign:"right"}}>Skill</span><span/></div>}
 
               {CATS.map(cat=>{
                 const sp=sel[cat.id]?PARTS.find(p=>p.id===sel[cat.id]):null;
@@ -477,6 +522,31 @@ export default function App(){
                 const isJunk=cat.id==="junk";
                 return(
                   <div key={cat.id}>
+                    {mob?(
+                      /* MOBILE CARD LAYOUT */
+                      <div style={{padding:"0.6rem",borderBottom:`1px solid ${C.bdr}20`,background:sp?isJunk?"#D46B0810":C.accD:"transparent"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:sp?6:0}}>
+                          <div style={{display:"flex",alignItems:"center",gap:8}}>
+                            <CatIco cat={cat.id}/>
+                            <span style={{fontSize:"0.75rem",fontWeight:600,color:isJunk?"#D46B08":sp?C.t:C.tm}}>{cat.name}</span>
+                          </div>
+                          {sp?<button onClick={()=>rmPart(cat.id)} style={{background:"none",border:"none",color:C.acc,cursor:"pointer",fontSize:"0.85rem",padding:"4px"}}>✕</button>
+                          :<button onClick={()=>setPicker(isOpen?null:cat.id)} style={{padding:"6px 12px",background:C.s2,border:`1px dashed ${isJunk?"#D46B0850":C.bdr}`,borderRadius:5,color:isJunk?"#D46B08":C.acc,fontSize:"0.72rem",cursor:"pointer",fontFamily:fs}}>{isJunk?"🏴‍☠️ Browse":`+ Add`}</button>}
+                        </div>
+                        {sp&&(
+                          <div style={{marginLeft:42}}>
+                            <div style={{fontSize:"0.75rem",fontWeight:600}}>{sp.name}</div>
+                            <div style={{display:"flex",gap:6,alignItems:"center",marginTop:3,flexWrap:"wrap"}}>
+                              <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.8rem"}}>{sp.price===0?"FREE":`$${sp.price}`}</span>
+                              {(sp.hp>0||sp.tq>0)&&<span style={{fontSize:"0.6rem",fontFamily:fm,color:C.g}}>+{sp.hp}/{sp.tq}</span>}
+                              <SkB lv={sp.sk}/>
+                              <button onClick={()=>setPicker(cat.id)} style={{color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,fontSize:"0.6rem",padding:0}}>↻ swap</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ):(
+                      /* DESKTOP GRID LAYOUT */
                     <div style={{display:"grid",gridTemplateColumns:"38px 110px 1fr 56px 50px 42px 26px",padding:"0.4rem 0.45rem",borderBottom:`1px solid ${C.bdr}12`,alignItems:"center",background:sp?isJunk?"#D46B0810":C.accD:"transparent"}}>
                       <CatIco cat={cat.id}/>
                       <div style={{fontSize:"0.65rem",fontWeight:600,color:isJunk?"#D46B08":sp?C.t:C.tm}}>{cat.name}</div>
@@ -487,6 +557,7 @@ export default function App(){
                       <div style={{textAlign:"right"}}>{sp&&<SkB lv={sp.sk}/>}</div>
                       <div style={{textAlign:"center"}}>{sp?<button onClick={()=>rmPart(cat.id)} style={{background:"none",border:"none",color:C.acc,cursor:"pointer",fontSize:"0.72rem"}}>✕</button>:<button onClick={()=>setPicker(isOpen?null:cat.id)} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.62rem"}}>{isOpen?"▴":"▾"}</button>}</div>
                     </div>
+                    )}
                     {isOpen&&(
                       <div style={{background:isJunk?"#D46B0808":C.s2,borderBottom:`1px solid ${C.bdr}`,padding:"0.4rem 0.45rem"}}>
                         <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
@@ -529,10 +600,54 @@ export default function App(){
                     )}
                   </div>);
               })}
+              {mob?(
+                <div style={{padding:"0.6rem",background:C.s2}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:"0.72rem",fontWeight:700,color:C.acc}}>TOTAL — {bParts.length} parts</span>
+                    <span style={{fontFamily:fm,fontWeight:700,fontSize:"1rem",color:C.acc}}>${tCost.toLocaleString()}</span>
+                  </div>
+                  <div style={{display:"flex",gap:8,marginTop:4,fontSize:"0.6rem",color:C.tm}}>
+                    <span>~{tTime<1?`${Math.round(tTime*60)}m`:`${tTime.toFixed(1)}h`} install</span>
+                    {tHp>0&&<span style={{color:C.g}}>+{tHp}HP / +{tTq}TQ</span>}
+                    {maxSk>0&&<SkB lv={maxSk} full/>}
+                  </div>
+                </div>
+              ):(
               <div style={{display:"grid",gridTemplateColumns:"38px 110px 1fr 56px 50px 42px 26px",padding:"0.45rem",background:C.s2,alignItems:"center"}}><div/><span style={{fontSize:"0.65rem",fontWeight:700,color:C.acc}}>TOTAL</span><div style={{fontSize:"0.58rem",color:C.tm}}>{bParts.length} parts • ~{tTime<1?`${Math.round(tTime*60)}m`:`${tTime.toFixed(1)}h`}{maxSk>0&&<> • <SkB lv={maxSk} full/></>}</div><div style={{textAlign:"right",fontFamily:fm,fontWeight:700,fontSize:"0.85rem",color:C.acc}}>${tCost.toLocaleString()}</div><div style={{textAlign:"right",fontFamily:fm,fontSize:"0.62rem",color:C.g}}>{tHp>0?`+${tHp}/+${tTq}`:"—"}</div><div/><div/></div>
+              )}
             </div>
             {tHp>0&&plat&&<div style={{marginTop:5,padding:"0.4rem 0.5rem",background:C.gD,border:`1px solid ${C.g}20`,borderRadius:5,display:"flex",justifyContent:"space-between"}}><span style={{fontSize:"0.65rem",color:C.g}}>Est. Output</span><span style={{fontFamily:fm,fontWeight:700,fontSize:"0.75rem",color:C.g}}>~{plat.hp+tHp}HP / ~{plat.tq+tTq}TQ</span></div>}
             {bParts.length>0&&<div style={{marginTop:5,padding:"0.4rem 0.5rem",background:C.s1,borderRadius:5,border:`1px solid ${C.bdr}`}}><div style={{fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.08em",color:C.td,marginBottom:2}}>🧰 Tools</div><div style={{fontSize:"0.58rem",color:C.tm,lineHeight:1.4}}>{[...new Set(bParts.flatMap(p=>p.tools.split(", ")))].join(" • ")}</div></div>}
+
+            {/* ═══ DELUSION METER ═══ */}
+            {delusion && bParts.length >= 2 && (
+              <div style={{marginTop:8,padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${delusion.tierColor}30`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{fontSize:"0.55rem",textTransform:"uppercase",letterSpacing:"0.12em",color:delusion.tierColor}}>Delusion Meter™</div>
+                  <div style={{fontSize:"1.2rem"}}>{delusion.tierEmoji}</div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                  <div style={{flex:1,height:10,background:C.bdr,borderRadius:5,overflow:"hidden",position:"relative"}}>
+                    <div style={{height:"100%",width:`${delusion.score}%`,background:`linear-gradient(90deg, #2EC4B6, #FFB703, #E63946, #FF6B6B)`,borderRadius:5,transition:"width 0.5s ease"}}/>
+                  </div>
+                  <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.85rem",color:delusion.tierColor,minWidth:30,textAlign:"right"}}>{delusion.score}</span>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <span style={{fontSize:"0.85rem",fontWeight:700,color:delusion.tierColor}}>{delusion.tierEmoji} {delusion.tier}</span>
+                  <span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>{delusion.score}/100</span>
+                </div>
+                {delusion.flags.length > 0 && (
+                  <div style={{display:"flex",flexWrap:"wrap",gap:3,marginTop:4}}>
+                    {delusion.flags.map((f,i) => (
+                      <span key={i} style={{fontSize:"0.52rem",padding:"2px 6px",background:delusion.tierColor+"12",border:`1px solid ${delusion.tierColor}25`,borderRadius:10,color:delusion.tierColor,fontFamily:fm}}>{f}</span>
+                    ))}
+                  </div>
+                )}
+                <div style={{marginTop:8,paddingTop:6,borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-between",fontSize:"0.48rem",color:C.td,textTransform:"uppercase",letterSpacing:"0.1em"}}>
+                  <span>😴 Stock+</span><span>🤝 I Know a Guy</span><span>🪚 Sawzall</span><span>💀 Heart Attack</span><span>🏴‍☠️ Offline</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

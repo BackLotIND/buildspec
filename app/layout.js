@@ -1,5 +1,11 @@
 import './globals.css'
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata = {
   title: 'BuildSpec — Plan Your Car Build',
   description: 'The smartest way to plan aftermarket car builds. PCPartPicker for cars. Honda, BMW, Subaru — parts catalog, budget tracker, DIY build guides, and junkyard swap secrets.',

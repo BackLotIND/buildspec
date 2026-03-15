@@ -35,6 +35,13 @@ input[type="number"] {
   color: #fff;
 }
 
+/* Mobile touch improvements */
+@media (max-width: 640px) {
+  button { min-height: 36px; }
+  select { min-height: 40px; }
+  input { min-height: 36px; }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }
