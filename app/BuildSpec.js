@@ -847,6 +847,9 @@ export default function App(){
   const[showWarn,setShowWarn]=useState(true);
   const[aboutTab,setAboutTab]=useState("overview"); // overview, checklist, mistakes, modorder
   const[mob,setMob]=useState(false);
+  const[page,setPage]=useState("home"); // home, knowledge
+  const[kTab,setKTab]=useState("junkyard"); // junkyard, checklists, mistakes, modorder
+  const[kMake,setKMake]=useState(null);
   useEffect(()=>{const check=()=>setMob(window.innerWidth<640);check();window.addEventListener("resize",check);return()=>window.removeEventListener("resize",check);},[]);
 
   const make=MAKES.find(m=>m.id===makeId);
@@ -924,9 +927,139 @@ export default function App(){
   const SkB=({lv,full})=>{const s=SK[lv];return<span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:"0.55rem",fontFamily:fm,color:s.c,background:s.c+"14",padding:"1px 5px",borderRadius:3,whiteSpace:"nowrap"}}>{"●".repeat(lv)}<span style={{opacity:.2}}>{"●".repeat(5-lv)}</span>{full&&<span>{s.l}</span>}</span>;};
   const CatIco=({cat})=><div style={{width:34,height:34,borderRadius:5,background:cat==="junk"?"#D46B0820":C.s3,border:cat==="junk"?`1px solid #D46B0840`:"none",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.9rem",flexShrink:0}}>{CATS.find(c=>c.id===cat)?.icon||"🔧"}</div>;
 
+  // ═══ BOTTOM NAV ═══
+  const BottomNav=()=>(
+    <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.s1,borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:mob?"calc(6px + env(safe-area-inset-bottom))":"6px",zIndex:100}}>
+      <button onClick={()=>{setPage("home");setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:page==="home"&&step==="make"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
+        <span style={{fontSize:"1.1rem"}}>🏠</span>Home
+      </button>
+      <button onClick={()=>{if(step==="builder"){setPage("home");}else{setPage("home");setStep("make");}}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:step==="builder"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
+        <span style={{fontSize:"1.1rem"}}>🔧</span>Build
+      </button>
+      <button onClick={()=>setPage("knowledge")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:page==="knowledge"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
+        <span style={{fontSize:"1.1rem"}}>📚</span>Knowledge
+      </button>
+    </div>
+  );
+
+  // ═══ KNOWLEDGE PAGE ═══
+  if(page==="knowledge"){
+    const kPlats=kMake?PLATFORMS.filter(p=>p.make===kMake):PLATFORMS;
+    const junkParts=PARTS.filter(p=>p.cat==="junk");
+    const kTabs=[{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Buyer Checklists"},{id:"mistakes",l:"❌ Common Mistakes"},{id:"modorder",l:"📋 Mod Orders"}];
+    return(
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:70}}><FL/>
+        <header style={{padding:"1rem 1.5rem",borderBottom:`1px solid ${C.bdr}`,background:C.s1}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <span style={{fontSize:"0.9rem",fontWeight:800,fontFamily:fm,cursor:"pointer"}} onClick={()=>setPage("home")}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
+              <span style={{fontSize:"0.65rem",color:C.tm,marginLeft:8}}>Knowledge Base</span>
+            </div>
+          </div>
+        </header>
+        <div style={{maxWidth:700,margin:"0 auto",padding:"1rem 1.5rem"}}>
+          <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4,animation:"fadeUp 0.4s ease-out"}}>📚 Knowledge Base</h1>
+          <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem",animation:"fadeIn 0.5s ease-out"}}>The stuff buried in old forum threads — compiled, organized, and honest.</p>
+
+          {/* Manufacturer filter */}
+          <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap",animation:"fadeIn 0.4s ease-out"}}>
+            <button onClick={()=>setKMake(null)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${!kMake?C.acc:C.bdr}`,background:!kMake?C.accD:"transparent",color:!kMake?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>All</button>
+            {MAKES.map(m=><button key={m.id} onClick={()=>setKMake(m.id)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${kMake===m.id?m.accent:C.bdr}`,background:kMake===m.id?m.accent+"15":"transparent",color:kMake===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
+          </div>
+
+          {/* Knowledge tabs */}
+          <div style={{display:"flex",gap:4,marginBottom:"1rem",flexWrap:"wrap"}}>
+            {kTabs.map(t=><button key={t.id} onClick={()=>setKTab(t.id)} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${kTab===t.id?C.acc:C.bdr}`,background:kTab===t.id?C.accD:"transparent",color:kTab===t.id?C.acc:C.tm,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs,fontWeight:kTab===t.id?600:400}}>{t.l}</button>)}
+          </div>
+
+          {/* JUNKYARD GOLD */}
+          {kTab==="junkyard"&&(
+            <div>
+              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>Hidden bolt-ons and junkyard swaps — the knowledge that takes years of forum diving to find.</p>
+              {(kMake?junkParts.filter(p=>p.plats.some(pl=>PLATFORMS.find(x=>x.id===pl)?.make===kMake)):junkParts).map((part,i)=>{
+                const partPlats=part.plats.map(pl=>PLATFORMS.find(x=>x.id===pl)).filter(Boolean);
+                return(
+                  <div key={part.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid #D46B0825`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                      <div style={{flex:1}}><div style={{fontSize:"0.8rem",fontWeight:700,color:"#D46B08"}}>{part.name}</div>
+                        <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>{partPlats.map(p=><span key={p.id} style={{fontSize:"0.5rem",padding:"1px 5px",background:C.s2,borderRadius:3,color:C.tm}}>{p.name}</span>)}</div>
+                      </div>
+                      <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.8rem",color:part.price===0?"#2EC4B6":"#D46B08"}}>{part.price===0?"FREE":`$${part.price}`}</span>
+                    </div>
+                    <p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.45,margin:"0.4rem 0"}}>{part.desc.slice(0,200)}{part.desc.length>200?"...":""}</p>
+                    <div style={{fontSize:"0.6rem",padding:"0.35rem",background:"#D46B0808",borderRadius:4,color:"#D46B08"}}>💡 {part.notes.slice(0,150)}{part.notes.length>150?"...":""}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* BUYER CHECKLISTS */}
+          {kTab==="checklists"&&(
+            <div>
+              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>Print these and bring them when buying. Every item matters.</p>
+              {kPlats.filter(p=>p.buyer_checklist).map((p,i)=>{
+                const m=MAKES.find(x=>x.id===p.make);
+                return(
+                  <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${C.g}20`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <div><span style={{fontSize:"0.8rem",fontWeight:700}}>{m?.icon} {p.name}</span><span style={{fontSize:"0.6rem",color:C.td,marginLeft:6}}>{p.gen}</span></div>
+                      <span style={{fontSize:"0.55rem",color:C.g,fontFamily:fm}}>{p.buyer_checklist.length} items</span>
+                    </div>
+                    {p.buyer_checklist.map((item,j)=>(
+                      <div key={j} style={{display:"flex",gap:6,marginBottom:3,alignItems:"flex-start"}}>
+                        <div style={{width:14,height:14,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/>
+                        <span style={{fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* COMMON MISTAKES */}
+          {kTab==="mistakes"&&(
+            <div>
+              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>Learned the hard way by thousands of owners. Don't repeat their mistakes.</p>
+              {kPlats.filter(p=>p.mistakes).map((p,i)=>{
+                const m=MAKES.find(x=>x.id===p.make);
+                return(
+                  <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${C.acc}15`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
+                    <div style={{fontSize:"0.8rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name} <span style={{fontSize:"0.6rem",color:C.td,fontWeight:400}}>{p.gen}</span></div>
+                    {p.mistakes.map((mi,j)=>(
+                      <div key={j} style={{padding:"0.35rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>❌ {mi}</div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* MOD ORDERS */}
+          {kTab==="modorder"&&(
+            <div>
+              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>The right order saves money and prevents damage. Follow these.</p>
+              {kPlats.filter(p=>p.mod_order).map((p,i)=>{
+                const m=MAKES.find(x=>x.id===p.make);
+                return(
+                  <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${C.y}20`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
+                    <div style={{fontSize:"0.8rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name} <span style={{fontSize:"0.6rem",color:C.td,fontWeight:400}}>{p.gen}</span></div>
+                    <div style={{padding:"0.5rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.68rem",color:C.t,lineHeight:1.6}}>{p.mod_order}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <BottomNav/>
+      </div>
+    );
+  }
+
   // ═══ MAKE SCREEN ═══
   if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,padding:"2rem 1.5rem"}}><FL/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,padding:"2rem 1.5rem",paddingBottom:80}}><FL/>
       <div style={{maxWidth:700,margin:"0 auto"}}>
         <div style={{textAlign:"center",marginBottom:"2.5rem",animation:"fadeUp 0.6s ease-out"}}>
           <div style={{fontSize:"2.8rem",fontWeight:800,fontFamily:fm,letterSpacing:"-0.04em",position:"relative",display:"inline-block"}}>
@@ -958,8 +1091,9 @@ export default function App(){
             </div>);
           })}
         </div>
-        <p style={{textAlign:"center",color:C.td,fontSize:"0.65rem",marginTop:"2rem",animation:"fadeIn 1s ease-out 0.5s both"}}>More manufacturers coming soon — Nissan, Ford, Toyota</p>
+        <p style={{textAlign:"center",color:C.td,fontSize:"0.65rem",marginTop:"2rem",animation:"fadeIn 1s ease-out 0.5s both"}}>{MAKES.length} manufacturers • {PLATFORMS.length} platforms • {PARTS.length} parts</p>
       </div>
+      <BottomNav/>
     </div>
   );
 
@@ -1015,7 +1149,7 @@ export default function App(){
   const TABS=[{id:"build",label:`Build (${bParts.length})`},{id:"diy",label:"DIY Builds"},{id:"about",label:"About / Guides"}];
 
   return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs}}><FL/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:70}}><FL/>
       <header style={{borderBottom:`1px solid ${C.bdr}`,padding:"0.5rem 1rem",display:"flex",alignItems:"center",justifyContent:"space-between",background:C.s1,flexWrap:"wrap",gap:4}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontSize:"0.9rem",fontWeight:800,fontFamily:fm,cursor:"pointer"}} onClick={()=>{setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});}}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
@@ -1296,6 +1430,7 @@ export default function App(){
           </div>
         )}
       </div>
+      <BottomNav/>
     </div>
   );
 }
