@@ -1262,11 +1262,16 @@ export default function App(){
   const SkB=({lv,full})=>{const s=SK[lv];return<span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:"0.55rem",fontFamily:fm,color:s.c,background:s.c+"14",padding:"1px 5px",borderRadius:3,whiteSpace:"nowrap"}}>{"●".repeat(lv)}<span style={{opacity:.2}}>{"●".repeat(5-lv)}</span>{full&&<span>{s.l}</span>}</span>;};
   const TAX={0:{l:"No Tax ✅",c:"#2EC4B6",bg:"#2EC4B615"},1:{l:"Mild Tax",c:"#7EC8A0",bg:"#7EC8A015"},2:{l:"Taxed 📈",c:"#FFB703",bg:"#FFB70315"},3:{l:"Drift Taxed 🔥",c:"#FB8500",bg:"#FB850015"},4:{l:"Unobtainium 💀",c:"#E63946",bg:"#E6394615"}};
   const TaxBadge=({lv})=>{const t=TAX[lv];if(lv===undefined||lv===null)return null;return<span style={{fontSize:"0.55rem",padding:"2px 6px",borderRadius:4,background:t.bg,color:t.c,fontFamily:fm,fontWeight:600,border:`1px solid ${t.c}25`}}>{t.l}</span>;};
+  const AFF_TAG="buildspec0d-20";
+  const getBuyUrl=(part)=>{const q=encodeURIComponent(part.brand+" "+part.name.replace(/🏴‍☠️\s*/g,"").replace(/⚠️\s*BUDGET:\s*/g,"").replace(/\(×4\)/g,"").trim());const r=part.ret.toLowerCase();if(r.includes("amazon"))return`https://www.amazon.com/s?k=${q}&tag=${AFF_TAG}`;if(r.includes("ebay"))return`https://www.ebay.com/sch/i.html?_nkw=${q}`;if(r.includes("summit"))return`https://www.summitracing.com/search?query=${q}`;if(r.includes("tire rack"))return`https://www.tirerack.com/tires/TireSearchResults.jsp?search=${q}`;if(r.includes("fcp euro"))return`https://www.fcpeuro.com/search?query=${q}`;if(r.includes("fitment"))return`https://www.fitmentindustries.com/search?q=${q}`;if(r.includes("ecs"))return`https://www.ecstuning.com/Search/?q=${q}`;return`https://www.google.com/search?q=${q}+buy`;};
+  const BuyBtn=({part,small})=><a href={getBuyUrl(part)} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:3,padding:small?"2px 6px":"3px 8px",borderRadius:4,border:"none",background:"#2EC4B6",color:"#000",fontSize:small?"0.5rem":"0.58rem",fontWeight:600,cursor:"pointer",fontFamily:fs,textDecoration:"none"}}>🛒 Buy</a>;
   const CatIco=({cat})=><div style={{width:34,height:34,borderRadius:5,background:cat==="junk"?"#D46B0820":C.s3,border:cat==="junk"?`1px solid #D46B0840`:"none",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.9rem",flexShrink:0}}>{CATS.find(c=>c.id===cat)?.icon||"🔧"}</div>;
 
   // ═══ BOTTOM NAV ═══
   const BottomNav=()=>(
-    <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.s1,borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:mob?"calc(6px + env(safe-area-inset-bottom))":"6px",zIndex:100}}>
+    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100}}>
+      <div style={{background:C.bg,textAlign:"center",padding:"2px 0",borderTop:`1px solid ${C.bdr}10`}}><span style={{fontSize:"0.4rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
+      <div style={{background:C.s1,borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:mob?"calc(6px + env(safe-area-inset-bottom))":"6px"}}>
       <button onClick={()=>{setPage("home");setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:page==="home"&&step==="make"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
         <span style={{fontSize:"1.1rem"}}>🏠</span>Home
       </button>
@@ -1276,6 +1281,7 @@ export default function App(){
       <button onClick={()=>setPage("knowledge")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:page==="knowledge"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
         <span style={{fontSize:"1.1rem"}}>📚</span>Knowledge
       </button>
+      </div>
     </div>
   );
 
@@ -1599,16 +1605,20 @@ export default function App(){
                                     <SkB lv={part.sk}/><span style={{fontSize:"0.5rem",fontFamily:fm,color:C.tm}}>⏱{part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`}</span>
                                   </div>
                                 </div>
-                                <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2,flexShrink:0}}>
+                                <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
                                   <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.85rem"}}>{part.price===0?"FREE":`$${part.price}`}</span>
-                                  <button onClick={()=>selPart(cat.id,part.id)} disabled={over} style={{padding:"3px 8px",borderRadius:4,border:"none",background:isSel?C.acc:over?C.td:C.t,color:isSel?"#fff":C.bg,fontSize:"0.58rem",fontWeight:600,cursor:over?"default":"pointer",fontFamily:fs}}>{isSel?"✓":over?"$$":"Select"}</button>
+                                  <div style={{display:"flex",gap:3}}>
+                                    <button onClick={()=>selPart(cat.id,part.id)} disabled={over} style={{padding:"3px 8px",borderRadius:4,border:"none",background:isSel?C.acc:over?C.td:C.t,color:isSel?"#fff":C.bg,fontSize:"0.58rem",fontWeight:600,cursor:over?"default":"pointer",fontFamily:fs}}>{isSel?"✓":over?"$$":"Select"}</button>
+                                    {part.price>0&&<BuyBtn part={part}/>}
+                                  </div>
                                 </div>
                               </div>
                               <button onClick={()=>setExpP(expP===part.id?null:part.id)} style={{fontSize:"0.5rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0,marginTop:2}}>{expP===part.id?"Hide ▴":"Details ▾"}</button>
                               {expP===part.id&&<div style={{marginTop:3,padding:"0.35rem",background:C.bg,borderRadius:4,border:`1px solid ${C.bdr}`}}>
-                                <div style={{fontSize:"0.58rem",color:C.td}}>Skill: <span style={{color:SK[part.sk].c}}>{SK[part.sk].l}</span> • Time: {part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`}</div>
+                                <div style={{fontSize:"0.58rem",color:C.td}}>Skill: <span style={{color:SK[part.sk].c}}>{SK[part.sk].l}</span> • Time: {part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`} • Retailer: <span style={{color:C.tm}}>{part.ret}</span></div>
                                 <div style={{fontSize:"0.58rem",color:C.td,marginTop:1}}>Tools: <span style={{color:C.tm}}>{part.tools}</span></div>
                                 <div style={{fontSize:"0.58rem",padding:3,background:C.s2,borderRadius:3,marginTop:3}}><span style={{color:C.y}}>💡</span> {part.notes}</div>
+                                {part.price>0&&<div style={{marginTop:4}}><BuyBtn part={part}/> <span style={{fontSize:"0.48rem",color:C.td,marginLeft:4}}>Opens {part.ret}</span></div>}
                               </div>}
                             </div>);
                         })}
