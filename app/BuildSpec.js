@@ -1641,28 +1641,28 @@ const BUILDS = [
 ];
 
 // ═══ COMPONENT ═══
+
+// ═══ COMPONENT — Modern UI Rewrite ═══
 export default function App(){
   const[step,setStep]=useState("make");
   const[makeId,setMakeId]=useState(null);
   const[platId,setPlatId]=useState(null);
   const[vehId,setVehId]=useState(null);
-  const[tab,setTab]=useState("build");
-  const[bName,setBName]=useState("My Build");
   const[sel,setSel]=useState({});
-  const[budget,setBudget]=useState(2000);
-  const[budgetOn,setBudgetOn]=useState(false);
-  const[picker,setPicker]=useState(null);
+  const[budget,setBudget]=useState(3000);
   const[expP,setExpP]=useState(null);
   const[expB,setExpB]=useState(null);
   const[tierF,setTierF]=useState(null);
   const[sortBy,setSortBy]=useState("default");
   const[showWarn,setShowWarn]=useState(true);
-  const[aboutTab,setAboutTab]=useState("overview"); // overview, checklist, mistakes, modorder
+  const[aboutTab,setAboutTab]=useState("overview");
   const[mob,setMob]=useState(false);
-  const[page,setPage]=useState("home"); // home, knowledge
-  const[kTab,setKTab]=useState("junkyard"); // junkyard, checklists, mistakes, modorder
+  const[page,setPage]=useState("home");
+  const[kTab,setKTab]=useState("drifttax");
   const[kMake,setKMake]=useState(null);
-  useEffect(()=>{const check=()=>setMob(window.innerWidth<640);check();window.addEventListener("resize",check);return()=>window.removeEventListener("resize",check);},[]);
+  const[search,setSearch]=useState("");
+  const[browseF,setBrowseF]=useState({make:null,tax:null});
+  useEffect(()=>{const check=()=>setMob(window.innerWidth<768);check();window.addEventListener("resize",check);return()=>window.removeEventListener("resize",check);},[]);
 
   const make=MAKES.find(m=>m.id===makeId);
   const plat=PLATFORMS.find(p=>p.id===platId);
@@ -1670,7 +1670,6 @@ export default function App(){
   const platVehs=VEHICLES.filter(v=>v.plat===platId);
   const pp=useMemo(()=>PARTS.filter(p=>p.plats.includes(platId)),[platId]);
   const pBuilds=useMemo(()=>{let b=BUILDS.filter(x=>x.plat===platId);if(tierF)b=b.filter(x=>x.tier===tierF);return b;},[platId,tierF]);
-
   const bParts=useMemo(()=>Object.values(sel).map(pid=>PARTS.find(p=>p.id===pid)).filter(Boolean),[sel]);
   const tCost=bParts.reduce((s,p)=>s+p.price,0);
   const tHp=bParts.reduce((s,p)=>s+(p.hp||0),0);
@@ -1683,170 +1682,220 @@ export default function App(){
   // ═══ DELUSION METER ═══
   const delusion = useMemo(() => {
     if (bParts.length === 0) return null;
-    let score = 0;
-    let flags = [];
-    const cats = bParts.map(p => p.cat);
-    const hasJunk = bParts.some(p => p.cat === "junk");
-    const hasTune = cats.includes("tune");
-    const hasExhaust = cats.includes("exhaust");
-    const hasIntake = cats.includes("intake");
-    const hasSusp = cats.includes("susp");
-    const hasExt = cats.includes("ext");
-    const hasInt = cats.includes("int");
-    const powerParts = bParts.filter(p => p.hp > 0 || p.tq > 0).length;
-    const cosmeticParts = bParts.filter(p => p.cat === "ext" || p.cat === "int").length;
-    const brands = [...new Set(bParts.map(p => p.brand))];
-    // Scoring
-    if (bParts.length >= 8) { score += 15; flags.push("Full send — 8+ parts deep"); }
-    if (tCost > 5000) { score += 10; flags.push("Deep pockets activated"); }
-    if (tCost < 200 && bParts.length >= 3) { score += 20; flags.push("Maximum vibes, minimum wallet"); }
-    if (hasJunk) { score += 25; flags.push("Junkyard archaeologist"); }
-    if (hasJunk && bParts.filter(p => p.cat === "junk").length >= 2) { score += 15; flags.push("Pick-n-Pull frequent flyer"); }
-    if (hasExhaust && !hasTune) { score += 10; flags.push("All bark, no tune"); }
-    if (brands.length >= 5) { score += 15; flags.push("The 'I Know a Guy' special — " + brands.length + " different brands"); }
-    if (cosmeticParts > powerParts && cosmeticParts >= 2) { score += 10; flags.push("Looks > speed"); }
-    if (powerParts >= 4 && !hasSusp) { score += 10; flags.push("All power, no handling — straight line hero"); }
-    if (tHp > 80) { score += 10; flags.push("Serious power territory"); }
-    if (tHp > 80 && !cats.includes("clutch") && !cats.includes("ic")) { score += 10; flags.push("Sending it on stock cooling/clutch"); }
-    if (maxSk >= 5) { score += 5; flags.push("Shop-level difficulty — hope you know a guy"); }
-    if (bParts.every(p => p.price < 200)) { score += 15; flags.push("Budget build supremacy"); }
-    if (bParts.some(p => p.price === 0)) { score += 10; flags.push("Found the free mods"); }
-    score = Math.min(score, 100);
-    let tier, tierColor, tierEmoji;
-    if (score < 15) { tier = "Stock+"; tierColor = "#8A8AA0"; tierEmoji = "😴"; }
-    else if (score < 30) { tier = "Reasonable Build"; tierColor = "#2EC4B6"; tierEmoji = "👍"; }
-    else if (score < 50) { tier = "The 'I Know a Guy'"; tierColor = "#FFB703"; tierEmoji = "🤝"; }
-    else if (score < 65) { tier = "The Sawzall Special"; tierColor = "#FB8500"; tierEmoji = "🪚"; }
-    else if (score < 80) { tier = "The Wiring Nightmare"; tierColor = "#E63946"; tierEmoji = "⚡"; }
-    else if (score < 90) { tier = "The Purist's Heart Attack"; tierColor = "#D4380D"; tierEmoji = "💀"; }
-    else { tier = "The Chronically Offline"; tierColor = "#FF6B6B"; tierEmoji = "🏴‍☠️"; }
-    return { score, tier, tierColor, tierEmoji, flags };
-  }, [bParts, tCost, tHp, maxSk]);
+    const score = Math.min(100, (tCost / Math.max(budget, 1)) * 60 + bParts.length * 5 + tHp * 0.15);
+    if (score < 20) return { l: "Stock+", c: "#2EC4B6", w: score, d: "Your car is basically stock with a sticker. Respect." };
+    if (score < 40) return { l: "Responsible", c: "#7EC8A0", w: score, d: "Smart, measured, your mechanic approves. Boring but effective." };
+    if (score < 55) return { l: "Getting Spicy", c: "#FFB703", w: score, d: "Your insurance company is getting nervous." };
+    if (score < 70) return { l: "Down Bad", c: "#FB8500", w: score, d: "Your savings account just filed for divorce." };
+    if (score < 85) return { l: "Financially Unhinged", c: "#E63946", w: score, d: "Your car is worth more in parts than the actual car." };
+    return { l: "The Chronically Offline", c: "#9B2226", w: 100, d: "You've spent more on car parts than rent this year. Touch grass." };
+  }, [bParts, tCost, budget, tHp]);
 
-  const pickParts=useMemo(()=>{if(!picker)return[];let pts=pp.filter(p=>p.cat===picker);switch(sortBy){case"price-asc":return[...pts].sort((a,b)=>a.price-b.price);case"price-desc":return[...pts].sort((a,b)=>b.price-a.price);case"power":return[...pts].sort((a,b)=>(b.hp+b.tq)-(a.hp+a.tq));case"skill":return[...pts].sort((a,b)=>a.sk-b.sk);default:return pts;}},[picker,pp,sortBy]);
-
-  const goMake=id=>{setMakeId(id);setStep("platform");};
-  const goPlat=id=>{setPlatId(id);setStep("vehicle");};
-  const goVeh=id=>{setVehId(id);setStep("builder");setTab("build");setSel({});setShowWarn(true);const p=PLATFORMS.find(x=>x.id===VEHICLES.find(v=>v.id===id)?.plat);setBName("My "+(p?.name||"")+" Build");};
-  const goBack=()=>{if(step==="builder"){setStep("vehicle");setVehId(null);setSel({});}else if(step==="vehicle"){setStep("platform");setPlatId(null);}else if(step==="platform"){setStep("make");setMakeId(null);}};
-  const selPart=(cid,pid)=>{setSel(p=>({...p,[cid]:pid}));setPicker(null);};
-  const rmPart=cid=>{setSel(p=>{const n={...p};delete n[cid];return n;});};
-  const loadBuild=b=>{const s={};b.pids.forEach(pid=>{const p=PARTS.find(x=>x.id===pid);if(p)s[p.cat]=p.id;});setSel(s);setBName(b.name);setTab("build");setPicker(null);};
-
-  const C={bg:"#08080B",s1:"#111117",s2:"#19191F",s3:"#222230",bdr:"#2A2A38",acc:"#E63946",accD:"#E6394615",g:"#2EC4B6",gD:"#2EC4B615",y:"#FFB703",yD:"#FFB70315",o:"#FB8500",t:"#EEEEF2",tm:"#8A8AA0",td:"#55556A"};
-  const fm="'IBM Plex Mono',monospace",fs="'DM Sans',sans-serif";
-  const FL=()=><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>;
-  const SkB=({lv,full})=>{const s=SK[lv];return<span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:"0.55rem",fontFamily:fm,color:s.c,background:s.c+"14",padding:"1px 5px",borderRadius:3,whiteSpace:"nowrap"}}>{"●".repeat(lv)}<span style={{opacity:.2}}>{"●".repeat(5-lv)}</span>{full&&<span>{s.l}</span>}</span>;};
-  const TAX={0:{l:"No Tax ✅",c:"#2EC4B6",bg:"#2EC4B615"},1:{l:"Mild Tax",c:"#7EC8A0",bg:"#7EC8A015"},2:{l:"Taxed 📈",c:"#FFB703",bg:"#FFB70315"},3:{l:"Drift Taxed 🔥",c:"#FB8500",bg:"#FB850015"},4:{l:"Unobtainium 💀",c:"#E63946",bg:"#E6394615"}};
-  const TaxBadge=({lv})=>{const t=TAX[lv];if(lv===undefined||lv===null)return null;return<span style={{fontSize:"0.55rem",padding:"2px 6px",borderRadius:4,background:t.bg,color:t.c,fontFamily:fm,fontWeight:600,border:`1px solid ${t.c}25`}}>{t.l}</span>;};
+  // ═══ THEMING ═══
+  const C={bg:"#0A0A0F",s1:"#12121A",s2:"#1A1A25",s3:"#22222F",t:"#EEEEF2",tm:"#9999AA",td:"#666677",acc:"#E63946",accD:"#E6394620",bdr:"#2A2A3A",g:"#2EC4B6",gD:"#2EC4B615",y:"#FFB703",yD:"#FFB70315"};
+  const fs="'Inter',system-ui,sans-serif";
+  const fm="'JetBrains Mono','SF Mono',monospace";
+  const SK={1:{l:"Beginner",c:"#2EC4B6"},2:{l:"Easy",c:"#7EC8A0"},3:{l:"Medium",c:"#FFB703"},4:{l:"Hard",c:"#FB8500"},5:{l:"Expert",c:"#E63946"}};
   const AFF_TAG="buildspec0d-20";
+  const TAX={0:{l:"No Tax ✅",c:"#2EC4B6",bg:"#2EC4B615"},1:{l:"Mild Tax",c:"#7EC8A0",bg:"#7EC8A015"},2:{l:"Taxed 📈",c:"#FFB703",bg:"#FFB70315"},3:{l:"Drift Taxed 🔥",c:"#FB8500",bg:"#FB850015"},4:{l:"Unobtainium 💀",c:"#E63946",bg:"#E6394615"}};
+
+  // ═══ HELPERS ═══
+  const selPart=(cat,pid)=>{setSel(p=>{const n={...p};if(n[cat]===pid)delete n[cat];else n[cat]=pid;return n;});};
+  const FL=()=><div style={{position:"fixed",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${C.acc},#FFB703,${C.g})`,zIndex:200}}/>;
+  const SkB=({lv,full})=>{const s=SK[lv];return<span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:"0.55rem",fontFamily:fm,color:s.c,background:s.c+"14",padding:"1px 5px",borderRadius:3,whiteSpace:"nowrap"}}>{"●".repeat(lv)}<span style={{opacity:.2}}>{"●".repeat(5-lv)}</span>{full&&<span>{s.l}</span>}</span>;};
+  const TaxBadge=({lv})=>{const t=TAX[lv];if(lv===undefined||lv===null)return null;return<span style={{fontSize:"0.55rem",padding:"2px 6px",borderRadius:4,background:t.bg,color:t.c,fontFamily:fm,fontWeight:600,border:`1px solid ${t.c}25`}}>{t.l}</span>;};
   const getBuyUrl=(part)=>{const b=part.brand.split("/")[0].trim();let n=part.name.replace(/🏴‍☠️\s*/g,"").replace(/⚠️\s*BUDGET:\s*/g,"").replace(/\(×4\)/g,"").trim();const q=encodeURIComponent(n.toLowerCase().includes(b.toLowerCase())?n:b+" "+n);const r=part.ret.toLowerCase();if(r.includes("amazon"))return`https://www.amazon.com/s?k=${q}&tag=${AFF_TAG}`;if(r.includes("ebay"))return`https://www.ebay.com/sch/i.html?_nkw=${q}`;if(r.includes("summit"))return`https://www.summitracing.com/search?query=${q}`;if(r.includes("tire rack"))return`https://www.tirerack.com/tires/TireSearchResults.jsp?search=${q}`;if(r.includes("fcp euro"))return`https://www.fcpeuro.com/search?query=${q}`;if(r.includes("fitment"))return`https://www.fitmentindustries.com/search?q=${q}`;if(r.includes("ecs"))return`https://www.ecstuning.com/Search/?q=${q}`;return`https://www.google.com/search?q=${q}+buy`;};
   const BuyBtn=({part,small})=><a href={getBuyUrl(part)} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:3,padding:small?"2px 6px":"3px 8px",borderRadius:4,border:"none",background:"#2EC4B6",color:"#000",fontSize:small?"0.5rem":"0.58rem",fontWeight:600,cursor:"pointer",fontFamily:fs,textDecoration:"none"}}>🛒 Buy</a>;
   const CatIco=({cat})=><div style={{width:34,height:34,borderRadius:5,background:cat==="junk"?"#D46B0820":C.s3,border:cat==="junk"?`1px solid #D46B0840`:"none",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.9rem",flexShrink:0}}>{CATS.find(c=>c.id===cat)?.icon||"🔧"}</div>;
+  const goBack=()=>{if(step==="builder"){setStep("vehicle");setVehId(null);setSel({});}else if(step==="vehicle"){setStep("platform");setPlatId(null);}else if(step==="platform"){setStep("make");setMakeId(null);}};
+  const goHome=()=>{setPage("home");setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});setSearch("");};
 
-  // ═══ BOTTOM NAV ═══
-  const BottomNav=()=>(
-    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100}}>
-      <div style={{background:C.bg,textAlign:"center",padding:"2px 0",borderTop:`1px solid ${C.bdr}10`}}><span style={{fontSize:"0.4rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
-      <div style={{background:C.s1,borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:mob?"calc(6px + env(safe-area-inset-bottom))":"6px"}}>
-      <button onClick={()=>{setPage("home");setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:page==="home"&&step==="make"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
-        <span style={{fontSize:"1.1rem"}}>🏠</span>Home
-      </button>
-      <button onClick={()=>{if(step==="builder"){setPage("home");}else{setPage("home");setStep("make");}}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:step==="builder"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
-        <span style={{fontSize:"1.1rem"}}>🔧</span>Build
-      </button>
-      <button onClick={()=>setPage("knowledge")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:page==="knowledge"?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:"4px 12px",minWidth:60}}>
-        <span style={{fontSize:"1.1rem"}}>📚</span>Knowledge
-      </button>
+  // ═══ SEARCH ═══
+  const searchResults=useMemo(()=>{
+    if(!search||search.length<2)return[];
+    const q=search.toLowerCase();
+    const plats=PLATFORMS.filter(p=>p.name.toLowerCase().includes(q)||p.tagline.toLowerCase().includes(q)||p.gen.includes(q));
+    const makes=MAKES.filter(m=>m.name.toLowerCase().includes(q));
+    return{plats:plats.slice(0,8),makes:makes.slice(0,3)};
+  },[search]);
+
+  // ═══ TOP NAV ═══
+  const TopNav=()=>(
+    <header style={{position:"sticky",top:0,zIndex:150,background:C.s1+"F0",backdropFilter:"blur(12px)",borderBottom:`1px solid ${C.bdr}`}}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:"1rem",fontWeight:800,fontFamily:fm,cursor:"pointer",flexShrink:0}} onClick={goHome}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
+        {/* Search */}
+        <div style={{flex:1,position:"relative",maxWidth:400}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search platforms, cars..." style={{width:"100%",padding:"6px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,outline:"none"}}/>
+          {search.length>=2&&(searchResults.plats?.length>0||searchResults.makes?.length>0)&&(
+            <div style={{position:"absolute",top:"100%",left:0,right:0,background:C.s1,border:`1px solid ${C.bdr}`,borderRadius:8,marginTop:4,maxHeight:300,overflow:"auto",zIndex:200}}>
+              {searchResults.makes?.map(m=>(
+                <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m.icon} <b>{m.name}</b> <span style={{color:C.tm}}>— {m.tagline.slice(0,50)}...</span></div>
+              ))}
+              {searchResults.plats?.map(p=>{const m=MAKES.find(x=>x.id===p.make);return(
+                <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m?.icon} <b>{p.name}</b> <span style={{color:C.tm}}>{p.gen}</span> {p.tax!==undefined&&<TaxBadge lv={p.tax}/>}</div>
+              );})}
+            </div>
+          )}
+        </div>
+        {/* Nav links */}
+        {!mob&&<nav style={{display:"flex",gap:4}}>
+          {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
+            <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 10px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400}}>{n.ic} {n.l}</button>
+          ))}
+        </nav>}
       </div>
-    </div>
+    </header>
   );
 
-  // ═══ KNOWLEDGE PAGE ═══
+  // ═══ BOTTOM NAV (mobile only) ═══
+  const BottomNav=()=>mob?(
+    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
+      <div style={{background:C.bg,textAlign:"center",padding:"2px 0"}}><span style={{fontSize:"0.38rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
+      <div style={{background:C.s1+"F0",backdropFilter:"blur(12px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:"calc(6px + env(safe-area-inset-bottom))"}}>
+        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
+          <button key={n.id} onClick={()=>{if(n.id==="builder"){if(step!=="builder")goHome();}else if(n.id==="home")goHome();else setPage(n.id);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:(n.id==="builder"&&step==="builder")||(n.id!=="builder"&&page===n.id)?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",padding:"4px 8px"}}>
+            <span style={{fontSize:"1rem"}}>{n.ic}</span>{n.l}
+          </button>
+        ))}
+      </div>
+    </div>
+  ):null;
+
+  // ═══ FOOTER ═══
+  const Footer=()=>(
+    <footer style={{borderTop:`1px solid ${C.bdr}`,padding:"2rem 1.5rem",background:C.s1,marginTop:"3rem"}}>
+      <div style={{maxWidth:900,margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:"1.5rem",marginBottom:"1.5rem"}}>
+          <div>
+            <span style={{fontWeight:800,fontFamily:fm,fontSize:"0.9rem"}}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
+            <p style={{fontSize:"0.65rem",color:C.tm,marginTop:6,lineHeight:1.5}}>The smartest way to plan car builds. {PLATFORMS.length} platforms, {PARTS.length} parts, {BUILDS.length} builds. Real knowledge from real builders.</p>
+          </div>
+          <div>
+            <h4 style={{fontSize:"0.65rem",fontWeight:700,color:C.t,marginBottom:8}}>Navigate</h4>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {["Home","Browse","Library"].map(l=><span key={l} onClick={()=>setPage(l.toLowerCase()==="library"?"knowledge":l.toLowerCase())} style={{fontSize:"0.62rem",color:C.tm,cursor:"pointer"}}>{l}</span>)}
+            </div>
+          </div>
+          <div>
+            <h4 style={{fontSize:"0.65rem",fontWeight:700,color:C.t,marginBottom:8}}>Stats</h4>
+            <div style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.8}}>
+              {MAKES.length} Manufacturers • {PLATFORMS.length} Platforms<br/>{PARTS.length} Parts • {BUILDS.length} Build Guides<br/>{PARTS.filter(p=>p.cat==="junk").length} Junkyard Secrets
+            </div>
+          </div>
+        </div>
+        <div style={{borderTop:`1px solid ${C.bdr}`,paddingTop:"1rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <span style={{fontSize:"0.5rem",color:C.td}}>© 2025 BackLot Industries. BuildSpec is a product of BackLot Industries.</span>
+          <span style={{fontSize:"0.45rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span>
+        </div>
+      </div>
+    </footer>
+  );
+
+  // ═══ BROWSE PAGE ═══
+  if(page==="browse"){
+    let filtered=PLATFORMS;
+    if(browseF.make)filtered=filtered.filter(p=>p.make===browseF.make);
+    if(browseF.tax!==null)filtered=filtered.filter(p=>p.tax===browseF.tax);
+    return(
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+        <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+          <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>🔍 Browse All Platforms</h1>
+          <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1.2rem"}}>{PLATFORMS.length} platforms across {MAKES.length} manufacturers. Filter by brand or hype tax.</p>
+          {/* Filters */}
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+            <button onClick={()=>setBrowseF(f=>({...f,make:null}))} style={{padding:"5px 12px",borderRadius:8,border:`1px solid ${!browseF.make?C.acc:C.bdr}`,background:!browseF.make?C.accD:"transparent",color:!browseF.make?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>All Makes</button>
+            {MAKES.map(m=><button key={m.id} onClick={()=>setBrowseF(f=>({...f,make:f.make===m.id?null:m.id}))} style={{padding:"5px 10px",borderRadius:8,border:`1px solid ${browseF.make===m.id?m.accent:C.bdr}`,background:browseF.make===m.id?m.accent+"15":"transparent",color:browseF.make===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
+          </div>
+          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:"1.2rem"}}>
+            {[{v:null,l:"Any Price"},{v:0,l:"No Tax ✅"},{v:1,l:"Mild"},{v:2,l:"Taxed 📈"},{v:3,l:"Drift Taxed 🔥"},{v:4,l:"Unobtainium 💀"}].map(t=>(
+              <button key={String(t.v)} onClick={()=>setBrowseF(f=>({...f,tax:f.tax===t.v?null:t.v}))} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${browseF.tax===t.v?C.acc:C.bdr}`,background:browseF.tax===t.v?C.accD:"transparent",color:browseF.tax===t.v?C.acc:C.tm,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs}}>{t.l}</button>
+            ))}
+          </div>
+          {/* Results grid */}
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
+            {filtered.map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);const pParts=PARTS.filter(x=>x.plats.includes(p.id));const pBlds=BUILDS.filter(x=>x.plat===p.id);return(
+              <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=m?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                  <div>
+                    <div style={{fontSize:"0.85rem",fontWeight:700}}>{m?.icon} {p.name}</div>
+                    <div style={{fontSize:"0.6rem",color:C.td}}>{p.gen} • {p.hp}HP</div>
+                  </div>
+                  <TaxBadge lv={p.tax}/>
+                </div>
+                <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{p.tagline}</p>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:"0.55rem"}}>
+                  <span style={{padding:"2px 6px",background:C.s2,borderRadius:4,color:C.tm}}>{pParts.length} parts</span>
+                  <span style={{padding:"2px 6px",background:C.s2,borderRadius:4,color:C.tm}}>{pBlds.length} builds</span>
+                  {p.buyer_checklist&&<span style={{padding:"2px 6px",background:C.gD,borderRadius:4,color:C.g}}>✓ Checklist</span>}
+                </div>
+                {p.taxNote&&<div style={{fontSize:"0.52rem",color:TAX[p.tax]?.c||C.td,marginTop:6,fontStyle:"italic"}}>{p.taxNote}</div>}
+              </div>
+            );})}
+          </div>
+        </div>
+        <Footer/><BottomNav/>
+      </div>
+    );
+  }
+
+  // ═══ KNOWLEDGE / LIBRARY PAGE ═══
   if(page==="knowledge"){
     const kPlats=kMake?PLATFORMS.filter(p=>p.make===kMake):PLATFORMS;
     const junkParts=PARTS.filter(p=>p.cat==="junk");
-    const kTabs=[{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Buyer Checklists"},{id:"mistakes",l:"❌ Common Mistakes"},{id:"modorder",l:"📋 Mod Orders"},{id:"library",l:"📖 The Library"}];
-    const FACTS=[
-      {plat:"eg",icon:"🔴",fact:"The EG Civic hatch weighs less than a modern Miata. Under 2,300 lbs with a full tank of gas. A K20 swap in an EG makes it faster than cars costing 10x as much."},
-      {plat:"ek",icon:"🔴",fact:"The EK9 Type R was never sold in the US. Every 'USDM Type R' is either an imported JDM car or a converted EX/Si. The real EK9 has hand-ported intake ports from the factory."},
-      {plat:"s2k",icon:"🔴",fact:"The S2000's F20C engine holds the record for highest specific output of any NA production engine at launch — 124HP per liter. Honda achieved this without forced induction in 1999."},
-      {plat:"accord_v6",icon:"🔴",fact:"The 2008-2012 Accord V6 6-speed manual Coupe was faster than the contemporary Civic Si in every measurable way. Honda never marketed this. They literally hid their own product's best feature."},
-      {plat:"fit",icon:"🔴",fact:"The Honda Fit can swallow an entire IKEA bookshelf with the rear seats folded. It has more interior volume than some midsize SUVs. Honda calls this 'Magic Seat.' They're not exaggerating."},
-      {plat:"e30",icon:"🔵",fact:"BMW made 786 E30 M3s with the 2.5L S14 for homologation. They intended to sell them to racers. They're now worth $50-100k. The original MSRP was $34,950 in 1988."},
-      {plat:"e46",icon:"🔵",fact:"The E46 M3 CSL had its trunk lid, front bumper support, and floor panels made from carbon fiber. BMW removed the stereo, AC, and used thinner glass to save weight. It weighed 3,200 lbs. Engineers fought to remove the CUPHOLDERS."},
-      {plat:"e9x",icon:"🔵",fact:"The N54 twin-turbo engine in the 335i was tuned to exactly 300HP for political reasons — BMW didn't want it to overshadow the naturally aspirated M3. With a free tune, it makes 360HP. BMW sandbagged their own engine by 60HP."},
-      {plat:"va",icon:"⭐",fact:"The WRX/STI boxer engine is mounted so low that the center of gravity is below the axle centerline. This is why Subarus feel planted in corners despite weighing 3,400+ lbs. Rally engineering in a street car."},
-      {plat:"brz",icon:"⭐",fact:"The BRZ/86/FR-S has the same wheelbase as a Porsche Cayman. The chassis was co-developed by Subaru and Toyota specifically for driving feel. Engineers were banned from prioritizing lap times — they had to prioritize 'fun.'"},
-      {plat:"miata_na",icon:"🔶",fact:"The NA Miata was designed by a team that included a group of engineers who secretly built a prototype in their spare time because Mazda management initially rejected the idea. They presented it as a 'surprise' and management approved it immediately."},
-      {plat:"rx7_fc",icon:"🔶",fact:"The 13B rotary engine has only 3 moving parts — the rotor, the eccentric shaft, and the apex seals. A piston engine of similar displacement has over 40. This is why rotaries rev so smoothly — there's almost nothing to vibrate."},
-      {plat:"rx8",icon:"🔶",fact:"The RX-8's RENESIS engine was the last rotary engine in mass production. It won International Engine of the Year in 2003. Mazda keeps a rotary program alive — the MX-30 hybrid has a rotary range extender. The triangle never dies."},
-      {plat:"ae86",icon:"🏔",fact:"The AE86 was a basic economy car in Japan — the equivalent of a Corolla. It became legendary because it was cheap, lightweight, and RWD at a time when everything else was switching to FWD. Takumi's dad chose it because it was the cheapest RWD car available."},
-      {plat:"mk4",icon:"🏔",fact:"The 2JZ-GTE engine block can handle 2,000+ HP without modification. The stock bottom end — cast iron block, forged crank, forged rods — is stronger than most aftermarket setups. Toyota over-engineered it because it was also used in the Lexus GS300."},
-      {plat:"taco",icon:"🏔",fact:"A Toyota Tacoma loses less value in its first 5 years than almost any other vehicle. A 2018 Tacoma with 80k miles is worth 70% of its original MSRP. Toyota trucks are essentially a savings account you can drive."},
-      {plat:"camry_v6",icon:"🏔",fact:"The Camry is the best-selling car in America for 19 of the last 22 years. The V6 version makes more power than a Civic Si, BRZ, Miata, GTI, and Focus ST. Nobody talks about this because it's a Camry. That's the point."},
-      {plat:"mr2_sw20",icon:"🏔",fact:"The MR2 Turbo was used as a Ferrari donor car in the movie industry because its mid-engine proportions are similar to a 355/360. Several 'Ferraris' in movies are actually MR2s with body kits."},
-      {plat:"celica_gts",icon:"🏔",fact:"The 2ZZ-GE engine in the Celica GT-S is the same engine Toyota supplied to Lotus for the Elise and Exige. Lotus chose it because of its light weight and high-revving character. A $6k Celica has a Lotus engine."},
-      {plat:"z33",icon:"🔻",fact:"The 350Z was designed by the same man who designed the Nissan GT-R — Shiro Nakamura. The Z platform shares nothing with the GT-R but the design philosophy is the same: pure driving."},
-      {plat:"s_chassis",icon:"🔻",fact:"The 240SX was originally a luxury coupe in Japan (Silvia). It had pop-up headlights, rear-wheel drive, and was designed to compete with the Toyota Celica. Americans discovered it drifts perfectly — a use Nissan never intended."},
-      {plat:"z32",icon:"🔻",fact:"The 300ZX Twin Turbo was Car and Driver's 10Best for 3 consecutive years (1990-1992). It was faster than the contemporary Corvette. Nissan lost money on every unit because the engineering cost was astronomical."},
-      {plat:"sentra_ser",icon:"🔻",fact:"The Sentra SE-R Spec V came with an LSD and 6-speed manual from the factory — features that cost $2,000+ extra on competing cars. Nissan priced it at $18k. Nobody bought it because it said 'Sentra' on the trunk."},
-      {plat:"mustang_s197",icon:"🔷",fact:"The 2011+ 5.0 Coyote V8 was designed entirely using 3D modeling — Ford never built a physical prototype before the first engine ran. It made 412HP on the first dyno pull without modification. Engineers celebrated with barbecue."},
-      {plat:"crown_vic",icon:"🔷",fact:"More Crown Victorias were produced for police use than civilian use. Approximately 85% of all P71s went to law enforcement. The car was designed to be crashed, repaired, and crashed again. The body-on-frame construction makes it essentially immortal."},
-      {plat:"focus_st",icon:"🔷",fact:"The Focus ST's EcoBoost 2.0T is from the same engine family as the Focus RS. The RS version makes 350HP — 100HP more — from the same 2.0L block. Ford left significant headroom in the ST for safety margin."},
-      {plat:"taurus_sho",icon:"🔷",fact:"The original Taurus SHO (1989) had a Yamaha-designed V6 that revved to 7,000 RPM. It was the fastest American sedan of its era. The modern SHO is a 365HP twin-turbo AWD sedan disguised as a retirement vehicle."},
-      {plat:"lightning",icon:"🔷",fact:"The SVT Lightning was the first factory-supercharged truck. It ran 13.2 seconds in the quarter mile stock — faster than a contemporary Mustang GT. Ford SVT hand-built each supercharger. Only 28,124 were made across all years."},
-      {plat:"silverado",icon:"🟡",fact:"The LS V8 engine family has been put into virtually every type of vehicle — cars, trucks, boats, airplanes, go-karts, Miatas, Porsche 911s, Smart cars, and at least one shopping cart. It's the most swapped engine in history."},
-      {plat:"c10",icon:"🟡",fact:"The Chevrolet C10 is the most popular LS swap recipient in America. More LS engines have been put into C10s than any other vehicle. The combination of classic looks and modern power is an American tradition."},
-      {plat:"cobalt_ss",icon:"🟡",fact:"The Cobalt SS Turbo held the Nürburgring FWD lap record in 2008 at 8:22.85. A $25k GM economy car outran Ferraris on the world's most demanding track. GM never marketed this achievement. Then they killed the brand."},
-      {plat:"tbss",icon:"🟡",fact:"GM put the LS2 from the Corvette C6 into an SUV and barely told anyone. The Trailblazer SS shares its 6.0L V8 with the $50k GTO and $55k Corvette. It cost $37k new. The bean counters at GM approved this somehow."},
-      {plat:"g8_gt",icon:"🟡",fact:"The Pontiac G8 is actually a Holden Commodore — built in Australia and shipped to the US. Pontiac was killed by GM in 2010 just as the G8 was gaining a cult following. The Chevy SS continued the lineage but only 12,000 were ever made."},
-      {plat:"s10",icon:"🟡",fact:"The S-10's 4.3L V6 is literally a Chevy 350 V8 with 2 cylinders removed. It shares the same bore spacing, firing order pattern, and many internal parts. This is why it sounds like a V8 with a sore throat."},
-      {plat:"mk7_gti",icon:"🔹",fact:"The MK7 GTI with an APR Stage 1 tune makes more power than a BMW 228i, Audi A3, Mercedes CLA 250, and Alfa Romeo Giulia — for less money than any of them. VW left 80HP on the table for warranty considerations."},
-      {plat:"golf_r32",icon:"🔹",fact:"Only 5,000 MK4 R32s were sold in the US. Each one has a numbered plaque. The VR6 engine is a narrow-angle V6 (15°) that's barely wider than an inline-4 — VW designed it to fit in Golf-sized engine bays. It sounds like a V8 that went to engineering school."},
-      {plat:"jetta_gli",icon:"🔹",fact:"The GLI has been available in the US since 1984. It has ALWAYS been overshadowed by the GTI despite being mechanically identical for most of its existence. The sedan tax has cost GLI buyers literally thousands in savings for 40 years."},
-    ];
+    const kTabs=[{id:"drifttax",l:"🔥 Drift Tax"},{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Checklists"},{id:"mistakes",l:"❌ Mistakes"},{id:"modorder",l:"📋 Mod Order"}];
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:70}}><FL/>
-        <header style={{padding:"1rem 1.5rem",borderBottom:`1px solid ${C.bdr}`,background:C.s1}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div>
-              <span style={{fontSize:"0.9rem",fontWeight:800,fontFamily:fm,cursor:"pointer"}} onClick={()=>setPage("home")}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
-              <span style={{fontSize:"0.65rem",color:C.tm,marginLeft:8}}>Knowledge Base</span>
-            </div>
-          </div>
-        </header>
-        <div style={{maxWidth:700,margin:"0 auto",padding:"1rem 1.5rem"}}>
-          <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4,animation:"fadeUp 0.4s ease-out"}}>📚 Knowledge Base</h1>
-          <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem",animation:"fadeIn 0.5s ease-out"}}>The stuff buried in old forum threads — compiled, organized, and honest.</p>
-
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+        <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+          <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4,animation:"fadeUp 0.4s ease-out"}}>📚 Knowledge Base</h1>
+          <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>The stuff buried in dead forum threads — compiled, organized, and honest.</p>
           {/* Manufacturer filter */}
-          <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap",animation:"fadeIn 0.4s ease-out"}}>
+          <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
             <button onClick={()=>setKMake(null)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${!kMake?C.acc:C.bdr}`,background:!kMake?C.accD:"transparent",color:!kMake?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>All</button>
-            {MAKES.map(m=><button key={m.id} onClick={()=>setKMake(m.id)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${kMake===m.id?m.accent:C.bdr}`,background:kMake===m.id?m.accent+"15":"transparent",color:kMake===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
+            {MAKES.map(m=><button key={m.id} onClick={()=>setKMake(kMake===m.id?null:m.id)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${kMake===m.id?m.accent:C.bdr}`,background:kMake===m.id?m.accent+"15":"transparent",color:kMake===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
           </div>
-
           {/* Knowledge tabs */}
           <div style={{display:"flex",gap:4,marginBottom:"1rem",flexWrap:"wrap"}}>
-            {kTabs.map(t=><button key={t.id} onClick={()=>setKTab(t.id)} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${kTab===t.id?C.acc:C.bdr}`,background:kTab===t.id?C.accD:"transparent",color:kTab===t.id?C.acc:C.tm,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs,fontWeight:kTab===t.id?600:400}}>{t.l}</button>)}
+            {kTabs.map(t=><button key={t.id} onClick={()=>setKTab(t.id)} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${kTab===t.id?C.acc:C.bdr}`,background:kTab===t.id?C.accD:"transparent",color:kTab===t.id?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs,fontWeight:kTab===t.id?600:400}}>{t.l}</button>)}
           </div>
+
+          {/* DRIFT TAX TIER LIST */}
+          {kTab==="drifttax"&&(
+            <div>
+              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"1rem"}}>How much "hype tax" are you paying? Honest price assessments for every platform.</p>
+              {[4,3,2,1,0].map(tier=>{const t=TAX[tier];const tierPlats=kPlats.filter(p=>p.tax===tier);if(tierPlats.length===0)return null;return(
+                <div key={tier} style={{marginBottom:"1rem"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                    <span style={{fontSize:"0.9rem",fontWeight:800,color:t.c,fontFamily:fm}}>{t.l}</span>
+                    <span style={{fontSize:"0.55rem",color:C.td}}>({tierPlats.length} platforms)</span>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+                    {tierPlats.map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+                      <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");}} style={{background:C.s1,borderRadius:10,border:`1px solid ${t.c}30`,padding:"0.75rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                          <span style={{fontSize:"0.78rem",fontWeight:700}}>{m?.icon} {p.name}</span>
+                          <span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>{p.budget}</span>
+                        </div>
+                        {p.taxNote&&<p style={{fontSize:"0.58rem",color:t.c,marginTop:4,lineHeight:1.4,fontStyle:"italic"}}>{p.taxNote}</p>}
+                      </div>
+                    );})}
+                  </div>
+                </div>
+              );})}
+            </div>
+          )}
 
           {/* JUNKYARD GOLD */}
           {kTab==="junkyard"&&(
-            <div>
-              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>Hidden bolt-ons and junkyard swaps — the knowledge that takes years of forum diving to find.</p>
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
               {(kMake?junkParts.filter(p=>p.plats.some(pl=>PLATFORMS.find(x=>x.id===pl)?.make===kMake)):junkParts).map((part,i)=>{
                 const partPlats=part.plats.map(pl=>PLATFORMS.find(x=>x.id===pl)).filter(Boolean);
                 return(
-                  <div key={part.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid #D46B0825`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                      <div style={{flex:1}}><div style={{fontSize:"0.8rem",fontWeight:700,color:"#D46B08"}}>{part.name}</div>
-                        <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>{partPlats.map(p=><span key={p.id} style={{fontSize:"0.5rem",padding:"1px 5px",background:C.s2,borderRadius:3,color:C.tm}}>{p.name}</span>)}</div>
-                      </div>
-                      <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.8rem",color:part.price===0?"#2EC4B6":"#D46B08"}}>{part.price===0?"FREE":`$${part.price}`}</span>
-                    </div>
-                    <p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.45,margin:"0.4rem 0"}}>{part.desc.slice(0,200)}{part.desc.length>200?"...":""}</p>
-                    <div style={{fontSize:"0.6rem",padding:"0.35rem",background:"#D46B0808",borderRadius:4,color:"#D46B08"}}>💡 {part.notes.slice(0,150)}{part.notes.length>150?"...":""}</div>
+                  <div key={part.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid #D46B0825`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+                    <div style={{fontSize:"0.78rem",fontWeight:700,color:"#D46B08"}}>{part.name}</div>
+                    <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>{partPlats.map(p=><span key={p.id} style={{fontSize:"0.48rem",padding:"1px 5px",background:C.s2,borderRadius:3,color:C.tm}}>{p.name}</span>)}</div>
+                    <p style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0"}}>{part.desc.slice(0,180)}...</p>
+                    <div style={{fontSize:"0.55rem",padding:"0.3rem",background:"#D46B0808",borderRadius:4,color:"#D46B08"}}>💡 {part.notes.slice(0,120)}...</div>
                   </div>
                 );
               })}
@@ -1855,467 +1904,296 @@ export default function App(){
 
           {/* BUYER CHECKLISTS */}
           {kTab==="checklists"&&(
-            <div>
-              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>Print these and bring them when buying. Every item matters.</p>
-              {kPlats.filter(p=>p.buyer_checklist).map((p,i)=>{
-                const m=MAKES.find(x=>x.id===p.make);
-                return(
-                  <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${C.g}20`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                      <div><span style={{fontSize:"0.8rem",fontWeight:700}}>{m?.icon} {p.name}</span><span style={{fontSize:"0.6rem",color:C.td,marginLeft:6}}>{p.gen}</span></div>
-                      <span style={{fontSize:"0.55rem",color:C.g,fontFamily:fm}}>{p.buyer_checklist.length} items</span>
-                    </div>
-                    {p.buyer_checklist.map((item,j)=>(
-                      <div key={j} style={{display:"flex",gap:6,marginBottom:3,alignItems:"flex-start"}}>
-                        <div style={{width:14,height:14,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/>
-                        <span style={{fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>{item}</span>
-                      </div>
-                    ))}
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+              {kPlats.filter(p=>p.buyer_checklist).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+                <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.g}20`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <span style={{fontSize:"0.78rem",fontWeight:700}}>{m?.icon} {p.name}</span>
+                    <span style={{fontSize:"0.52rem",color:C.g,fontFamily:fm}}>{p.buyer_checklist.length} items</span>
                   </div>
-                );
-              })}
+                  {p.buyer_checklist.map((item,j)=>(
+                    <div key={j} style={{display:"flex",gap:6,marginBottom:3,alignItems:"flex-start"}}>
+                      <div style={{width:13,height:13,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/>
+                      <span style={{fontSize:"0.62rem",color:C.t,lineHeight:1.4}}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              );})}
             </div>
           )}
 
           {/* COMMON MISTAKES */}
           {kTab==="mistakes"&&(
-            <div>
-              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>Learned the hard way by thousands of owners. Don't repeat their mistakes.</p>
-              {kPlats.filter(p=>p.mistakes).map((p,i)=>{
-                const m=MAKES.find(x=>x.id===p.make);
-                return(
-                  <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${C.acc}15`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
-                    <div style={{fontSize:"0.8rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name} <span style={{fontSize:"0.6rem",color:C.td,fontWeight:400}}>{p.gen}</span></div>
-                    {p.mistakes.map((mi,j)=>(
-                      <div key={j} style={{padding:"0.35rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>❌ {mi}</div>
-                    ))}
-                  </div>
-                );
-              })}
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+              {kPlats.filter(p=>p.mistakes).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+                <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.acc}15`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+                  <div style={{fontSize:"0.78rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name}</div>
+                  {p.mistakes.map((mi,j)=>(
+                    <div key={j} style={{padding:"0.3rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.62rem",color:C.t,lineHeight:1.4}}>❌ {mi}</div>
+                  ))}
+                </div>
+              );})}
             </div>
           )}
 
           {/* MOD ORDERS */}
           {kTab==="modorder"&&(
-            <div>
-              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>The right order saves money and prevents damage. Follow these.</p>
-              {kPlats.filter(p=>p.mod_order).map((p,i)=>{
-                const m=MAKES.find(x=>x.id===p.make);
-                return(
-                  <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${C.y}20`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
-                    <div style={{fontSize:"0.8rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name} <span style={{fontSize:"0.6rem",color:C.td,fontWeight:400}}>{p.gen}</span></div>
-                    <div style={{padding:"0.5rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.68rem",color:C.t,lineHeight:1.6}}>{p.mod_order}</div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* THE LIBRARY — fun facts and obscure knowledge */}
-          {kTab==="library"&&(
-            <div>
-              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"0.75rem"}}>The stuff you learn after years of ownership, forum diving, and late-night Wikipedia holes. Some useful, some just cool.</p>
-              {(kMake?FACTS.filter(f=>{const p=PLATFORMS.find(x=>x.id===f.plat);return p&&p.make===kMake;}):FACTS).map((f,i)=>{
-                const p=PLATFORMS.find(x=>x.id===f.plat);
-                const m=p?MAKES.find(x=>x.id===p.make):null;
-                return(
-                  <div key={i} style={{padding:"0.75rem",background:C.s1,borderRadius:8,border:`1px solid ${m?.accent||C.acc}20`,marginBottom:6,animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
-                      <span style={{fontSize:"1rem"}}>{f.icon}</span>
-                      <span style={{fontSize:"0.8rem",fontWeight:700}}>{p?.name||"Unknown"}</span>
-                      <span style={{fontSize:"0.55rem",color:C.td}}>{p?.gen}</span>
-                    </div>
-                    <p style={{fontSize:"0.68rem",color:C.t,lineHeight:1.5,margin:0}}>{f.fact}</p>
-                  </div>
-                );
-              })}
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+              {kPlats.filter(p=>p.mod_order).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+                <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.y}20`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+                  <div style={{fontSize:"0.78rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name}</div>
+                  <div style={{padding:"0.4rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.62rem",color:C.t,lineHeight:1.6}}>{p.mod_order}</div>
+                </div>
+              );})}
             </div>
           )}
         </div>
+        <Footer/><BottomNav/>
       </div>
     );
   }
 
-  // ═══ MAKE SCREEN ═══
+  // ═══ HOME / MAKE SELECTION ═══
   if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,padding:"2rem 1.5rem",paddingBottom:80}}><FL/>
-      <div style={{maxWidth:700,margin:"0 auto"}}>
-        <div style={{textAlign:"center",marginBottom:"2.5rem",animation:"fadeUp 0.6s ease-out"}}>
-          <div style={{fontSize:"2.8rem",fontWeight:800,fontFamily:fm,letterSpacing:"-0.04em",position:"relative",display:"inline-block"}}>
-            BUILD<span style={{color:C.acc}}>SPEC</span>
-            <div style={{position:"absolute",bottom:-4,left:0,right:0,height:2,background:`linear-gradient(90deg, transparent, ${C.acc}, transparent)`,opacity:0.5}}/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
+        <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
+          <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
+          <p style={{fontSize:"0.85rem",color:C.tm,maxWidth:500,margin:"0 auto",lineHeight:1.5}}>The smartest way to plan your car build. Parts, builds, junkyard secrets, and honest advice for {PLATFORMS.length} platforms.</p>
+          <div style={{display:"flex",gap:12,justifyContent:"center",marginTop:"1rem",flexWrap:"wrap"}}>
+            <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.acc}}>{PLATFORMS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Platforms</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.g}}>{PARTS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Parts</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.y}}>{BUILDS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Builds</div></div>
           </div>
-          <p style={{color:C.tm,fontSize:"0.85rem",marginTop:10}}>Plan your build. Track your budget. Send it.</p>
         </div>
-        <p style={{textAlign:"center",fontSize:"0.65rem",color:C.td,textTransform:"uppercase",letterSpacing:"0.18em",marginBottom:"1.25rem",animation:"fadeIn 0.8s ease-out"}}>Choose your manufacturer</p>
-        <div style={{display:"flex",flexDirection:"column",gap:"0.75rem"}}>
-          {MAKES.map((m,i)=>{const mP=PLATFORMS.filter(p=>p.make===m.id);const pCount=PARTS.filter(p=>p.plats.some(pl=>mP.map(x=>x.id).includes(pl))).length;return(
-            <div key={m.id} onClick={()=>goMake(m.id)} style={{background:C.s1,borderRadius:14,border:`2px solid ${C.bdr}`,padding:"1.5rem",cursor:"pointer",transition:"all 0.25s ease",position:"relative",overflow:"hidden",animation:`fadeUp 0.5s ease-out ${i*0.12}s both`}}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 8px 32px ${m.accent}15`;}} 
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
-              <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:`linear-gradient(90deg, transparent, ${m.accent}40, transparent)`}}/>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><div style={{fontSize:"1.5rem",fontWeight:800,letterSpacing:"-0.02em"}}>{m.icon} {m.name}</div><div style={{fontSize:"0.8rem",color:C.tm,marginTop:4,lineHeight:1.4}}>{m.tagline}</div></div>
-                <div style={{textAlign:"right",fontFamily:fm,fontSize:"0.62rem",color:C.td}}>
-                  <div style={{color:m.accent,fontSize:"0.7rem",fontWeight:600}}>{mP.length} platforms</div>
-                  <div>{pCount} parts</div>
-                </div>
+
+        <h2 style={{fontSize:"0.9rem",fontWeight:700,marginBottom:"0.75rem"}}>Choose Your Manufacturer</h2>
+        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
+          {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));return(
+            <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1.2rem",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s,transform 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <span style={{fontSize:"1.2rem",fontWeight:800}}>{m.icon} {m.name}</span>
+                <span style={{fontSize:"0.55rem",color:m.accent,fontFamily:fm}}>{mPlats.length} cars</span>
               </div>
-              <div style={{display:"flex",gap:5,marginTop:"0.75rem",flexWrap:"wrap"}}>
-                {mP.map(p=><span key={p.id} style={{fontSize:"0.62rem",padding:"3px 8px",background:C.s2,borderRadius:5,color:C.tm,border:`1px solid ${C.bdr}`,transition:"all 0.15s"}}>{p.name} <span style={{color:C.td}}>({p.gen})</span></span>)}
-              </div>
-              <div style={{display:"flex",justifyContent:"flex-end",marginTop:"0.5rem"}}>
-                <span style={{fontSize:"0.62rem",color:m.accent,fontFamily:fm}}>Browse →</span>
-              </div>
-            </div>);
-          })}
+              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{m.tagline}</p>
+              <div style={{fontSize:"0.55rem",color:C.td}}>{mParts.length} parts • {BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length} builds</div>
+            </div>
+          );})}
         </div>
-        <p style={{textAlign:"center",color:C.td,fontSize:"0.65rem",marginTop:"2rem",animation:"fadeIn 1s ease-out 0.5s both"}}>{MAKES.length} manufacturers • {PLATFORMS.length} platforms • {PARTS.length} parts</p>
       </div>
-      <BottomNav/>
+      <Footer/><BottomNav/>
     </div>
   );
 
-  // ═══ PLATFORM SCREEN ═══
+  // ═══ PLATFORM SELECTION ═══
   if(step==="platform"){const mP=PLATFORMS.filter(p=>p.make===makeId);return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,padding:"1.5rem"}}><FL/>
-      <div style={{maxWidth:700,margin:"0 auto"}}>
-        <button onClick={goBack} style={{fontSize:"0.7rem",color:C.tm,background:"none",border:`1px solid ${C.bdr}`,borderRadius:5,padding:"5px 12px",cursor:"pointer",fontFamily:fs,marginBottom:"1rem",transition:"all 0.15s",animation:"fadeIn 0.3s ease-out"}}
-          onMouseEnter={e=>e.currentTarget.style.borderColor=C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>← Manufacturers</button>
-        <div style={{fontSize:"1.6rem",fontWeight:800,fontFamily:fm,marginBottom:"0.25rem",animation:"fadeUp 0.4s ease-out"}}>{make?.icon} {make?.name}</div>
-        <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem",animation:"fadeIn 0.5s ease-out"}}>Choose your platform</p>
-        <div style={{display:"flex",flexDirection:"column",gap:"0.6rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+        <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to manufacturers</button>
+        <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4}}>{make?.icon} {make?.name}</h1>
+        <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>{make?.tagline}</p>
+        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
           {mP.map((p,i)=>{const pP=PARTS.filter(x=>x.plats.includes(p.id));const pB=BUILDS.filter(x=>x.plat===p.id);const junk=pP.filter(x=>x.cat==="junk");return(
-            <div key={p.id} onClick={()=>goPlat(p.id)} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1.1rem",cursor:"pointer",transition:"all 0.25s ease",position:"relative",overflow:"hidden",animation:`fadeUp 0.4s ease-out ${i*0.08}s both`}}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=make?.accent||C.acc;e.currentTarget.style.transform="translateY(-1px)";e.currentTarget.style.boxShadow=`0 4px 20px ${make?.accent||C.acc}12`;}} 
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                <div><div style={{fontWeight:700,fontSize:"1.05rem"}}>{p.name}</div><div style={{fontSize:"0.7rem",color:C.y,fontFamily:fm,marginTop:2}}>{p.tagline}</div><div style={{fontSize:"0.6rem",color:C.td,marginTop:1}}>{p.gen}</div></div>
-                <div style={{textAlign:"right",fontSize:"0.62rem",fontFamily:fm}}><div style={{color:C.g,fontWeight:600}}>{p.hp}hp / {p.tq}tq</div><div style={{color:C.tm}}>{p.budget}</div></div>
+            <div key={p.id} onClick={()=>{setPlatId(p.id);setStep("vehicle");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.05}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=make?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+                <div><div style={{fontSize:"0.9rem",fontWeight:700}}>{p.name}</div><div style={{fontSize:"0.58rem",color:C.td}}>{p.gen} • {p.hp}HP/{p.tq}TQ • Budget: {p.budget}</div></div>
+                <TaxBadge lv={p.tax}/>
               </div>
-              <p style={{fontSize:"0.72rem",color:C.tm,lineHeight:1.45,margin:"0.5rem 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{p.why}</p>
-              <div style={{display:"flex",gap:8,fontSize:"0.58rem",color:C.td,flexWrap:"wrap"}}>
-                <span style={{padding:"2px 6px",background:C.s2,borderRadius:3}}>{pP.length} parts</span>
-                <span style={{padding:"2px 6px",background:C.s2,borderRadius:3}}>{pB.length} builds</span>
-                {junk.length>0&&<span style={{padding:"2px 6px",background:"#D46B0812",borderRadius:3,color:"#D46B08"}}>🏴‍☠️ {junk.length} junkyard</span>}
-                {p.warns&&<span style={{padding:"2px 6px",background:C.yD,borderRadius:3,color:C.y}}>⚠️ {p.warns.length} issues</span>}
-                {p.buyer_checklist&&<span style={{padding:"2px 6px",background:C.gD,borderRadius:3,color:C.g}}>✓ Checklist</span>}
-                {p.tax!==undefined&&<TaxBadge lv={p.tax}/>}
+              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{p.why}</p>
+              <div style={{display:"flex",gap:6,fontSize:"0.55rem",color:C.td,flexWrap:"wrap",marginBottom:4}}>
+                <span style={{padding:"2px 6px",background:C.s2,borderRadius:4}}>{pP.length} parts</span>
+                <span style={{padding:"2px 6px",background:C.s2,borderRadius:4}}>{pB.length} builds</span>
+                {junk.length>0&&<span style={{padding:"2px 6px",background:"#D46B0812",borderRadius:4,color:"#D46B08"}}>🏴‍☠️ {junk.length}</span>}
+                {p.warns&&<span style={{padding:"2px 6px",background:C.yD,borderRadius:4,color:C.y}}>⚠️ {p.warns.length}</span>}
+                {p.buyer_checklist&&<span style={{padding:"2px 6px",background:C.gD,borderRadius:4,color:C.g}}>✓ Checklist</span>}
               </div>
-              {p.taxNote&&<div style={{fontSize:"0.55rem",color:TAX[p.tax]?.c||C.td,marginTop:4,fontStyle:"italic"}}>{p.taxNote}</div>}
-            </div>);
-          })}
+              {p.taxNote&&<div style={{fontSize:"0.52rem",color:TAX[p.tax]?.c||C.td,fontStyle:"italic"}}>{p.taxNote}</div>}
+            </div>
+          );})}
         </div>
       </div>
+      <Footer/><BottomNav/>
     </div>
   );}
 
-  // ═══ VEHICLE SCREEN ═══
+  // ═══ VEHICLE SELECTION ═══
   if(step==="vehicle")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,padding:"1.5rem"}}><FL/>
-      <div style={{maxWidth:560,margin:"0 auto"}}>
-        <button onClick={goBack} style={{fontSize:"0.7rem",color:C.tm,background:"none",border:`1px solid ${C.bdr}`,borderRadius:5,padding:"4px 10px",cursor:"pointer",fontFamily:fs,marginBottom:"1rem"}}>← {make?.name} Platforms</button>
-        <div style={{marginBottom:"1rem"}}><div style={{fontSize:"1.3rem",fontWeight:800}}>{plat?.name}</div><div style={{fontSize:"0.72rem",color:C.y,fontFamily:fm}}>{plat?.tagline}</div><p style={{fontSize:"0.72rem",color:C.tm,marginTop:6}}>{plat?.desc}</p></div>
-        <p style={{fontSize:"0.62rem",color:C.td,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:"0.5rem"}}>Select your vehicle</p>
-        {platVehs.map(v=>(
-          <button key={v.id} onClick={()=>goVeh(v.id)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",textAlign:"left",padding:"0.65rem 0.85rem",marginBottom:4,background:C.s1,border:`1px solid ${C.bdr}`,borderRadius:6,color:C.t,cursor:"pointer",fontFamily:fs,fontSize:"0.82rem"}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor=C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
-            <span style={{fontWeight:600}}>{v.year} {v.trim}</span><span style={{color:C.tm,fontFamily:fm,fontSize:"0.7rem"}}>{v.engine}</span>
-          </button>))}
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+        <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
+        <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
+        <p style={{fontSize:"0.65rem",color:C.td,marginBottom:"0.75rem"}}>{plat?.gen} • {plat?.hp}HP / {plat?.tq}TQ {plat?.tax!==undefined&&<TaxBadge lv={plat.tax}/>}</p>
+
+        {/* About tabs */}
+        <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
+          {[{id:"overview",l:"Overview"},{id:"checklist",l:"Checklist"},{id:"mistakes",l:"Mistakes"},{id:"modorder",l:"Mod Order"}].map(t=>(
+            <button key={t.id} onClick={()=>setAboutTab(t.id)} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${aboutTab===t.id?C.acc:C.bdr}`,background:aboutTab===t.id?C.accD:"transparent",color:aboutTab===t.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:aboutTab===t.id?600:400}}>{t.l}</button>
+          ))}
+        </div>
+
+        {aboutTab==="overview"&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.bdr}`,marginBottom:"1rem"}}><p style={{fontSize:"0.72rem",color:C.tm,lineHeight:1.5}}>{plat?.desc}</p></div>}
+        {aboutTab==="checklist"&&plat?.buyer_checklist&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.g}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.g}}>🔍 Buyer Checklist</h3>{plat.buyer_checklist.map((item,j)=><div key={j} style={{display:"flex",gap:6,marginBottom:4}}><div style={{width:14,height:14,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/><span style={{fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>{item}</span></div>)}</div>}
+        {aboutTab==="mistakes"&&plat?.mistakes&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.acc}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.acc}}>❌ Common Mistakes</h3>{plat.mistakes.map((m,j)=><div key={j} style={{padding:"0.35rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>❌ {m}</div>)}</div>}
+        {aboutTab==="modorder"&&plat?.mod_order&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.y}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.y}}>📋 Mod Order</h3><div style={{padding:"0.5rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.68rem",color:C.t,lineHeight:1.6}}>{plat.mod_order}</div></div>}
+
+        <h2 style={{fontSize:"0.85rem",fontWeight:700,marginTop:"1rem",marginBottom:"0.5rem"}}>Select Your Vehicle</h2>
+        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:8}}>
+          {platVehs.map((v,i)=>(
+            <div key={v.id} onClick={()=>{setVehId(v.id);setStep("builder");}} style={{background:C.s1,borderRadius:8,border:`1px solid ${C.bdr}`,padding:"0.75rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=make?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+              <div style={{fontSize:"0.85rem",fontWeight:700}}>{v.year}</div>
+              <div style={{fontSize:"0.62rem",color:C.tm}}>{v.trim}</div>
+              <div style={{fontSize:"0.55rem",color:C.td,fontFamily:fm,marginTop:3}}>{v.engine}</div>
+            </div>
+          ))}
+        </div>
       </div>
+      <Footer/><BottomNav/>
     </div>
   );
 
-  // ═══ BUILDER ═══
-  const TABS=[{id:"build",label:`Build (${bParts.length})`},{id:"diy",label:"DIY Builds"},{id:"about",label:"About / Guides"}];
-
+  // ═══ BUILDER SCREEN ═══
   return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:70}}><FL/>
-      <header style={{borderBottom:`1px solid ${C.bdr}`,padding:"0.5rem 1rem",display:"flex",alignItems:"center",justifyContent:"space-between",background:C.s1,flexWrap:"wrap",gap:4}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontSize:"0.9rem",fontWeight:800,fontFamily:fm,cursor:"pointer"}} onClick={()=>{setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});}}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
-          <span style={{fontSize:"0.62rem",color:C.tm,padding:"2px 6px",background:C.accD,borderRadius:4}}>{veh?.year} {veh?.trim}</span>
-          <span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>{veh?.engine}</span>
-        </div>
-        <button onClick={goBack} style={{fontSize:"0.58rem",color:C.tm,background:"none",border:`1px solid ${C.bdr}`,borderRadius:4,padding:"2px 7px",cursor:"pointer",fontFamily:fs}}>← Change</button>
-      </header>
-
-      <div style={{display:"flex",borderBottom:`1px solid ${C.bdr}`,background:C.s1}}>
-        {TABS.map(t=><button key={t.id} onClick={()=>{setTab(t.id);setPicker(null);}} style={{padding:"0.55rem 0.85rem",background:"none",border:"none",borderBottom:tab===t.id?`2px solid ${C.acc}`:"2px solid transparent",color:tab===t.id?C.t:C.tm,fontFamily:fs,fontSize:"0.72rem",fontWeight:tab===t.id?600:400,cursor:"pointer"}}>{t.label}</button>)}
-      </div>
-
-      {plat?.warns&&showWarn&&tab==="build"&&(
-        <div style={{margin:"0.5rem 1rem 0",padding:"0.45rem 0.65rem",background:"#FFB70308",border:`1px solid ${C.y}20`,borderRadius:6,fontSize:"0.65rem"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-            <span style={{color:C.y,fontWeight:600}}>⚠️ {plat.name} — Known Issues</span>
-            <button onClick={()=>setShowWarn(false)} style={{color:C.td,background:"none",border:"none",cursor:"pointer",fontSize:"0.55rem"}}>dismiss</button>
-          </div>
-          {plat.warns.map((w,i)=><div key={i} style={{color:C.tm,marginBottom:1,paddingLeft:10}}>• {w}</div>)}
-        </div>
-      )}
-
-      <div style={{maxWidth:940,margin:"0 auto",padding:"1rem"}}>
-
-        {/* ═══ BUILD ═══ */}
-        {tab==="build"&&(
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
+        {/* Header */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
           <div>
-            <div style={{display:"flex",gap:5,marginBottom:5,alignItems:"center",flexWrap:"wrap"}}>
-              <input type="text" value={bName} onChange={e=>setBName(e.target.value)} style={{flex:"1 1 180px",padding:"0.4rem 0.6rem",background:C.s1,border:`1px solid ${C.bdr}`,borderRadius:5,color:C.t,fontSize:"0.92rem",fontWeight:700,fontFamily:fs,outline:"none"}}/>
-              <div style={{display:"flex",alignItems:"center",gap:3}}>
-                <button onClick={()=>setBudgetOn(!budgetOn)} style={{padding:"2px 8px",borderRadius:10,border:"none",background:budgetOn?C.g:C.bdr,color:budgetOn?"#000":C.tm,fontSize:"0.55rem",fontWeight:600,cursor:"pointer"}}>{budgetOn?"BUDGET ON":"BUDGET"}</button>
-                {budgetOn&&<><span style={{fontFamily:fm,color:C.tm,fontSize:"0.72rem"}}>$</span><input type="number" value={budget} onChange={e=>setBudget(+e.target.value||0)} style={{width:60,padding:"2px 4px",background:C.s2,border:`1px solid ${C.bdr}`,borderRadius:3,color:C.t,fontFamily:fm,fontWeight:700,fontSize:"0.72rem",outline:"none"}}/></>}
-              </div>
+            <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.6rem",fontFamily:fs,padding:0}}>← Back</button>
+            <h1 style={{fontSize:"1rem",fontWeight:800,margin:0}}>{make?.icon} {veh?.year} {veh?.trim}</h1>
+            <div style={{fontSize:"0.58rem",color:C.td}}>{veh?.engine} • {plat?.hp}HP / {plat?.tq}TQ</div>
+          </div>
+          <TaxBadge lv={plat?.tax}/>
+        </div>
+
+        {/* Budget tracker */}
+        <div style={{background:C.s1,borderRadius:10,padding:"0.75rem",border:`1px solid ${C.bdr}`,marginBottom:"0.75rem"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+            <span style={{fontSize:"0.65rem",fontWeight:600}}>Budget</span>
+            <div style={{display:"flex",gap:4}}>
+              {[500,1000,2000,3000,5000].map(b=><button key={b} onClick={()=>setBudget(b)} style={{padding:"2px 6px",borderRadius:4,border:`1px solid ${budget===b?C.acc:C.bdr}`,background:budget===b?C.accD:"transparent",color:budget===b?C.acc:C.tm,fontSize:"0.52rem",cursor:"pointer",fontFamily:fm}}>${b>=1000?(b/1000)+"k":b}</button>)}
             </div>
-            {budgetOn&&<div style={{display:"flex",gap:3,marginBottom:5,flexWrap:"wrap"}}>{[200,500,700,1000,1500,2000,3000,5000].map(a=><button key={a} onClick={()=>setBudget(a)} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${budget===a?C.acc:C.bdr}`,background:budget===a?C.accD:"transparent",color:budget===a?C.acc:C.tm,fontSize:"0.58rem",fontFamily:fm,cursor:"pointer"}}>${a>=1000?`${a/1000}k`:a}</button>)}</div>}
-            {budgetOn&&<div style={{marginBottom:5,padding:"0.3rem 0.5rem",background:C.s1,borderRadius:5,border:`1px solid ${C.bdr}`,display:"flex",alignItems:"center",gap:5}}><span style={{fontSize:"0.58rem",color:C.tm}}>${tCost.toLocaleString()}</span><div style={{flex:1,height:4,background:C.bdr,borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:`${bPct}%`,background:bLeft>=0?C.g:C.acc,borderRadius:2,transition:"width 0.3s"}}/></div><span style={{fontSize:"0.58rem",fontFamily:fm,color:bLeft>=0?C.g:C.acc}}>{bLeft>=0?`$${bLeft.toLocaleString()} left`:`-$${Math.abs(bLeft).toLocaleString()}`}</span></div>}
+          </div>
+          <div style={{height:6,background:C.s3,borderRadius:3,overflow:"hidden",marginBottom:4}}>
+            <div style={{height:"100%",width:`${bPct}%`,background:bLeft<0?C.acc:bLeft<budget*0.2?C.y:C.g,borderRadius:3,transition:"width 0.3s"}}/>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.58rem"}}>
+            <span style={{color:C.tm}}>Spent: <span style={{color:C.t,fontFamily:fm,fontWeight:700}}>${tCost}</span></span>
+            <span style={{color:bLeft<0?C.acc:C.g,fontFamily:fm,fontWeight:700}}>{bLeft<0?`$${Math.abs(bLeft)} over`:`$${bLeft} left`}</span>
+          </div>
+        </div>
 
-            {/* TABLE */}
-            <div style={{background:C.s1,borderRadius:8,border:`1px solid ${C.bdr}`,overflow:"hidden"}}>
-              {!mob&&<div style={{display:"grid",gridTemplateColumns:"38px 110px 1fr 56px 50px 42px 26px",padding:"0.3rem 0.45rem",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.1em",color:C.td}}><span/><span>Category</span><span>Part</span><span style={{textAlign:"right"}}>Price</span><span style={{textAlign:"right"}}>Power</span><span style={{textAlign:"right"}}>Skill</span><span/></div>}
-
-              {CATS.map(cat=>{
-                const sp=sel[cat.id]?PARTS.find(p=>p.id===sel[cat.id]):null;
-                const isOpen=picker===cat.id;
-                const pInCat=pp.filter(p=>p.cat===cat.id);
-                if(!pInCat.length)return null;
-                const isJunk=cat.id==="junk";
-                return(
-                  <div key={cat.id}>
-                    {mob?(
-                      /* MOBILE CARD LAYOUT */
-                      <div style={{padding:"0.6rem",borderBottom:`1px solid ${C.bdr}20`,background:sp?isJunk?"#D46B0810":C.accD:"transparent"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:sp?6:0}}>
-                          <div style={{display:"flex",alignItems:"center",gap:8}}>
-                            <CatIco cat={cat.id}/>
-                            <span style={{fontSize:"0.75rem",fontWeight:600,color:isJunk?"#D46B08":sp?C.t:C.tm}}>{cat.name}</span>
-                          </div>
-                          {sp?<button onClick={()=>rmPart(cat.id)} style={{background:"none",border:"none",color:C.acc,cursor:"pointer",fontSize:"0.85rem",padding:"4px"}}>✕</button>
-                          :<button onClick={()=>setPicker(isOpen?null:cat.id)} style={{padding:"6px 12px",background:C.s2,border:`1px dashed ${isJunk?"#D46B0850":C.bdr}`,borderRadius:5,color:isJunk?"#D46B08":C.acc,fontSize:"0.72rem",cursor:"pointer",fontFamily:fs}}>{isJunk?"🏴‍☠️ Browse":`+ Add`}</button>}
-                        </div>
-                        {sp&&(
-                          <div style={{marginLeft:42}}>
-                            <div style={{fontSize:"0.75rem",fontWeight:600}}>{sp.name}</div>
-                            <div style={{display:"flex",gap:6,alignItems:"center",marginTop:3,flexWrap:"wrap"}}>
-                              <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.8rem"}}>{sp.price===0?"FREE":`$${sp.price}`}</span>
-                              {(sp.hp>0||sp.tq>0)&&<span style={{fontSize:"0.6rem",fontFamily:fm,color:C.g}}>+{sp.hp}/{sp.tq}</span>}
-                              <SkB lv={sp.sk}/>
-                              <button onClick={()=>setPicker(cat.id)} style={{color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,fontSize:"0.6rem",padding:0}}>↻ swap</button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ):(
-                      /* DESKTOP GRID LAYOUT */
-                    <div style={{display:"grid",gridTemplateColumns:"38px 110px 1fr 56px 50px 42px 26px",padding:"0.4rem 0.45rem",borderBottom:`1px solid ${C.bdr}12`,alignItems:"center",background:sp?isJunk?"#D46B0810":C.accD:"transparent"}}>
-                      <CatIco cat={cat.id}/>
-                      <div style={{fontSize:"0.65rem",fontWeight:600,color:isJunk?"#D46B08":sp?C.t:C.tm}}>{cat.name}</div>
-                      {sp?<div><div style={{fontSize:"0.7rem",fontWeight:600}}>{sp.name}</div><div style={{fontSize:"0.55rem",color:C.tm}}>{sp.brand} • <button onClick={()=>setPicker(cat.id)} style={{color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,fontSize:"0.55rem",padding:0}}>↻ swap</button></div></div>
-                        :<button onClick={()=>setPicker(isOpen?null:cat.id)} style={{padding:"4px 9px",background:C.s2,border:`1px dashed ${isJunk?"#D46B0850":C.bdr}`,borderRadius:4,color:isJunk?"#D46B08":C.acc,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs,textAlign:"left"}}>{isJunk?"🏴‍☠️ Browse Junkyard Swaps":`+ Choose ${cat.name}`}</button>}
-                      <div style={{textAlign:"right",fontFamily:fm,fontWeight:600,fontSize:"0.75rem"}}>{sp?sp.price===0?"FREE":`$${sp.price}`:"—"}</div>
-                      <div style={{textAlign:"right",fontFamily:fm,fontSize:"0.58rem"}}>{sp&&(sp.hp>0||sp.tq>0)?<span style={{color:C.g}}>+{sp.hp}/{sp.tq}</span>:""}</div>
-                      <div style={{textAlign:"right"}}>{sp&&<SkB lv={sp.sk}/>}</div>
-                      <div style={{textAlign:"center"}}>{sp?<button onClick={()=>rmPart(cat.id)} style={{background:"none",border:"none",color:C.acc,cursor:"pointer",fontSize:"0.72rem"}}>✕</button>:<button onClick={()=>setPicker(isOpen?null:cat.id)} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.62rem"}}>{isOpen?"▴":"▾"}</button>}</div>
-                    </div>
-                    )}
-                    {isOpen&&(
-                      <div style={{background:isJunk?"#D46B0808":C.s2,borderBottom:`1px solid ${C.bdr}`,padding:"0.4rem 0.45rem"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                          <span style={{fontSize:"0.58rem",color:isJunk?"#D46B08":C.tm}}>{pInCat.length} options {isJunk&&"— hidden knowledge from forums & junkyards"}</span>
-                          <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"1px 4px",background:C.s3,border:`1px solid ${C.bdr}`,borderRadius:3,color:C.tm,fontSize:"0.55rem",fontFamily:fs,outline:"none"}}><option value="default">Default</option><option value="price-asc">Price ↑</option><option value="price-desc">Price ↓</option><option value="power">Power</option><option value="skill">Easiest</option></select>
-                        </div>
-                        {pickParts.map(part=>{
-                          const isSel=sel[cat.id]===part.id;
-                          const swp=sel[cat.id]?(PARTS.find(p=>p.id===sel[cat.id])?.price||0):0;
-                          const over=budgetOn&&!isSel&&(tCost+part.price-swp)>budget;
-                          return(
-                            <div key={part.id} style={{padding:"0.45rem",marginBottom:3,background:isSel?isJunk?"#D46B0815":C.accD:C.s1,border:`1px solid ${isSel?isJunk?"#D46B0840":C.acc+"40":C.bdr}`,borderRadius:6,opacity:over?0.4:1}}>
-                              <div style={{display:"flex",gap:7,alignItems:"flex-start"}}>
-                                <CatIco cat={part.cat}/>
-                                <div style={{flex:1,minWidth:0}}>
-                                  <div style={{fontWeight:600,fontSize:"0.7rem"}}>{part.name}</div>
-                                  <div style={{fontSize:"0.55rem",color:C.tm}}>{part.brand} • {part.ret}</div>
-                                  <div style={{fontSize:"0.6rem",color:C.td,marginTop:2,lineHeight:1.3,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{part.desc}</div>
-                                  <div style={{display:"flex",gap:4,marginTop:3,alignItems:"center",flexWrap:"wrap"}}>
-                                    {part.hp>0&&<span style={{fontSize:"0.5rem",fontFamily:fm,color:C.g,background:C.gD,padding:"1px 4px",borderRadius:2}}>+{part.hp}HP</span>}
-                                    {part.tq>0&&<span style={{fontSize:"0.5rem",fontFamily:fm,color:C.y,background:C.yD,padding:"1px 4px",borderRadius:2}}>+{part.tq}TQ</span>}
-                                    <SkB lv={part.sk}/><span style={{fontSize:"0.5rem",fontFamily:fm,color:C.tm}}>⏱{part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`}</span>
-                                  </div>
-                                </div>
-                                <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
-                                  <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.85rem"}}>{part.price===0?"FREE":`$${part.price}`}</span>
-                                  <div style={{display:"flex",gap:3}}>
-                                    <button onClick={()=>selPart(cat.id,part.id)} disabled={over} style={{padding:"3px 8px",borderRadius:4,border:"none",background:isSel?C.acc:over?C.td:C.t,color:isSel?"#fff":C.bg,fontSize:"0.58rem",fontWeight:600,cursor:over?"default":"pointer",fontFamily:fs}}>{isSel?"✓":over?"$$":"Select"}</button>
-                                    {part.price>0&&<BuyBtn part={part}/>}
-                                  </div>
-                                </div>
-                              </div>
-                              <button onClick={()=>setExpP(expP===part.id?null:part.id)} style={{fontSize:"0.5rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0,marginTop:2}}>{expP===part.id?"Hide ▴":"Details ▾"}</button>
-                              {expP===part.id&&<div style={{marginTop:3,padding:"0.35rem",background:C.bg,borderRadius:4,border:`1px solid ${C.bdr}`}}>
-                                <div style={{fontSize:"0.58rem",color:C.td}}>Skill: <span style={{color:SK[part.sk].c}}>{SK[part.sk].l}</span> • Time: {part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`} • Retailer: <span style={{color:C.tm}}>{part.ret}</span></div>
-                                <div style={{fontSize:"0.58rem",color:C.td,marginTop:1}}>Tools: <span style={{color:C.tm}}>{part.tools}</span></div>
-                                <div style={{fontSize:"0.58rem",padding:3,background:C.s2,borderRadius:3,marginTop:3}}><span style={{color:C.y}}>💡</span> {part.notes}</div>
-                                {part.price>0&&<div style={{marginTop:4}}><BuyBtn part={part}/> <span style={{fontSize:"0.48rem",color:C.td,marginLeft:4}}>Opens {part.ret}</span></div>}
-                              </div>}
-                            </div>);
-                        })}
-                        <button onClick={()=>setPicker(null)} style={{width:"100%",padding:"0.3rem",background:C.s3,border:"none",borderRadius:4,color:C.tm,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs,marginTop:2}}>Close</button>
-                      </div>
-                    )}
-                  </div>);
-              })}
-              {mob?(
-                <div style={{padding:"0.6rem",background:C.s2}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:"0.72rem",fontWeight:700,color:C.acc}}>TOTAL — {bParts.length} parts</span>
-                    <span style={{fontFamily:fm,fontWeight:700,fontSize:"1rem",color:C.acc}}>${tCost.toLocaleString()}</span>
-                  </div>
-                  <div style={{display:"flex",gap:8,marginTop:4,fontSize:"0.6rem",color:C.tm}}>
-                    <span>~{tTime<1?`${Math.round(tTime*60)}m`:`${tTime.toFixed(1)}h`} install</span>
-                    {tHp>0&&<span style={{color:C.g}}>+{tHp}HP / +{tTq}TQ</span>}
-                    {maxSk>0&&<SkB lv={maxSk} full/>}
-                  </div>
-                </div>
-              ):(
-              <div style={{display:"grid",gridTemplateColumns:"38px 110px 1fr 56px 50px 42px 26px",padding:"0.45rem",background:C.s2,alignItems:"center"}}><div/><span style={{fontSize:"0.65rem",fontWeight:700,color:C.acc}}>TOTAL</span><div style={{fontSize:"0.58rem",color:C.tm}}>{bParts.length} parts • ~{tTime<1?`${Math.round(tTime*60)}m`:`${tTime.toFixed(1)}h`}{maxSk>0&&<> • <SkB lv={maxSk} full/></>}</div><div style={{textAlign:"right",fontFamily:fm,fontWeight:700,fontSize:"0.85rem",color:C.acc}}>${tCost.toLocaleString()}</div><div style={{textAlign:"right",fontFamily:fm,fontSize:"0.62rem",color:C.g}}>{tHp>0?`+${tHp}/+${tTq}`:"—"}</div><div/><div/></div>
-              )}
+        {/* Build stats */}
+        {bParts.length>0&&(
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6,marginBottom:"0.75rem"}}>
+            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
+              <div style={{fontSize:"1rem",fontWeight:800,color:C.acc}}>+{tHp}</div><div style={{fontSize:"0.48rem",color:C.td}}>HP</div>
             </div>
-            {tHp>0&&plat&&<div style={{marginTop:5,padding:"0.4rem 0.5rem",background:C.gD,border:`1px solid ${C.g}20`,borderRadius:5,display:"flex",justifyContent:"space-between"}}><span style={{fontSize:"0.65rem",color:C.g}}>Est. Output</span><span style={{fontFamily:fm,fontWeight:700,fontSize:"0.75rem",color:C.g}}>~{plat.hp+tHp}HP / ~{plat.tq+tTq}TQ</span></div>}
-            {bParts.length>0&&<div style={{marginTop:5,padding:"0.4rem 0.5rem",background:C.s1,borderRadius:5,border:`1px solid ${C.bdr}`}}><div style={{fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.08em",color:C.td,marginBottom:2}}>🧰 Tools</div><div style={{fontSize:"0.58rem",color:C.tm,lineHeight:1.4}}>{[...new Set(bParts.flatMap(p=>p.tools.split(", ")))].join(" • ")}</div></div>}
-
-            {/* ═══ DELUSION METER ═══ */}
-            {delusion && bParts.length >= 2 && (
-              <div style={{marginTop:8,padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${delusion.tierColor}30`,animation:"fadeUp 0.4s ease-out",position:"relative",overflow:"hidden"}}>
-                <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:`linear-gradient(90deg, transparent, ${delusion.tierColor}50, transparent)`}}/>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                  <div style={{fontSize:"0.6rem",textTransform:"uppercase",letterSpacing:"0.12em",color:delusion.tierColor,fontFamily:fm}}>Delusion Meter™</div>
-                  <div style={{fontSize:"1.3rem",filter:"saturate(1.2)"}}>{delusion.tierEmoji}</div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div style={{flex:1,height:12,background:C.bdr,borderRadius:6,overflow:"hidden",position:"relative"}}>
-                    <div style={{height:"100%",width:`${delusion.score}%`,background:`linear-gradient(90deg, #2EC4B6, #FFB703, #FB8500, #E63946, #FF6B6B)`,borderRadius:6,transition:"width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",animation:"barFill 0.8s ease-out",boxShadow:`0 0 12px ${delusion.tierColor}40`}}/>
-                  </div>
-                  <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.9rem",color:delusion.tierColor,minWidth:30,textAlign:"right"}}>{delusion.score}</span>
-                </div>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                  <span style={{fontSize:"0.9rem",fontWeight:700,color:delusion.tierColor}}>{delusion.tierEmoji} {delusion.tier}</span>
-                  <span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>{delusion.score}/100</span>
-                </div>
-                {delusion.flags.length > 0 && (
-                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:4}}>
-                    {delusion.flags.map((f,i) => (
-                      <span key={i} style={{fontSize:"0.52rem",padding:"3px 8px",background:delusion.tierColor+"12",border:`1px solid ${delusion.tierColor}25`,borderRadius:12,color:delusion.tierColor,fontFamily:fm,animation:`fadeIn 0.3s ease-out ${i*0.05}s both`}}>{f}</span>
-                    ))}
-                  </div>
-                )}
-                <div style={{marginTop:10,paddingTop:8,borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-between",fontSize:"0.45rem",color:C.td,textTransform:"uppercase",letterSpacing:"0.08em"}}>
-                  <span>😴 Stock+</span><span>🤝 I Know a Guy</span><span>🪚 Sawzall</span><span>💀 Heart Attack</span><span>🏴‍☠️ Offline</span>
-                </div>
-              </div>
-            )}
+            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
+              <div style={{fontSize:"1rem",fontWeight:800,color:C.y}}>+{tTq}</div><div style={{fontSize:"0.48rem",color:C.td}}>TQ</div>
+            </div>
+            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
+              <div style={{fontSize:"1rem",fontWeight:800,color:C.g}}>{tTime<1?`${Math.round(tTime*60)}m`:`${tTime.toFixed(1)}h`}</div><div style={{fontSize:"0.48rem",color:C.td}}>Install</div>
+            </div>
+            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
+              <div style={{fontSize:"1rem",fontWeight:800}}>{bParts.length}</div><div style={{fontSize:"0.48rem",color:C.td}}>Parts</div>
+            </div>
           </div>
         )}
 
-        {/* ═══ DIY ═══ */}
-        {tab==="diy"&&(
-          <div>
-            <h2 style={{fontSize:"1.05rem",fontWeight:800,margin:"0 0 0.1rem"}}>DIY Builds — {plat?.name}</h2>
-            <p style={{color:C.tm,fontSize:"0.68rem",margin:"0 0 0.6rem"}}>Proven builds + junkyard specials + sleeper builds.</p>
-            <div style={{display:"flex",gap:3,marginBottom:"0.6rem",flexWrap:"wrap"}}>
-              <button onClick={()=>setTierF(null)} style={{padding:"3px 7px",borderRadius:12,border:`1px solid ${!tierF?C.acc:C.bdr}`,background:!tierF?C.accD:"transparent",color:!tierF?C.acc:C.tm,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs}}>All</button>
-              {Object.entries(TIERS).map(([k,t])=><button key={k} onClick={()=>setTierF(k)} style={{padding:"3px 7px",borderRadius:12,border:`1px solid ${tierF===k?t.c:C.bdr}`,background:tierF===k?t.c+"15":"transparent",color:tierF===k?t.c:C.tm,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs}}>{t.icon} {t.l} <span style={{opacity:.5,fontFamily:fm,fontSize:"0.5rem"}}>{t.r}</span></button>)}
+        {/* Delusion Meter */}
+        {delusion&&(
+          <div style={{background:C.s1,borderRadius:10,padding:"0.65rem",border:`1px solid ${delusion.c}30`,marginBottom:"0.75rem"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+              <span style={{fontSize:"0.65rem",fontWeight:700}}>Delusion Meter™</span>
+              <span style={{fontSize:"0.65rem",fontWeight:800,color:delusion.c}}>{delusion.l}</span>
             </div>
-            {!pBuilds.length&&<p style={{color:C.td,textAlign:"center",padding:"2rem"}}>No builds match</p>}
-            {pBuilds.map(build=>{const tier=TIERS[build.tier];const open=expB===build.id;const bps=build.pids.map(pid=>PARTS.find(p=>p.id===pid)).filter(Boolean);return(
-              <div key={build.id} style={{background:C.s1,borderRadius:7,border:`1px solid ${C.bdr}`,marginBottom:4,overflow:"hidden"}}>
-                <div style={{padding:"0.55rem"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                    <div>
-                      <div style={{display:"flex",gap:4,alignItems:"center",marginBottom:2}}><span style={{fontSize:"0.5rem",padding:"1px 5px",borderRadius:8,background:tier.c+"15",color:tier.c,fontWeight:600,fontFamily:fm}}>{tier.icon} {tier.l}</span>{build.verified&&<span style={{fontSize:"0.45rem",color:C.g,fontFamily:fm}}>✓</span>}</div>
-                      <h3 style={{margin:"2px 0 1px",fontSize:"0.88rem",fontWeight:700}}>{build.name}</h3>
-                      <div style={{fontSize:"0.58rem",color:C.tm}}>{build.veh} • by {build.author}</div>
-                    </div>
-                    <div style={{textAlign:"right"}}><div style={{fontFamily:fm,fontWeight:700,fontSize:"0.92rem"}}>${build.cost}</div><div style={{fontSize:"0.55rem",fontFamily:fm,color:C.g}}>+{build.hp}hp/+{build.tq}tq</div></div>
-                  </div>
-                  <div style={{display:"flex",gap:7,fontSize:"0.55rem",color:C.tm,marginTop:3}}><span>⏱ {build.time}</span><SkB lv={build.diff}/><span>🔧 {build.pids.length} parts</span></div>
-                  <div style={{display:"flex",gap:4,marginTop:5}}>
-                    <button onClick={()=>setExpB(open?null:build.id)} style={{padding:"3px 7px",borderRadius:4,border:`1px solid ${C.bdr}`,background:"transparent",color:C.t,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs}}>{open?"Hide ▴":"Details ▾"}</button>
-                    <button onClick={()=>loadBuild(build)} style={{padding:"3px 7px",borderRadius:4,border:"none",background:C.acc,color:"#fff",fontSize:"0.58rem",fontWeight:600,cursor:"pointer",fontFamily:fs}}>Load Build</button>
-                  </div>
-                </div>
-                {open&&(
-                  <div style={{padding:"0 0.55rem 0.55rem",borderTop:`1px solid ${C.bdr}`}}>
-                    <div style={{padding:"0.4rem 0"}}><div style={{fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.08em",color:C.acc,marginBottom:2}}>Story</div><p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,margin:0}}>{build.story}</p></div>
-                    <div style={{padding:"0.4rem",background:C.bg,borderRadius:4,marginBottom:4}}><div style={{fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.08em",color:C.y,marginBottom:2}}>Install Order</div><p style={{fontSize:"0.58rem",color:C.t,lineHeight:1.4,margin:0,fontFamily:fm}}>{build.order}</p></div>
-                    <div style={{marginBottom:4}}>{bps.map(p=><div key={p.id} style={{display:"flex",alignItems:"center",gap:5,padding:"2px 0",borderBottom:`1px solid ${C.bdr}10`,fontSize:"0.62rem"}}><CatIco cat={p.cat}/><span style={{flex:1}}>{p.name} <span style={{color:C.td}}>({p.brand})</span></span><SkB lv={p.sk}/><span style={{fontFamily:fm,fontWeight:600}}>{p.price===0?"FREE":`$${p.price}`}</span></div>)}</div>
-                    <div style={{padding:"0.4rem",background:C.gD,borderRadius:4,border:`1px solid ${C.g}15`}}><div style={{fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.08em",color:C.g,marginBottom:2}}>Lessons</div><p style={{fontSize:"0.65rem",color:C.t,lineHeight:1.4,margin:0}}>{build.lessons}</p></div>
-                  </div>
-                )}
-              </div>);
-            })}
+            <div style={{height:6,background:C.s3,borderRadius:3,overflow:"hidden",marginBottom:4}}>
+              <div style={{height:"100%",width:`${delusion.w}%`,background:`linear-gradient(90deg,${C.g},${C.y},${C.acc})`,borderRadius:3,animation:"barFill 1s ease-out"}}/>
+            </div>
+            <p style={{fontSize:"0.55rem",color:delusion.c,fontStyle:"italic"}}>{delusion.d}</p>
           </div>
         )}
 
-        {/* ═══ ABOUT / GUIDES (with sub-tabs) ═══ */}
-        {tab==="about"&&plat&&(
-          <div>
-            <div style={{display:"flex",gap:3,marginBottom:"0.75rem",flexWrap:"wrap"}}>
-              {[{id:"overview",l:"Overview"},{id:"checklist",l:"🔍 Buyer Checklist"},{id:"mistakes",l:"❌ Common Mistakes"},{id:"modorder",l:"📋 Mod Order"}].map(t=>
-                <button key={t.id} onClick={()=>setAboutTab(t.id)} style={{padding:"4px 9px",borderRadius:5,border:`1px solid ${aboutTab===t.id?C.acc:C.bdr}`,background:aboutTab===t.id?C.accD:"transparent",color:aboutTab===t.id?C.acc:C.tm,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs}}>{t.l}</button>
-              )}
+        {/* Parts by category */}
+        <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Parts Catalog ({pp.length} available)</h2>
+        {CATS.map(cat=>{const cParts=pp.filter(p=>p.cat===cat.id).sort((a,b)=>sortBy==="price"?a.price-b.price:sortBy==="hp"?(b.hp||0)-(a.hp||0):0);if(cParts.length===0)return null;return(
+          <div key={cat.id} style={{marginBottom:"0.75rem"}}>
+            <div style={{fontSize:"0.72rem",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
+              <span>{cat.icon}</span>{cat.name}<span style={{fontSize:"0.52rem",color:C.td,fontWeight:400}}>({cParts.length})</span>
             </div>
-
-            {aboutTab==="overview"&&(
-              <div style={{padding:"1rem",background:C.s1,borderRadius:8,border:`1px solid ${C.bdr}`}}>
-                <h2 style={{fontSize:"1.05rem",fontWeight:800,margin:"0 0 2px"}}>{plat.name} <span style={{fontSize:"0.72rem",color:C.td,fontWeight:400}}>{plat.gen}</span></h2>
-                <p style={{color:C.y,fontFamily:fm,fontSize:"0.65rem",margin:"0 0 0.5rem"}}>{plat.tagline}</p>
-                <p style={{fontSize:"0.75rem",color:C.tm,lineHeight:1.5,margin:"0 0 0.6rem"}}>{plat.desc}</p>
-                <div style={{padding:"0.55rem",background:C.bg,borderRadius:5,marginBottom:5}}>
-                  <div style={{fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.1em",color:C.acc,marginBottom:2}}>Why People Mod This Car</div>
-                  <p style={{fontSize:"0.72rem",color:C.t,lineHeight:1.5,margin:0}}>{plat.why}</p>
+            {cParts.map(part=>{const isSel=Object.values(sel).includes(part.id);const over=!isSel&&budget>0&&part.price>bLeft;return(
+              <div key={part.id} style={{background:isSel?C.accD:C.s1,borderRadius:10,border:`1px solid ${isSel?C.acc:over?C.acc+"30":C.bdr}`,padding:"0.65rem",marginBottom:6,transition:"all 0.2s"}}>
+                <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                  <CatIco cat={part.cat}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:"0.75rem",fontWeight:600}}>{part.name}</div>
+                    <div style={{fontSize:"0.55rem",color:C.td}}>{part.brand} • {part.ret}</div>
+                    <p style={{fontSize:"0.6rem",color:C.tm,lineHeight:1.35,margin:"3px 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{part.desc}</p>
+                    <div style={{display:"flex",gap:6,alignItems:"center",marginTop:3}}>
+                      {part.hp>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.acc}}>+{part.hp}HP</span>}
+                      {part.tq>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.y}}>+{part.tq}TQ</span>}
+                      <SkB lv={part.sk}/><span style={{fontSize:"0.48rem",fontFamily:fm,color:C.tm}}>⏱{part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`}</span>
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
+                    <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.85rem"}}>{part.price===0?"FREE":`$${part.price}`}</span>
+                    <div style={{display:"flex",gap:3}}>
+                      <button onClick={()=>selPart(cat.id,part.id)} disabled={over} style={{padding:"3px 8px",borderRadius:4,border:"none",background:isSel?C.acc:over?C.td:C.t,color:isSel?"#fff":C.bg,fontSize:"0.58rem",fontWeight:600,cursor:over?"default":"pointer",fontFamily:fs}}>{isSel?"✓":over?"$$":"Select"}</button>
+                      {part.price>0&&<BuyBtn part={part}/>}
+                    </div>
+                  </div>
                 </div>
-                {plat.warns&&<div style={{padding:"0.55rem",background:"#FFB70308",borderRadius:5,border:`1px solid ${C.y}15`}}>
-                  <div style={{fontSize:"0.48rem",textTransform:"uppercase",letterSpacing:"0.1em",color:C.y,marginBottom:3}}>⚠️ Known Issues</div>
-                  {plat.warns.map((w,i)=><div key={i} style={{fontSize:"0.65rem",color:C.t,marginBottom:2,paddingLeft:8}}>• {w}</div>)}
+                <button onClick={()=>setExpP(expP===part.id?null:part.id)} style={{fontSize:"0.5rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0,marginTop:2}}>{expP===part.id?"Hide ▴":"Details ▾"}</button>
+                {expP===part.id&&<div style={{marginTop:3,padding:"0.35rem",background:C.bg,borderRadius:6,border:`1px solid ${C.bdr}`}}>
+                  <div style={{fontSize:"0.58rem",color:C.td}}>Skill: <span style={{color:SK[part.sk].c}}>{SK[part.sk].l}</span> • Time: {part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`} • Retailer: <span style={{color:C.tm}}>{part.ret}</span></div>
+                  <div style={{fontSize:"0.58rem",color:C.td,marginTop:1}}>Tools: <span style={{color:C.tm}}>{part.tools}</span></div>
+                  <div style={{fontSize:"0.58rem",padding:3,background:C.s2,borderRadius:4,marginTop:3}}><span style={{color:C.y}}>💡</span> {part.notes}</div>
+                  {part.price>0&&<div style={{marginTop:4}}><BuyBtn part={part}/> <span style={{fontSize:"0.48rem",color:C.td,marginLeft:4}}>Opens {part.ret}</span></div>}
                 </div>}
               </div>
-            )}
+            );})}
+          </div>
+        );})}
 
-            {aboutTab==="checklist"&&plat.buyer_checklist&&(
-              <div style={{padding:"1rem",background:C.s1,borderRadius:8,border:`1px solid ${C.g}20`}}>
-                <h2 style={{fontSize:"1.05rem",fontWeight:800,margin:"0 0 0.2rem",color:C.g}}>🔍 Pre-Purchase Checklist</h2>
-                <p style={{color:C.tm,fontSize:"0.68rem",margin:"0 0 0.75rem"}}>Check every item before buying a {plat.name}. Print this and bring it to the seller.</p>
-                {plat.buyer_checklist.map((item,i)=>(
-                  <div key={i} style={{display:"flex",alignItems:"flex-start",gap:6,marginBottom:5}}>
-                    <div style={{width:16,height:16,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:1}}/>
-                    <span style={{fontSize:"0.72rem",color:C.t,lineHeight:1.4}}>{item}</span>
+        {/* Community builds */}
+        {pBuilds.length>0&&(
+          <div style={{marginTop:"1.5rem"}}>
+            <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Community Builds ({pBuilds.length})</h2>
+            <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
+              <button onClick={()=>setTierF(null)} style={{padding:"3px 8px",borderRadius:4,border:`1px solid ${!tierF?C.acc:C.bdr}`,background:!tierF?C.accD:"transparent",color:!tierF?C.acc:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>All</button>
+              {Object.entries(TIERS).map(([k,v])=><button key={k} onClick={()=>setTierF(tierF===k?null:k)} style={{padding:"3px 8px",borderRadius:4,border:`1px solid ${tierF===k?v.c:C.bdr}`,background:tierF===k?v.c+"15":"transparent",color:tierF===k?v.c:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{v.icon} {v.l}</button>)}
+            </div>
+            {pBuilds.map((b,i)=>{const t=TIERS[b.tier];return(
+              <div key={b.id} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.75rem",marginBottom:8,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                  <div>
+                    <div style={{fontSize:"0.8rem",fontWeight:700}}>{b.name}</div>
+                    <div style={{fontSize:"0.55rem",color:C.td}}>{b.veh} • by {b.author}</div>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {aboutTab==="mistakes"&&plat.mistakes&&(
-              <div style={{padding:"1rem",background:C.s1,borderRadius:8,border:`1px solid ${C.acc}20`}}>
-                <h2 style={{fontSize:"1.05rem",fontWeight:800,margin:"0 0 0.2rem",color:C.acc}}>❌ Common Mistakes</h2>
-                <p style={{color:C.tm,fontSize:"0.68rem",margin:"0 0 0.75rem"}}>Avoid these — learned the hard way by thousands of {plat.name} owners before you.</p>
-                {plat.mistakes.map((m,i)=>(
-                  <div key={i} style={{padding:"0.5rem",background:C.bg,borderRadius:5,marginBottom:4,border:`1px solid ${C.bdr}`}}>
-                    <span style={{fontSize:"0.72rem",color:C.t,lineHeight:1.4}}>❌ {m}</span>
+                  <div style={{textAlign:"right"}}>
+                    <span style={{fontSize:"0.55rem",padding:"2px 6px",background:t.c+"20",color:t.c,borderRadius:4,fontWeight:600}}>{t.icon} {t.l}</span>
+                    <div style={{fontSize:"0.72rem",fontWeight:800,fontFamily:fm,marginTop:2}}>${b.cost}</div>
                   </div>
-                ))}
+                </div>
+                <button onClick={()=>setExpB(expB===b.id?null:b.id)} style={{fontSize:"0.55rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0}}>{expB===b.id?"Hide story ▴":"Read story ▾"}</button>
+                {expB===b.id&&(
+                  <div style={{marginTop:6}}>
+                    <div style={{display:"flex",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                      {b.hp>0&&<span style={{fontSize:"0.55rem",fontFamily:fm,color:C.acc}}>+{b.hp}HP</span>}
+                      {b.tq>0&&<span style={{fontSize:"0.55rem",fontFamily:fm,color:C.y}}>+{b.tq}TQ</span>}
+                      <span style={{fontSize:"0.55rem",fontFamily:fm,color:C.tm}}>⏱ {b.time}</span>
+                    </div>
+                    <div style={{padding:"0.5rem",background:C.bg,borderRadius:6,fontSize:"0.65rem",color:C.tm,lineHeight:1.5,marginBottom:6}}>{b.story}</div>
+                    <div style={{padding:"0.5rem",background:C.gD,borderRadius:6,fontSize:"0.62rem",color:C.g,lineHeight:1.4,marginBottom:4}}>💡 {b.lessons}</div>
+                    <div style={{padding:"0.4rem",background:C.yD,borderRadius:6,fontSize:"0.6rem",color:C.y,fontFamily:fm}}>{b.order}</div>
+                  </div>
+                )}
               </div>
-            )}
-
-            {aboutTab==="modorder"&&plat.mod_order&&(
-              <div style={{padding:"1rem",background:C.s1,borderRadius:8,border:`1px solid ${C.y}20`}}>
-                <h2 style={{fontSize:"1.05rem",fontWeight:800,margin:"0 0 0.2rem",color:C.y}}>📋 Recommended Mod Order</h2>
-                <p style={{color:C.tm,fontSize:"0.68rem",margin:"0 0 0.75rem"}}>Order matters — doing things wrong wastes money or damages your engine.</p>
-                <div style={{padding:"0.65rem",background:C.bg,borderRadius:5,fontFamily:fm,fontSize:"0.72rem",color:C.t,lineHeight:1.6}}>{plat.mod_order}</div>
-              </div>
-            )}
+            );})}
           </div>
         )}
       </div>
-      <BottomNav/>
+      <Footer/><BottomNav/>
     </div>
   );
 }
