@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
+import { useAuth } from "@/lib/auth";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -1644,6 +1645,7 @@ const BUILDS = [
 
 // ═══ COMPONENT — Modern UI Rewrite ═══
 export default function App(){
+  const { user, profile, loading: authLoading, signUp, signIn, signOut, saveBuild, getMyBuilds, deleteBuild } = useAuth();
   const[step,setStep]=useState("make");
   const[makeId,setMakeId]=useState(null);
   const[platId,setPlatId]=useState(null);
@@ -1662,6 +1664,17 @@ export default function App(){
   const[kMake,setKMake]=useState(null);
   const[search,setSearch]=useState("");
   const[browseF,setBrowseF]=useState({make:null,tax:null});
+  const[showAuth,setShowAuth]=useState(false);
+  const[authMode,setAuthMode]=useState("login");
+  const[authEmail,setAuthEmail]=useState("");
+  const[authPass,setAuthPass]=useState("");
+  const[authUser,setAuthUser]=useState("");
+  const[authErr,setAuthErr]=useState("");
+  const[authOk,setAuthOk]=useState("");
+  const[myBuilds,setMyBuilds]=useState([]);
+  const[showSave,setShowSave]=useState(false);
+  const[saveName,setSaveName]=useState("");
+  const[showMyBuilds,setShowMyBuilds]=useState(false);
   useEffect(()=>{const check=()=>setMob(window.innerWidth<768);check();window.addEventListener("resize",check);return()=>window.removeEventListener("resize",check);},[]);
 
   const make=MAKES.find(m=>m.id===makeId);
@@ -1710,6 +1723,72 @@ export default function App(){
   const goBack=()=>{if(step==="builder"){setStep("vehicle");setVehId(null);setSel({});}else if(step==="vehicle"){setStep("platform");setPlatId(null);}else if(step==="platform"){setStep("make");setMakeId(null);}};
   const goHome=()=>{setPage("home");setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});setSearch("");};
 
+  // ═══ AUTH HANDLERS ═══
+  const handleAuth=async()=>{setAuthErr("");setAuthOk("");
+    if(authMode==="login"){const{error}=await signIn(authEmail,authPass);if(error)setAuthErr(error.message);else{setShowAuth(false);setAuthEmail("");setAuthPass("");}}
+    else{if(!authUser){setAuthErr("Username required");return;}const{error}=await signUp(authEmail,authPass,authUser);if(error)setAuthErr(error.message);else{setAuthOk("Check your email to confirm your account!");setAuthEmail("");setAuthPass("");setAuthUser("");}}
+  };
+  const handleSaveBuild=async()=>{if(!saveName.trim()){return;}
+    const{error}=await saveBuild({title:saveName,platformId:platId,vehicleId:vehId,makeId,parts:sel,budget,notes:"",isPublic:true,totalCost:tCost,totalHp:tHp,totalTq:tTq});
+    if(!error){setShowSave(false);setSaveName("");alert("Build saved!");}else{alert("Error: "+error.message||error);}
+  };
+  const loadMyBuilds=async()=>{const{data}=await getMyBuilds();setMyBuilds(data||[]);setShowMyBuilds(true);};
+  const loadBuild=(b)=>{setMakeId(b.make_id);setPlatId(b.platform_id);setVehId(b.vehicle_id);setSel(typeof b.parts==="string"?JSON.parse(b.parts):b.parts);setBudget(b.budget);setStep("builder");setPage("home");setShowMyBuilds(false);};
+
+  // ═══ AUTH MODAL ═══
+  const AuthModal=()=>showAuth?(
+    <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowAuth(false)}>
+      <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:360,border:`1px solid ${C.bdr}`}}>
+        <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:4}}>{authMode==="login"?"Welcome back":"Create account"}</h2>
+        <p style={{fontSize:"0.65rem",color:C.tm,marginBottom:"1rem"}}>{authMode==="login"?"Sign in to save and share builds":"Join BuildSpec — save builds, share with the community"}</p>
+        {authMode==="signup"&&<input value={authUser} onChange={e=>setAuthUser(e.target.value)} placeholder="Username" style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:8,outline:"none",boxSizing:"border-box"}}/>}
+        <input value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" type="email" style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:8,outline:"none",boxSizing:"border-box"}}/>
+        <input value={authPass} onChange={e=>setAuthPass(e.target.value)} placeholder="Password" type="password" onKeyDown={e=>e.key==="Enter"&&handleAuth()} style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:12,outline:"none",boxSizing:"border-box"}}/>
+        {authErr&&<div style={{fontSize:"0.62rem",color:C.acc,marginBottom:8}}>{authErr}</div>}
+        {authOk&&<div style={{fontSize:"0.62rem",color:C.g,marginBottom:8}}>{authOk}</div>}
+        <button onClick={handleAuth} style={{width:"100%",padding:"10px",borderRadius:8,border:"none",background:C.acc,color:"#fff",fontSize:"0.75rem",fontWeight:700,cursor:"pointer",fontFamily:fs,marginBottom:8}}>{authMode==="login"?"Sign In":"Create Account"}</button>
+        <button onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthErr("");setAuthOk("");}} style={{width:"100%",background:"none",border:"none",color:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{authMode==="login"?"Don't have an account? Sign up":"Already have an account? Sign in"}</button>
+      </div>
+    </div>
+  ):null;
+
+  // ═══ SAVE BUILD MODAL ═══
+  const SaveModal=()=>showSave?(
+    <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowSave(false)}>
+      <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:360,border:`1px solid ${C.bdr}`}}>
+        <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:4}}>Save Build</h2>
+        <p style={{fontSize:"0.65rem",color:C.tm,marginBottom:"1rem"}}>{bParts.length} parts • ${tCost} total • +{tHp}HP</p>
+        <input value={saveName} onChange={e=>setSaveName(e.target.value)} placeholder="Name your build (e.g. 'Weekend Miata')" onKeyDown={e=>e.key==="Enter"&&handleSaveBuild()} style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:12,outline:"none",boxSizing:"border-box"}}/>
+        <button onClick={handleSaveBuild} style={{width:"100%",padding:"10px",borderRadius:8,border:"none",background:C.g,color:"#000",fontSize:"0.75rem",fontWeight:700,cursor:"pointer",fontFamily:fs}}>💾 Save Build</button>
+      </div>
+    </div>
+  ):null;
+
+  // ═══ MY BUILDS MODAL ═══
+  const MyBuildsModal=()=>showMyBuilds?(
+    <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowMyBuilds(false)}>
+      <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:420,maxHeight:"80vh",overflow:"auto",border:`1px solid ${C.bdr}`}}>
+        <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:"1rem"}}>My Saved Builds</h2>
+        {myBuilds.length===0?<p style={{fontSize:"0.72rem",color:C.tm}}>No saved builds yet. Start building and save your first one!</p>:
+          myBuilds.map(b=>{const p=PLATFORMS.find(x=>x.id===b.platform_id);const m=MAKES.find(x=>x.id===b.make_id);return(
+            <div key={b.id} style={{background:C.s2,borderRadius:10,padding:"0.75rem",marginBottom:8,border:`1px solid ${C.bdr}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <div style={{fontSize:"0.8rem",fontWeight:700}}>{b.title}</div>
+                  <div style={{fontSize:"0.58rem",color:C.tm}}>{m?.icon} {p?.name} • ${b.total_cost} • +{b.total_hp}HP</div>
+                </div>
+                <div style={{display:"flex",gap:4}}>
+                  <button onClick={()=>loadBuild(b)} style={{padding:"4px 8px",borderRadius:4,border:"none",background:C.acc,color:"#fff",fontSize:"0.55rem",fontWeight:600,cursor:"pointer",fontFamily:fs}}>Load</button>
+                  <button onClick={async()=>{if(confirm("Delete this build?")){await deleteBuild(b.id);loadMyBuilds();}}} style={{padding:"4px 8px",borderRadius:4,border:`1px solid ${C.acc}`,background:"transparent",color:C.acc,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>✕</button>
+                </div>
+              </div>
+            </div>
+          );})
+        }
+      </div>
+    </div>
+  ):null;
+
   // ═══ SEARCH ═══
   const searchResults=useMemo(()=>{
     if(!search||search.length<2)return[];
@@ -1744,6 +1823,11 @@ export default function App(){
             <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 10px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400}}>{n.ic} {n.l}</button>
           ))}
         </nav>}
+        {/* User button */}
+        {user?<div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <button onClick={loadMyBuilds} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs}}>📁 My Builds</button>
+          <button onClick={signOut} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{profile?.username||"User"} ✕</button>
+        </div>:<button onClick={()=>setShowAuth(true)} style={{padding:"6px 14px",borderRadius:8,border:"none",background:C.acc,color:"#fff",fontSize:"0.65rem",fontWeight:600,cursor:"pointer",fontFamily:fs,flexShrink:0}}>Sign In</button>}
       </div>
     </header>
   );
@@ -1955,7 +2039,7 @@ export default function App(){
 
   // ═══ HOME / MAKE SELECTION ═══
   if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/><AuthModal/><MyBuildsModal/>
       <div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
         <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
           <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
@@ -2053,7 +2137,7 @@ export default function App(){
 
   // ═══ BUILDER SCREEN ═══
   return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/><AuthModal/><SaveModal/><MyBuildsModal/>
       <div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
         {/* Header */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
@@ -2080,6 +2164,9 @@ export default function App(){
             <span style={{color:C.tm}}>Spent: <span style={{color:C.t,fontFamily:fm,fontWeight:700}}>${tCost}</span></span>
             <span style={{color:bLeft<0?C.acc:C.g,fontFamily:fm,fontWeight:700}}>{bLeft<0?`$${Math.abs(bLeft)} over`:`$${bLeft} left`}</span>
           </div>
+          {bParts.length>0&&<div style={{marginTop:6}}>
+            <button onClick={()=>{if(!user){setShowAuth(true);}else{setShowSave(true);setSaveName(plat?.name+" Build");}}} style={{width:"100%",padding:"8px",borderRadius:6,border:"none",background:user?C.g:C.acc,color:user?"#000":"#fff",fontSize:"0.68rem",fontWeight:700,cursor:"pointer",fontFamily:fs}}>{user?"💾 Save This Build":"Sign In to Save Build"}</button>
+          </div>}
         </div>
 
         {/* Build stats */}
