@@ -1818,16 +1818,16 @@ export default function App(){
           )}
         </div>
         {/* Nav links */}
-        {!mob&&<nav style={{display:"flex",gap:4}}>
+        {!mob&&<nav style={{display:"flex",gap:4,alignItems:"center"}}>
           {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
             <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 10px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400}}>{n.ic} {n.l}</button>
           ))}
+          <span style={{width:1,height:16,background:C.bdr,margin:"0 2px"}}/>
+          {(user&&user.id)?<>
+            <button onClick={loadMyBuilds} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs}}>📁 Builds</button>
+            <button onClick={signOut} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{profile?.username||"User"} ✕</button>
+          </>:<button onClick={()=>setShowAuth(true)} style={{padding:"5px 14px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.65rem",fontWeight:700,cursor:"pointer",fontFamily:fs}}>Sign In</button>}
         </nav>}
-        {/* User button */}
-        {(user&&user.id)?<div style={{display:"flex",gap:6,alignItems:"center"}}>
-          <button onClick={loadMyBuilds} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs}}>📁 My Builds</button>
-          <button onClick={signOut} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{profile?.username||"User"} ✕</button>
-        </div>:<button onClick={()=>setShowAuth(true)} style={{padding:"8px 18px",borderRadius:8,border:`2px solid ${C.acc}`,background:C.acc,color:"#fff",fontSize:"0.75rem",fontWeight:700,cursor:"pointer",fontFamily:fs,flexShrink:0,letterSpacing:"0.5px"}}>Sign In</button>}
       </div>
     </header>
   );
