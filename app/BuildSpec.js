@@ -1822,13 +1822,17 @@ export default function App(){
           {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
             <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
           ))}
-          <span style={{width:1,height:16,background:C.bdr}}/>
-          {(user&&user.id)?<>
-            <button onClick={loadMyBuilds} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs,whiteSpace:"nowrap"}}>📁</button>
-            <button onClick={signOut} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.5rem",cursor:"pointer",fontFamily:fs,whiteSpace:"nowrap"}}>Logout</button>
-          </>:<button onClick={()=>setShowAuth(true)} style={{padding:"5px 12px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.6rem",fontWeight:700,cursor:"pointer",fontFamily:fs,whiteSpace:"nowrap"}}>Sign In</button>}
         </nav>}
-        {mob&&!(user&&user.id)&&<button onClick={()=>setShowAuth(true)} style={{padding:"5px 10px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.6rem",fontWeight:700,cursor:"pointer",fontFamily:fs,flexShrink:0}}>Sign In</button>}
+        {/* Auth button - ALWAYS renders */}
+        <div style={{flexShrink:0}}>
+          {(user&&user.id)
+            ?<div style={{display:"flex",gap:4,alignItems:"center"}}>
+              <button onClick={loadMyBuilds} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>📁</button>
+              <button onClick={signOut} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.5rem",cursor:"pointer",fontFamily:fs}}>Logout</button>
+            </div>
+            :<button onClick={()=>setShowAuth(true)} style={{padding:"6px 14px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.65rem",fontWeight:700,cursor:"pointer",fontFamily:fs}}>Sign In</button>
+          }
+        </div>
       </div>
     </header>
   );
