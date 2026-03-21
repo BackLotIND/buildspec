@@ -1736,7 +1736,7 @@ export default function App(){
   const loadBuild=(b)=>{setMakeId(b.make_id);setPlatId(b.platform_id);setVehId(b.vehicle_id);setSel(typeof b.parts==="string"?JSON.parse(b.parts):b.parts);setBudget(b.budget);setStep("builder");setPage("home");setShowMyBuilds(false);};
 
   // ═══ AUTH MODAL ═══
-  const AuthModal=()=>showAuth?(
+  const authModal=showAuth?(
     <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowAuth(false)}>
       <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:360,border:`1px solid ${C.bdr}`}}>
         <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:4}}>{authMode==="login"?"Welcome back":"Create account"}</h2>
@@ -1752,8 +1752,7 @@ export default function App(){
     </div>
   ):null;
 
-  // ═══ SAVE BUILD MODAL ═══
-  const SaveModal=()=>showSave?(
+  const saveModal=showSave?(
     <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowSave(false)}>
       <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:360,border:`1px solid ${C.bdr}`}}>
         <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:4}}>Save Build</h2>
@@ -1764,8 +1763,7 @@ export default function App(){
     </div>
   ):null;
 
-  // ═══ MY BUILDS MODAL ═══
-  const MyBuildsModal=()=>showMyBuilds?(
+  const myBuildsModal=showMyBuilds?(
     <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowMyBuilds(false)}>
       <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:420,maxHeight:"80vh",overflow:"auto",border:`1px solid ${C.bdr}`}}>
         <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:"1rem"}}>My Saved Builds</h2>
@@ -1829,7 +1827,7 @@ export default function App(){
   );
 
   // ═══ BOTTOM NAV (mobile only) ═══
-  const BottomNav=()=>mob?(
+  const bottomNav=mob?(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
       <div style={{background:C.bg,textAlign:"center",padding:"2px 0"}}><span style={{fontSize:"0.38rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
       <div style={{background:C.s1+"F0",backdropFilter:"blur(12px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:"calc(6px + env(safe-area-inset-bottom))"}}>
@@ -1843,7 +1841,7 @@ export default function App(){
   ):null;
 
   // ═══ FOOTER ═══
-  const Footer=()=>(
+  const footer=(
     <footer style={{borderTop:`1px solid ${C.bdr}`,padding:"2rem 1.5rem",background:C.s1,marginTop:"3rem"}}>
       <div style={{maxWidth:900,margin:"0 auto"}}>
         <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:"1.5rem",marginBottom:"1.5rem"}}>
@@ -1878,7 +1876,7 @@ export default function App(){
     if(browseF.make)filtered=filtered.filter(p=>p.make===browseF.make);
     if(browseF.tax!==null)filtered=filtered.filter(p=>p.tax===browseF.tax);
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
         <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
           <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>🔍 Browse All Platforms</h1>
           <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1.2rem"}}>{PLATFORMS.length} platforms across {MAKES.length} manufacturers. Filter by brand or hype tax.</p>
@@ -1914,7 +1912,7 @@ export default function App(){
             );})}
           </div>
         </div>
-        <Footer/><BottomNav/>
+        {footer}{bottomNav}
       </div>
     );
   }
@@ -1925,7 +1923,7 @@ export default function App(){
     const junkParts=PARTS.filter(p=>p.cat==="junk");
     const kTabs=[{id:"drifttax",l:"🔥 Drift Tax"},{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Checklists"},{id:"mistakes",l:"❌ Mistakes"},{id:"modorder",l:"📋 Mod Order"}];
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
         <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
           <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4,animation:"fadeUp 0.4s ease-out"}}>📚 Knowledge Base</h1>
           <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>The stuff buried in dead forum threads — compiled, organized, and honest.</p>
@@ -2028,14 +2026,14 @@ export default function App(){
             </div>
           )}
         </div>
-        <Footer/><BottomNav/>
+        {footer}{bottomNav}
       </div>
     );
   }
 
   // ═══ HOME / MAKE SELECTION ═══
   if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}<AuthModal/><MyBuildsModal/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
       <div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
         <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
           <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
@@ -2061,13 +2059,13 @@ export default function App(){
           );})}
         </div>
       </div>
-      <Footer/><BottomNav/>
+      {footer}{bottomNav}
     </div>
   );
 
   // ═══ PLATFORM SELECTION ═══
   if(step==="platform"){const mP=PLATFORMS.filter(p=>p.make===makeId);return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
       <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to manufacturers</button>
         <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4}}>{make?.icon} {make?.name}</h1>
@@ -2092,13 +2090,13 @@ export default function App(){
           );})}
         </div>
       </div>
-      <Footer/><BottomNav/>
+      {footer}{bottomNav}
     </div>
   );}
 
   // ═══ VEHICLE SELECTION ═══
   if(step==="vehicle")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
       <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
         <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
@@ -2127,13 +2125,13 @@ export default function App(){
           ))}
         </div>
       </div>
-      <Footer/><BottomNav/>
+      {footer}{bottomNav}
     </div>
   );
 
   // ═══ BUILDER SCREEN ═══
   return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}<AuthModal/><SaveModal/><MyBuildsModal/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{saveModal}{myBuildsModal}
       <div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
         {/* Header */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
@@ -2276,7 +2274,7 @@ export default function App(){
           </div>
         )}
       </div>
-      <Footer/><BottomNav/>
+      {footer}{bottomNav}
     </div>
   );
 }
