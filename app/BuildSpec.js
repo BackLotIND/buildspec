@@ -13,7 +13,7 @@ const MAKES = [
   { id:"bmw",name:"BMW",accent:"#1890FF",tagline:"Turn signals optional, free tunes mandatory — Euro cheap power done right",icon:"🔵" },
   { id:"subaru",name:"Subaru",accent:"#3F8EFC",tagline:"Vape not included — rally DNA, STI parts on WRX budgets, and boxer rumble therapy",icon:"⭐" },
   { id:"mazda",name:"Mazda",accent:"#D4380D",tagline:"Miata Is Always The Answer — lightweight, revs, and the rotary that refuses to die",icon:"🔶" },
-  { id:"toyota",name:"Toyota",accent:"#1A1A1A",tagline:"It'll outlive you — bulletproof reliability meets off-road heritage and Supra legends",icon:"🏔" },
+  { id:"toyota",name:"Toyota",accent:"#D4D4D4",tagline:"It'll outlive you — bulletproof reliability meets off-road heritage and Supra legends",icon:"🏔" },
   { id:"nissan",name:"Nissan",accent:"#C41230",tagline:"Z cars, drift tax, and the trucks that refuse to die — VQ screams and KA struggles",icon:"🔻" },
   { id:"ford",name:"Ford",accent:"#003399",tagline:"Please don't leave Cars & Coffee sideways — Coyotes, EcoBoosts, and trucks that built America",icon:"🔷" },
   { id:"chevy",name:"Chevy",accent:"#D4A017",tagline:"LS swap everything — if it moves, someone has put an LS in it. Cam lope is a lifestyle.",icon:"🟡" },
@@ -1799,7 +1799,7 @@ export default function App(){
   },[search]);
 
   // ═══ TOP NAV ═══
-  const TopNav=()=>(
+  const topNav=(
     <header style={{position:"sticky",top:0,zIndex:150,background:C.s1+"F0",backdropFilter:"blur(12px)",borderBottom:`1px solid ${C.bdr}`}}>
       <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",display:"flex",alignItems:"center",gap:12}}>
         <span style={{fontSize:"1rem",fontWeight:800,fontFamily:fm,cursor:"pointer",flexShrink:0}} onClick={goHome}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
@@ -1878,7 +1878,7 @@ export default function App(){
     if(browseF.make)filtered=filtered.filter(p=>p.make===browseF.make);
     if(browseF.tax!==null)filtered=filtered.filter(p=>p.tax===browseF.tax);
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
         <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
           <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>🔍 Browse All Platforms</h1>
           <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1.2rem"}}>{PLATFORMS.length} platforms across {MAKES.length} manufacturers. Filter by brand or hype tax.</p>
@@ -1925,7 +1925,7 @@ export default function App(){
     const junkParts=PARTS.filter(p=>p.cat==="junk");
     const kTabs=[{id:"drifttax",l:"🔥 Drift Tax"},{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Checklists"},{id:"mistakes",l:"❌ Mistakes"},{id:"modorder",l:"📋 Mod Order"}];
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
         <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
           <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4,animation:"fadeUp 0.4s ease-out"}}>📚 Knowledge Base</h1>
           <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>The stuff buried in dead forum threads — compiled, organized, and honest.</p>
@@ -2035,7 +2035,7 @@ export default function App(){
 
   // ═══ HOME / MAKE SELECTION ═══
   if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/><AuthModal/><MyBuildsModal/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}<AuthModal/><MyBuildsModal/>
       <div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
         <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
           <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
@@ -2067,7 +2067,7 @@ export default function App(){
 
   // ═══ PLATFORM SELECTION ═══
   if(step==="platform"){const mP=PLATFORMS.filter(p=>p.make===makeId);return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
       <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to manufacturers</button>
         <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4}}>{make?.icon} {make?.name}</h1>
@@ -2098,7 +2098,7 @@ export default function App(){
 
   // ═══ VEHICLE SELECTION ═══
   if(step==="vehicle")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}
       <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
         <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
@@ -2133,7 +2133,7 @@ export default function App(){
 
   // ═══ BUILDER SCREEN ═══
   return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/><TopNav/><AuthModal/><SaveModal/><MyBuildsModal/>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}<AuthModal/><SaveModal/><MyBuildsModal/>
       <div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
         {/* Header */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
