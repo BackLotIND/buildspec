@@ -1804,30 +1804,31 @@ export default function App(){
       <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",display:"flex",alignItems:"center",gap:12}}>
         <span style={{fontSize:"1rem",fontWeight:800,fontFamily:fm,cursor:"pointer",flexShrink:0}} onClick={goHome}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
         {/* Search */}
-        <div style={{flex:1,position:"relative",maxWidth:400}}>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search platforms, cars..." style={{width:"100%",padding:"6px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,outline:"none"}}/>
+        <div style={{flex:1,position:"relative",maxWidth:220,minWidth:80}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search cars..." style={{width:"100%",padding:"6px 10px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.65rem",fontFamily:fs,outline:"none"}}/>
           {search.length>=2&&(searchResults.plats?.length>0||searchResults.makes?.length>0)&&(
             <div style={{position:"absolute",top:"100%",left:0,right:0,background:C.s1,border:`1px solid ${C.bdr}`,borderRadius:8,marginTop:4,maxHeight:300,overflow:"auto",zIndex:200}}>
               {searchResults.makes?.map(m=>(
-                <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m.icon} <b>{m.name}</b> <span style={{color:C.tm}}>— {m.tagline.slice(0,50)}...</span></div>
+                <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m.icon} <b>{m.name}</b></div>
               ))}
               {searchResults.plats?.map(p=>{const m=MAKES.find(x=>x.id===p.make);return(
-                <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m?.icon} <b>{p.name}</b> <span style={{color:C.tm}}>{p.gen}</span> {p.tax!==undefined&&<TaxBadge lv={p.tax}/>}</div>
+                <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m?.icon} <b>{p.name}</b> <span style={{color:C.tm}}>{p.gen}</span></div>
               );})}
             </div>
           )}
         </div>
         {/* Nav links */}
-        {!mob&&<nav style={{display:"flex",gap:4,alignItems:"center"}}>
+        {!mob&&<nav style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
           {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
-            <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 10px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.65rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400}}>{n.ic} {n.l}</button>
+            <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
           ))}
-          <span style={{width:1,height:16,background:C.bdr,margin:"0 2px"}}/>
+          <span style={{width:1,height:16,background:C.bdr}}/>
           {(user&&user.id)?<>
-            <button onClick={loadMyBuilds} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs}}>📁 Builds</button>
-            <button onClick={signOut} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{profile?.username||"User"} ✕</button>
-          </>:<button onClick={()=>setShowAuth(true)} style={{padding:"5px 14px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.65rem",fontWeight:700,cursor:"pointer",fontFamily:fs}}>Sign In</button>}
+            <button onClick={loadMyBuilds} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs,whiteSpace:"nowrap"}}>📁</button>
+            <button onClick={signOut} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.5rem",cursor:"pointer",fontFamily:fs,whiteSpace:"nowrap"}}>Logout</button>
+          </>:<button onClick={()=>setShowAuth(true)} style={{padding:"5px 12px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.6rem",fontWeight:700,cursor:"pointer",fontFamily:fs,whiteSpace:"nowrap"}}>Sign In</button>}
         </nav>}
+        {mob&&!(user&&user.id)&&<button onClick={()=>setShowAuth(true)} style={{padding:"5px 10px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.6rem",fontWeight:700,cursor:"pointer",fontFamily:fs,flexShrink:0}}>Sign In</button>}
       </div>
     </header>
   );
