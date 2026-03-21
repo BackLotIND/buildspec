@@ -1737,17 +1737,17 @@ export default function App(){
 
   // ═══ AUTH MODAL ═══
   const authModal=showAuth?(
-    <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowAuth(false)}>
-      <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:360,border:`1px solid ${C.bdr}`}}>
-        <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:4}}>{authMode==="login"?"Welcome back":"Create account"}</h2>
-        <p style={{fontSize:"0.65rem",color:C.tm,marginBottom:"1rem"}}>{authMode==="login"?"Sign in to save and share builds":"Join BuildSpec — save builds, share with the community"}</p>
-        {authMode==="signup"&&<input value={authUser} onChange={e=>setAuthUser(e.target.value)} placeholder="Username" style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:8,outline:"none",boxSizing:"border-box"}}/>}
-        <input value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" type="email" style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:8,outline:"none",boxSizing:"border-box"}}/>
-        <input value={authPass} onChange={e=>setAuthPass(e.target.value)} placeholder="Password" type="password" onKeyDown={e=>e.key==="Enter"&&handleAuth()} style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:12,outline:"none",boxSizing:"border-box"}}/>
-        {authErr&&<div style={{fontSize:"0.62rem",color:C.acc,marginBottom:8}}>{authErr}</div>}
-        {authOk&&<div style={{fontSize:"0.62rem",color:C.g,marginBottom:8}}>{authOk}</div>}
-        <button onClick={handleAuth} style={{width:"100%",padding:"10px",borderRadius:8,border:"none",background:C.acc,color:"#fff",fontSize:"0.75rem",fontWeight:700,cursor:"pointer",fontFamily:fs,marginBottom:8}}>{authMode==="login"?"Sign In":"Create Account"}</button>
-        <button onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthErr("");setAuthOk("");}} style={{width:"100%",background:"none",border:"none",color:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{authMode==="login"?"Don't have an account? Sign up":"Already have an account? Sign in"}</button>
+    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowAuth(false)}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#12121A",borderRadius:16,padding:"2rem",width:"100%",maxWidth:380,border:"2px solid #E63946"}}>
+        <h2 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:6,color:"#fff"}}>{authMode==="login"?"Welcome back":"Create account"}</h2>
+        <p style={{fontSize:"0.7rem",color:"#999",marginBottom:"1.2rem"}}>{authMode==="login"?"Sign in to save and share builds":"Join BuildSpec — save builds, share with the community"}</p>
+        {authMode==="signup"&&<input value={authUser} onChange={e=>setAuthUser(e.target.value)} placeholder="Username" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:10,outline:"none",boxSizing:"border-box"}}/>}
+        <input value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" type="email" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:10,outline:"none",boxSizing:"border-box"}}/>
+        <input value={authPass} onChange={e=>setAuthPass(e.target.value)} placeholder="Password" type="password" onKeyDown={e=>e.key==="Enter"&&handleAuth()} style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:14,outline:"none",boxSizing:"border-box"}}/>
+        {authErr&&<div style={{fontSize:"0.7rem",color:"#E63946",marginBottom:10,padding:"8px",background:"#E6394615",borderRadius:6}}>{authErr}</div>}
+        {authOk&&<div style={{fontSize:"0.7rem",color:"#2EC4B6",marginBottom:10,padding:"8px",background:"#2EC4B615",borderRadius:6}}>{authOk}</div>}
+        <button onClick={handleAuth} style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:"#E63946",color:"#fff",fontSize:"0.85rem",fontWeight:700,cursor:"pointer",marginBottom:10}}>{authMode==="login"?"Sign In":"Create Account"}</button>
+        <button onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthErr("");setAuthOk("");}} style={{width:"100%",background:"none",border:"none",color:"#999",fontSize:"0.7rem",cursor:"pointer"}}>{authMode==="login"?"Don't have an account? Sign up":"Already have an account? Sign in"}</button>
       </div>
     </div>
   ):null;
@@ -1821,7 +1821,7 @@ export default function App(){
             <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
           ))}
         </nav>}
-        <button onClick={()=>setShowAuth(true)} style={{padding:"6px 14px",borderRadius:6,border:"none",background:"#E63946",color:"#fff",fontSize:"0.65rem",fontWeight:700,cursor:"pointer",flexShrink:0}}>Sign In</button>
+        <button id="bs-signin" onClick={()=>{setShowAuth(true);}} style={{padding:"6px 14px",borderRadius:6,border:"none",background:"#E63946",color:"#fff",fontSize:"0.65rem",fontWeight:700,cursor:"pointer",flexShrink:0}}>Sign In</button>
       </div>
     </header>
   );
