@@ -1641,11 +1641,19 @@ const BUILDS = [
     order:"1. Fix frame/rust → 2. LS + trans + wiring → 3. Cooling system → 4. Exhaust → 5. Drop kit → 6. Beat Mustangs at the strip for $2,100 total",verified:true},
 ];
 
-// ═══ COMPONENT ═══
 
-// ═══ COMPONENT — Modern UI Rewrite ═══
+// ═══ COMPONENT — Polished Quality Pass ═══
 export default function App(){
-  const { user, profile, loading: authLoading, signUp, signIn, signOut, saveBuild, getMyBuilds, deleteBuild } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user || null;
+  const profile = auth?.profile || null;
+  const signUp = auth?.signUp || (async()=>({error:'Auth not ready'}));
+  const signIn = auth?.signIn || (async()=>({error:'Auth not ready'}));
+  const signOut = auth?.signOut || (async()=>{});
+  const saveBuild = auth?.saveBuild || (async()=>({error:'Auth not ready'}));
+  const getMyBuilds = auth?.getMyBuilds || (async()=>({data:[]}));
+  const deleteBuild = auth?.deleteBuild || (async()=>({}));
+
   const[step,setStep]=useState("make");
   const[makeId,setMakeId]=useState(null);
   const[platId,setPlatId]=useState(null);
@@ -1656,7 +1664,6 @@ export default function App(){
   const[expB,setExpB]=useState(null);
   const[tierF,setTierF]=useState(null);
   const[sortBy,setSortBy]=useState("default");
-  const[showWarn,setShowWarn]=useState(true);
   const[aboutTab,setAboutTab]=useState("overview");
   const[mob,setMob]=useState(false);
   const[page,setPage]=useState("home");
@@ -1675,7 +1682,7 @@ export default function App(){
   const[showSave,setShowSave]=useState(false);
   const[saveName,setSaveName]=useState("");
   const[showMyBuilds,setShowMyBuilds]=useState(false);
-  useEffect(()=>{const check=()=>setMob(window.innerWidth<768);check();window.addEventListener("resize",check);return()=>window.removeEventListener("resize",check);},[]);
+  useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
 
   const make=MAKES.find(m=>m.id===makeId);
   const plat=PLATFORMS.find(p=>p.id===platId);
@@ -1693,16 +1700,16 @@ export default function App(){
   const bPct=budget>0?Math.min((tCost/budget)*100,100):0;
 
   // ═══ DELUSION METER ═══
-  const delusion = useMemo(() => {
-    if (bParts.length === 0) return null;
-    const score = Math.min(100, (tCost / Math.max(budget, 1)) * 60 + bParts.length * 5 + tHp * 0.15);
-    if (score < 20) return { l: "Stock+", c: "#2EC4B6", w: score, d: "Your car is basically stock with a sticker. Respect." };
-    if (score < 40) return { l: "Responsible", c: "#7EC8A0", w: score, d: "Smart, measured, your mechanic approves. Boring but effective." };
-    if (score < 55) return { l: "Getting Spicy", c: "#FFB703", w: score, d: "Your insurance company is getting nervous." };
-    if (score < 70) return { l: "Down Bad", c: "#FB8500", w: score, d: "Your savings account just filed for divorce." };
-    if (score < 85) return { l: "Financially Unhinged", c: "#E63946", w: score, d: "Your car is worth more in parts than the actual car." };
-    return { l: "The Chronically Offline", c: "#9B2226", w: 100, d: "You've spent more on car parts than rent this year. Touch grass." };
-  }, [bParts, tCost, budget, tHp]);
+  const delusion=useMemo(()=>{
+    if(bParts.length===0)return null;
+    const score=Math.min(100,(tCost/Math.max(budget,1))*60+bParts.length*5+tHp*0.15);
+    if(score<20)return{l:"Stock+",c:"#2EC4B6",w:score,d:"Your car is basically stock with a sticker. Respect."};
+    if(score<40)return{l:"Responsible",c:"#7EC8A0",w:score,d:"Smart, measured, your mechanic approves. Boring but effective."};
+    if(score<55)return{l:"Getting Spicy",c:"#FFB703",w:score,d:"Your insurance company is getting nervous."};
+    if(score<70)return{l:"Down Bad",c:"#FB8500",w:score,d:"Your savings account just filed for divorce."};
+    if(score<85)return{l:"Financially Unhinged",c:"#E63946",w:score,d:"Your car is worth more in parts than the actual car."};
+    return{l:"The Chronically Offline",c:"#9B2226",w:100,d:"You've spent more on car parts than rent this year. Touch grass."};
+  },[bParts,tCost,budget,tHp]);
 
   // ═══ THEMING ═══
   const C={bg:"#0A0A0F",s1:"#12121A",s2:"#1A1A25",s3:"#22222F",t:"#EEEEF2",tm:"#9999AA",td:"#666677",acc:"#E63946",accD:"#E6394620",bdr:"#2A2A3A",g:"#2EC4B6",gD:"#2EC4B615",y:"#FFB703",yD:"#FFB70315"};
@@ -1718,7 +1725,7 @@ export default function App(){
   const SkB=({lv,full})=>{const s=SK[lv];return<span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:"0.55rem",fontFamily:fm,color:s.c,background:s.c+"14",padding:"1px 5px",borderRadius:3,whiteSpace:"nowrap"}}>{"●".repeat(lv)}<span style={{opacity:.2}}>{"●".repeat(5-lv)}</span>{full&&<span>{s.l}</span>}</span>;};
   const TaxBadge=({lv})=>{const t=TAX[lv];if(lv===undefined||lv===null)return null;return<span style={{fontSize:"0.55rem",padding:"2px 6px",borderRadius:4,background:t.bg,color:t.c,fontFamily:fm,fontWeight:600,border:`1px solid ${t.c}25`}}>{t.l}</span>;};
   const getBuyUrl=(part)=>{const b=part.brand.split("/")[0].trim();let n=part.name.replace(/🏴‍☠️\s*/g,"").replace(/⚠️\s*BUDGET:\s*/g,"").replace(/\(×4\)/g,"").trim();const q=encodeURIComponent(n.toLowerCase().includes(b.toLowerCase())?n:b+" "+n);const r=part.ret.toLowerCase();if(r.includes("amazon"))return`https://www.amazon.com/s?k=${q}&tag=${AFF_TAG}`;if(r.includes("ebay"))return`https://www.ebay.com/sch/i.html?_nkw=${q}`;if(r.includes("summit"))return`https://www.summitracing.com/search?query=${q}`;if(r.includes("tire rack"))return`https://www.tirerack.com/tires/TireSearchResults.jsp?search=${q}`;if(r.includes("fcp euro"))return`https://www.fcpeuro.com/search?query=${q}`;if(r.includes("fitment"))return`https://www.fitmentindustries.com/search?q=${q}`;if(r.includes("ecs"))return`https://www.ecstuning.com/Search/?q=${q}`;return`https://www.google.com/search?q=${q}+buy`;};
-  const BuyBtn=({part,small})=><a href={getBuyUrl(part)} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:3,padding:small?"2px 6px":"3px 8px",borderRadius:4,border:"none",background:"#2EC4B6",color:"#000",fontSize:small?"0.5rem":"0.58rem",fontWeight:600,cursor:"pointer",fontFamily:fs,textDecoration:"none"}}>🛒 Buy</a>;
+  const BuyBtn=({part})=><a href={getBuyUrl(part)} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:3,padding:"3px 8px",borderRadius:4,border:"none",background:"#2EC4B6",color:"#000",fontSize:"0.58rem",fontWeight:600,cursor:"pointer",fontFamily:fs,textDecoration:"none"}}>🛒 Buy</a>;
   const CatIco=({cat})=><div style={{width:34,height:34,borderRadius:5,background:cat==="junk"?"#D46B0820":C.s3,border:cat==="junk"?`1px solid #D46B0840`:"none",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.9rem",flexShrink:0}}>{CATS.find(c=>c.id===cat)?.icon||"🔧"}</div>;
   const goBack=()=>{if(step==="builder"){setStep("vehicle");setVehId(null);setSel({});}else if(step==="vehicle"){setStep("platform");setPlatId(null);}else if(step==="platform"){setStep("make");setMakeId(null);}};
   const goHome=()=>{setPage("home");setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});setSearch("");};
@@ -1726,108 +1733,67 @@ export default function App(){
   // ═══ AUTH HANDLERS ═══
   const handleAuth=async()=>{setAuthErr("");setAuthOk("");
     if(authMode==="login"){const{error}=await signIn(authEmail,authPass);if(error)setAuthErr(error.message);else{setShowAuth(false);setAuthEmail("");setAuthPass("");}}
-    else{if(!authUser){setAuthErr("Username required");return;}const{error}=await signUp(authEmail,authPass,authUser);if(error)setAuthErr(error.message);else{setAuthOk("Check your email to confirm your account!");setAuthEmail("");setAuthPass("");setAuthUser("");}}
+    else{if(!authUser){setAuthErr("Username required");return;}const{error}=await signUp(authEmail,authPass,authUser);if(error)setAuthErr(error.message);else{setAuthOk("Check your email to confirm your account!");}}
   };
-  const handleSaveBuild=async()=>{if(!saveName.trim()){return;}
+  const handleSaveBuild=async()=>{if(!saveName.trim())return;
     const{error}=await saveBuild({title:saveName,platformId:platId,vehicleId:vehId,makeId,parts:sel,budget,notes:"",isPublic:true,totalCost:tCost,totalHp:tHp,totalTq:tTq});
-    if(!error){setShowSave(false);setSaveName("");alert("Build saved!");}else{alert("Error: "+error.message||error);}
+    if(!error){setShowSave(false);setSaveName("");}else{setAuthErr(String(error.message||error));}
   };
   const loadMyBuilds=async()=>{const{data}=await getMyBuilds();setMyBuilds(data||[]);setShowMyBuilds(true);};
   const loadBuild=(b)=>{setMakeId(b.make_id);setPlatId(b.platform_id);setVehId(b.vehicle_id);setSel(typeof b.parts==="string"?JSON.parse(b.parts):b.parts);setBudget(b.budget);setStep("builder");setPage("home");setShowMyBuilds(false);};
 
-  // ═══ AUTH MODAL ═══
-  const authModal=(
-    <div id="bs-auth-modal" style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.85)",zIndex:9999,display:"none",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>{document.getElementById('bs-auth-modal').style.display='none';}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#12121A",borderRadius:16,padding:"2rem",width:"100%",maxWidth:380,border:"2px solid #E63946"}}>
-        <h2 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:6,color:"#fff"}}>{authMode==="login"?"Welcome back":"Create account"}</h2>
-        <p style={{fontSize:"0.7rem",color:"#999",marginBottom:"1.2rem"}}>{authMode==="login"?"Sign in to save and share builds":"Join BuildSpec — save builds, share with the community"}</p>
-        {authMode==="signup"&&<input value={authUser} onChange={e=>setAuthUser(e.target.value)} placeholder="Username" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:10,outline:"none",boxSizing:"border-box"}}/>}
-        <input value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" type="email" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:10,outline:"none",boxSizing:"border-box"}}/>
-        <input value={authPass} onChange={e=>setAuthPass(e.target.value)} placeholder="Password" type="password" onKeyDown={e=>{if(e.key==="Enter")handleAuth();}} style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:14,outline:"none",boxSizing:"border-box"}}/>
-        {authErr&&<div style={{fontSize:"0.7rem",color:"#E63946",marginBottom:10,padding:"8px",background:"#E6394615",borderRadius:6}}>{authErr}</div>}
-        {authOk&&<div style={{fontSize:"0.7rem",color:"#2EC4B6",marginBottom:10,padding:"8px",background:"#2EC4B615",borderRadius:6}}>{authOk}</div>}
-        <button onClick={handleAuth} style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:"#E63946",color:"#fff",fontSize:"0.85rem",fontWeight:700,cursor:"pointer",marginBottom:10}}>{authMode==="login"?"Sign In":"Create Account"}</button>
-        <button onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthErr("");setAuthOk("");}} style={{width:"100%",background:"none",border:"none",color:"#999",fontSize:"0.7rem",cursor:"pointer"}}>{authMode==="login"?"Don't have an account? Sign up":"Already have an account? Sign in"}</button>
+  // ═══ SEARCH ═══
+  const searchResults=useMemo(()=>{
+    if(!search||search.length<2)return{plats:[],makes:[]};
+    const q=search.toLowerCase();
+    return{plats:PLATFORMS.filter(p=>p.name.toLowerCase().includes(q)||p.tagline.toLowerCase().includes(q)).slice(0,8),makes:MAKES.filter(m=>m.name.toLowerCase().includes(q)).slice(0,3)};
+  },[search]);
+
+  // ═══ SHARED UI PIECES (as JSX, not components, to avoid focus issues) ═══
+
+  const navLinks=(
+    <nav style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
+      {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
+        <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
+      ))}
+    </nav>
+  );
+
+  const signInBtn=(user&&user.id)
+    ?<div style={{display:"flex",gap:4,alignItems:"center",flexShrink:0}}>
+        <button onClick={loadMyBuilds} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.g,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs}}>📁 My Builds</button>
+        <button onClick={()=>signOut()} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{profile?.username||"Logout"} ✕</button>
       </div>
+    :<button onClick={()=>setShowAuth(true)} style={{padding:"6px 14px",borderRadius:6,border:"none",background:C.acc,color:"#fff",fontSize:"0.65rem",fontWeight:700,cursor:"pointer",fontFamily:fs,flexShrink:0}}>Sign In</button>;
+
+  const searchBar=(
+    <div style={{flex:1,position:"relative",maxWidth:mob?999:220,minWidth:80}}>
+      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search cars..." style={{width:"100%",padding:"6px 10px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.65rem",fontFamily:fs,outline:"none"}}/>
+      {search.length>=2&&(searchResults.plats.length>0||searchResults.makes.length>0)&&(
+        <div style={{position:"absolute",top:"100%",left:0,right:0,background:C.s1,border:`1px solid ${C.bdr}`,borderRadius:8,marginTop:4,maxHeight:300,overflow:"auto",zIndex:200,boxShadow:"0 8px 32px #000"}}>
+          {searchResults.makes.map(m=>(
+            <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");setPage("home");setSearch("");}} style={{padding:"10px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m.icon} <b>{m.name}</b></div>
+          ))}
+          {searchResults.plats.map(p=>{const m=MAKES.find(x=>x.id===p.make);return(
+            <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");setSearch("");}} style={{padding:"10px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m?.icon} <b>{p.name}</b> <span style={{color:C.tm}}>{p.gen}</span></div>
+          );})}
+        </div>
+      )}
     </div>
   );
 
-  const saveModal=showSave?(
-    <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowSave(false)}>
-      <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:360,border:`1px solid ${C.bdr}`}}>
-        <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:4}}>Save Build</h2>
-        <p style={{fontSize:"0.65rem",color:C.tm,marginBottom:"1rem"}}>{bParts.length} parts • ${tCost} total • +{tHp}HP</p>
-        <input value={saveName} onChange={e=>setSaveName(e.target.value)} placeholder="Name your build (e.g. 'Weekend Miata')" onKeyDown={e=>e.key==="Enter"&&handleSaveBuild()} style={{width:"100%",padding:"8px 12px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.72rem",fontFamily:fs,marginBottom:12,outline:"none",boxSizing:"border-box"}}/>
-        <button onClick={handleSaveBuild} style={{width:"100%",padding:"10px",borderRadius:8,border:"none",background:C.g,color:"#000",fontSize:"0.75rem",fontWeight:700,cursor:"pointer",fontFamily:fs}}>💾 Save Build</button>
-      </div>
-    </div>
-  ):null;
-
-  const myBuildsModal=showMyBuilds?(
-    <div style={{position:"fixed",inset:0,background:"#000A",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowMyBuilds(false)}>
-      <div onClick={e=>e.stopPropagation()} style={{background:C.s1,borderRadius:16,padding:"1.5rem",width:"100%",maxWidth:420,maxHeight:"80vh",overflow:"auto",border:`1px solid ${C.bdr}`}}>
-        <h2 style={{fontSize:"1.1rem",fontWeight:800,marginBottom:"1rem"}}>My Saved Builds</h2>
-        {myBuilds.length===0?<p style={{fontSize:"0.72rem",color:C.tm}}>No saved builds yet. Start building and save your first one!</p>:
-          myBuilds.map(b=>{const p=PLATFORMS.find(x=>x.id===b.platform_id);const m=MAKES.find(x=>x.id===b.make_id);return(
-            <div key={b.id} style={{background:C.s2,borderRadius:10,padding:"0.75rem",marginBottom:8,border:`1px solid ${C.bdr}`}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                <div>
-                  <div style={{fontSize:"0.8rem",fontWeight:700}}>{b.title}</div>
-                  <div style={{fontSize:"0.58rem",color:C.tm}}>{m?.icon} {p?.name} • ${b.total_cost} • +{b.total_hp}HP</div>
-                </div>
-                <div style={{display:"flex",gap:4}}>
-                  <button onClick={()=>loadBuild(b)} style={{padding:"4px 8px",borderRadius:4,border:"none",background:C.acc,color:"#fff",fontSize:"0.55rem",fontWeight:600,cursor:"pointer",fontFamily:fs}}>Load</button>
-                  <button onClick={async()=>{if(confirm("Delete this build?")){await deleteBuild(b.id);loadMyBuilds();}}} style={{padding:"4px 8px",borderRadius:4,border:`1px solid ${C.acc}`,background:"transparent",color:C.acc,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>✕</button>
-                </div>
-              </div>
-            </div>
-          );})
-        }
-      </div>
-    </div>
-  ):null;
-
-  // ═══ SEARCH ═══
-  const searchResults=useMemo(()=>{
-    if(!search||search.length<2)return[];
-    const q=search.toLowerCase();
-    const plats=PLATFORMS.filter(p=>p.name.toLowerCase().includes(q)||p.tagline.toLowerCase().includes(q)||p.gen.includes(q));
-    const makes=MAKES.filter(m=>m.name.toLowerCase().includes(q));
-    return{plats:plats.slice(0,8),makes:makes.slice(0,3)};
-  },[search]);
-
-  // ═══ TOP NAV ═══
-  const topNav=(
+  const topBar=(
     <header style={{position:"sticky",top:0,zIndex:150,background:C.s1+"F0",backdropFilter:"blur(12px)",borderBottom:`1px solid ${C.bdr}`}}>
-      <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",display:"flex",alignItems:"center",gap:12}}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",display:"flex",alignItems:"center",gap:mob?8:12}}>
         <span style={{fontSize:"1rem",fontWeight:800,fontFamily:fm,cursor:"pointer",flexShrink:0}} onClick={goHome}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
-        {/* Search */}
-        <div style={{flex:1,position:"relative",maxWidth:220,minWidth:80}}>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search cars..." style={{width:"100%",padding:"6px 10px",borderRadius:8,border:`1px solid ${C.bdr}`,background:C.s2,color:C.t,fontSize:"0.65rem",fontFamily:fs,outline:"none"}}/>
-          {search.length>=2&&(searchResults.plats?.length>0||searchResults.makes?.length>0)&&(
-            <div style={{position:"absolute",top:"100%",left:0,right:0,background:C.s1,border:`1px solid ${C.bdr}`,borderRadius:8,marginTop:4,maxHeight:300,overflow:"auto",zIndex:200}}>
-              {searchResults.makes?.map(m=>(
-                <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m.icon} <b>{m.name}</b></div>
-              ))}
-              {searchResults.plats?.map(p=>{const m=MAKES.find(x=>x.id===p.make);return(
-                <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");setSearch("");}} style={{padding:"8px 12px",cursor:"pointer",borderBottom:`1px solid ${C.bdr}`,fontSize:"0.72rem",color:C.t}}>{m?.icon} <b>{p.name}</b> <span style={{color:C.tm}}>{p.gen}</span></div>
-              );})}
-            </div>
-          )}
-        </div>
-        {/* Nav links */}
-        {!mob&&<nav style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
-          {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
-            <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
-          ))}
-        </nav>}
-        <button id="bs-signin" onClick={()=>{document.getElementById('bs-auth-modal').style.display='flex';}} style={{padding:"6px 14px",borderRadius:6,border:"none",background:"#E63946",color:"#fff",fontSize:"0.65rem",fontWeight:700,cursor:"pointer",flexShrink:0}}>Sign In</button>
+        {searchBar}
+        {!mob&&navLinks}
+        {signInBtn}
       </div>
     </header>
   );
 
-  // ═══ BOTTOM NAV (mobile only) ═══
-  const bottomNav=mob?(
+  const bottomBar=mob?(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
       <div style={{background:C.bg,textAlign:"center",padding:"2px 0"}}><span style={{fontSize:"0.38rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
       <div style={{background:C.s1+"F0",backdropFilter:"blur(12px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:"calc(6px + env(safe-area-inset-bottom))"}}>
@@ -1840,8 +1806,7 @@ export default function App(){
     </div>
   ):null;
 
-  // ═══ FOOTER ═══
-  const footer=(
+  const siteFooter=(
     <footer style={{borderTop:`1px solid ${C.bdr}`,padding:"2rem 1.5rem",background:C.s1,marginTop:"3rem"}}>
       <div style={{maxWidth:900,margin:"0 auto"}}>
         <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:"1.5rem",marginBottom:"1.5rem"}}>
@@ -1863,57 +1828,102 @@ export default function App(){
           </div>
         </div>
         <div style={{borderTop:`1px solid ${C.bdr}`,paddingTop:"1rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-          <span style={{fontSize:"0.5rem",color:C.td}}>© 2025 BackLot Industries. BuildSpec is a product of BackLot Industries.</span>
+          <span style={{fontSize:"0.5rem",color:C.td}}>© 2025 BackLot Industries</span>
           <span style={{fontSize:"0.45rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span>
         </div>
       </div>
     </footer>
   );
 
+  // ═══ MODALS — always rendered, visibility controlled by display ═══
+  const modals=(
+    <>
+      {/* Auth Modal */}
+      {showAuth&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.88)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowAuth(false)}>
+        <div onClick={e=>e.stopPropagation()} style={{background:"#12121A",borderRadius:16,padding:"2rem",width:"100%",maxWidth:380,border:`2px solid ${C.acc}`,animation:"fadeUp 0.2s ease-out"}}>
+          <h2 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:6,color:"#fff"}}>{authMode==="login"?"Welcome back":"Create account"}</h2>
+          <p style={{fontSize:"0.7rem",color:"#999",marginBottom:"1.2rem"}}>{authMode==="login"?"Sign in to save and share builds":"Join BuildSpec — it's free"}</p>
+          {authMode==="signup"&&<input value={authUser} onChange={e=>setAuthUser(e.target.value)} placeholder="Username" autoComplete="username" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:10,outline:"none",boxSizing:"border-box"}}/>}
+          <input value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" type="email" autoComplete="email" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:10,outline:"none",boxSizing:"border-box"}}/>
+          <input value={authPass} onChange={e=>setAuthPass(e.target.value)} placeholder="Password" type="password" autoComplete={authMode==="login"?"current-password":"new-password"} onKeyDown={e=>{if(e.key==="Enter")handleAuth();}} style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:14,outline:"none",boxSizing:"border-box"}}/>
+          {authErr&&<div style={{fontSize:"0.7rem",color:C.acc,marginBottom:10,padding:"8px 12px",background:C.accD,borderRadius:6}}>{authErr}</div>}
+          {authOk&&<div style={{fontSize:"0.7rem",color:C.g,marginBottom:10,padding:"8px 12px",background:C.gD,borderRadius:6}}>{authOk}</div>}
+          <button onClick={handleAuth} style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:C.acc,color:"#fff",fontSize:"0.85rem",fontWeight:700,cursor:"pointer",marginBottom:10}}>{authMode==="login"?"Sign In":"Create Account"}</button>
+          <button onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthErr("");setAuthOk("");}} style={{width:"100%",background:"none",border:"none",color:"#999",fontSize:"0.7rem",cursor:"pointer",padding:"6px"}}>{authMode==="login"?"Don't have an account? Sign up":"Already have an account? Sign in"}</button>
+        </div>
+      </div>}
+
+      {/* Save Build Modal */}
+      {showSave&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.88)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowSave(false)}>
+        <div onClick={e=>e.stopPropagation()} style={{background:"#12121A",borderRadius:16,padding:"2rem",width:"100%",maxWidth:380,border:`2px solid ${C.g}`,animation:"fadeUp 0.2s ease-out"}}>
+          <h2 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:6,color:"#fff"}}>💾 Save Build</h2>
+          <p style={{fontSize:"0.7rem",color:"#999",marginBottom:"1.2rem"}}>{bParts.length} parts • ${tCost} total • +{tHp}HP</p>
+          <input value={saveName} onChange={e=>setSaveName(e.target.value)} placeholder="Name your build..." autoFocus onKeyDown={e=>{if(e.key==="Enter")handleSaveBuild();}} style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:14,outline:"none",boxSizing:"border-box"}}/>
+          <button onClick={handleSaveBuild} style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:C.g,color:"#000",fontSize:"0.85rem",fontWeight:700,cursor:"pointer"}}>💾 Save Build</button>
+        </div>
+      </div>}
+
+      {/* My Builds Modal */}
+      {showMyBuilds&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.88)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowMyBuilds(false)}>
+        <div onClick={e=>e.stopPropagation()} style={{background:"#12121A",borderRadius:16,padding:"2rem",width:"100%",maxWidth:420,maxHeight:"80vh",overflow:"auto",border:`2px solid ${C.acc}`,animation:"fadeUp 0.2s ease-out"}}>
+          <h2 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:"1rem",color:"#fff"}}>📁 My Saved Builds</h2>
+          {myBuilds.length===0?<p style={{fontSize:"0.75rem",color:"#999"}}>No saved builds yet. Start building and save your first one!</p>:
+            myBuilds.map(b=>{const p=PLATFORMS.find(x=>x.id===b.platform_id);const m=MAKES.find(x=>x.id===b.make_id);return(
+              <div key={b.id} style={{background:C.s2,borderRadius:10,padding:"0.75rem",marginBottom:8,border:`1px solid ${C.bdr}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                  <div><div style={{fontSize:"0.8rem",fontWeight:700,color:"#fff"}}>{b.title}</div><div style={{fontSize:"0.58rem",color:C.tm}}>{m?.icon} {p?.name} • ${b.total_cost} • +{b.total_hp}HP</div></div>
+                  <div style={{display:"flex",gap:4}}>
+                    <button onClick={()=>loadBuild(b)} style={{padding:"4px 10px",borderRadius:4,border:"none",background:C.acc,color:"#fff",fontSize:"0.58rem",fontWeight:600,cursor:"pointer"}}>Load</button>
+                    <button onClick={async()=>{await deleteBuild(b.id);loadMyBuilds();}} style={{padding:"4px 8px",borderRadius:4,border:`1px solid ${C.acc}`,background:"transparent",color:C.acc,fontSize:"0.55rem",cursor:"pointer"}}>✕</button>
+                  </div>
+                </div>
+              </div>
+            );})
+          }
+        </div>
+      </div>}
+    </>
+  );
+
+  // ═══ PAGE WRAPPER ═══
+  const Pg=({children})=><div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}{children}{siteFooter}{bottomBar}</div>;
+
   // ═══ BROWSE PAGE ═══
   if(page==="browse"){
     let filtered=PLATFORMS;
     if(browseF.make)filtered=filtered.filter(p=>p.make===browseF.make);
-    if(browseF.tax!==null)filtered=filtered.filter(p=>p.tax===browseF.tax);
+    if(browseF.tax!==null&&browseF.tax!==undefined)filtered=filtered.filter(p=>p.tax===browseF.tax);
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
-        <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
-          <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>🔍 Browse All Platforms</h1>
-          <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1.2rem"}}>{PLATFORMS.length} platforms across {MAKES.length} manufacturers. Filter by brand or hype tax.</p>
-          {/* Filters */}
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
-            <button onClick={()=>setBrowseF(f=>({...f,make:null}))} style={{padding:"5px 12px",borderRadius:8,border:`1px solid ${!browseF.make?C.acc:C.bdr}`,background:!browseF.make?C.accD:"transparent",color:!browseF.make?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>All Makes</button>
-            {MAKES.map(m=><button key={m.id} onClick={()=>setBrowseF(f=>({...f,make:f.make===m.id?null:m.id}))} style={{padding:"5px 10px",borderRadius:8,border:`1px solid ${browseF.make===m.id?m.accent:C.bdr}`,background:browseF.make===m.id?m.accent+"15":"transparent",color:browseF.make===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
-          </div>
-          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:"1.2rem"}}>
-            {[{v:null,l:"Any Price"},{v:0,l:"No Tax ✅"},{v:1,l:"Mild"},{v:2,l:"Taxed 📈"},{v:3,l:"Drift Taxed 🔥"},{v:4,l:"Unobtainium 💀"}].map(t=>(
-              <button key={String(t.v)} onClick={()=>setBrowseF(f=>({...f,tax:f.tax===t.v?null:t.v}))} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${browseF.tax===t.v?C.acc:C.bdr}`,background:browseF.tax===t.v?C.accD:"transparent",color:browseF.tax===t.v?C.acc:C.tm,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs}}>{t.l}</button>
-            ))}
-          </div>
-          {/* Results grid */}
-          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
-            {filtered.map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);const pParts=PARTS.filter(x=>x.plats.includes(p.id));const pBlds=BUILDS.filter(x=>x.plat===p.id);return(
-              <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=m?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
-                  <div>
-                    <div style={{fontSize:"0.85rem",fontWeight:700}}>{m?.icon} {p.name}</div>
-                    <div style={{fontSize:"0.6rem",color:C.td}}>{p.gen} • {p.hp}HP</div>
-                  </div>
-                  <TaxBadge lv={p.tax}/>
-                </div>
-                <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{p.tagline}</p>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:"0.55rem"}}>
-                  <span style={{padding:"2px 6px",background:C.s2,borderRadius:4,color:C.tm}}>{pParts.length} parts</span>
-                  <span style={{padding:"2px 6px",background:C.s2,borderRadius:4,color:C.tm}}>{pBlds.length} builds</span>
-                  {p.buyer_checklist&&<span style={{padding:"2px 6px",background:C.gD,borderRadius:4,color:C.g}}>✓ Checklist</span>}
-                </div>
-                {p.taxNote&&<div style={{fontSize:"0.52rem",color:TAX[p.tax]?.c||C.td,marginTop:6,fontStyle:"italic"}}>{p.taxNote}</div>}
-              </div>
-            );})}
-          </div>
+      <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+        <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>🔍 Browse All Platforms</h1>
+        <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1.2rem"}}>{PLATFORMS.length} platforms across {MAKES.length} manufacturers</p>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+          <button onClick={()=>setBrowseF(f=>({...f,make:null}))} style={{padding:"5px 12px",borderRadius:8,border:`1px solid ${!browseF.make?C.acc:C.bdr}`,background:!browseF.make?C.accD:"transparent",color:!browseF.make?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>All</button>
+          {MAKES.map(m=><button key={m.id} onClick={()=>setBrowseF(f=>({...f,make:f.make===m.id?null:m.id}))} style={{padding:"5px 10px",borderRadius:8,border:`1px solid ${browseF.make===m.id?m.accent:C.bdr}`,background:browseF.make===m.id?m.accent+"15":"transparent",color:browseF.make===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
         </div>
-        {footer}{bottomNav}
-      </div>
+        <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:"1.2rem"}}>
+          {[{v:null,l:"Any Price"},{v:0,l:"No Tax ✅"},{v:1,l:"Mild"},{v:2,l:"Taxed 📈"},{v:3,l:"Drift Taxed 🔥"},{v:4,l:"Unobtainium 💀"}].map(t=>(
+            <button key={String(t.v)} onClick={()=>setBrowseF(f=>({...f,tax:f.tax===t.v?null:t.v}))} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${browseF.tax===t.v?C.acc:C.bdr}`,background:browseF.tax===t.v?C.accD:"transparent",color:browseF.tax===t.v?C.acc:C.tm,fontSize:"0.58rem",cursor:"pointer",fontFamily:fs}}>{t.l}</button>
+          ))}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
+          {filtered.map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);const pParts=PARTS.filter(x=>x.plats.includes(p.id));const pBlds=BUILDS.filter(x=>x.plat===p.id);return(
+            <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=m?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                <div><div style={{fontSize:"0.85rem",fontWeight:700}}>{m?.icon} {p.name}</div><div style={{fontSize:"0.6rem",color:C.td}}>{p.gen} • {p.hp}HP</div></div>
+                <TaxBadge lv={p.tax}/>
+              </div>
+              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{p.tagline}</p>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:"0.55rem"}}>
+                <span style={{padding:"2px 6px",background:C.s2,borderRadius:4,color:C.tm}}>{pParts.length} parts</span>
+                <span style={{padding:"2px 6px",background:C.s2,borderRadius:4,color:C.tm}}>{pBlds.length} builds</span>
+                {p.buyer_checklist&&<span style={{padding:"2px 6px",background:C.gD,borderRadius:4,color:C.g}}>✓ Checklist</span>}
+              </div>
+              {p.taxNote&&<div style={{fontSize:"0.52rem",color:TAX[p.tax]?.c||C.td,marginTop:6,fontStyle:"italic"}}>{p.taxNote}</div>}
+            </div>
+          );})}
+        </div>
+      </div></Pg>
     );
   }
 
@@ -1923,358 +1933,266 @@ export default function App(){
     const junkParts=PARTS.filter(p=>p.cat==="junk");
     const kTabs=[{id:"drifttax",l:"🔥 Drift Tax"},{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Checklists"},{id:"mistakes",l:"❌ Mistakes"},{id:"modorder",l:"📋 Mod Order"}];
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
-        <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
-          <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4,animation:"fadeUp 0.4s ease-out"}}>📚 Knowledge Base</h1>
-          <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>The stuff buried in dead forum threads — compiled, organized, and honest.</p>
-          {/* Manufacturer filter */}
-          <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
-            <button onClick={()=>setKMake(null)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${!kMake?C.acc:C.bdr}`,background:!kMake?C.accD:"transparent",color:!kMake?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>All</button>
-            {MAKES.map(m=><button key={m.id} onClick={()=>setKMake(kMake===m.id?null:m.id)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${kMake===m.id?m.accent:C.bdr}`,background:kMake===m.id?m.accent+"15":"transparent",color:kMake===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
-          </div>
-          {/* Knowledge tabs */}
-          <div style={{display:"flex",gap:4,marginBottom:"1rem",flexWrap:"wrap"}}>
-            {kTabs.map(t=><button key={t.id} onClick={()=>setKTab(t.id)} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${kTab===t.id?C.acc:C.bdr}`,background:kTab===t.id?C.accD:"transparent",color:kTab===t.id?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs,fontWeight:kTab===t.id?600:400}}>{t.l}</button>)}
-          </div>
-
-          {/* DRIFT TAX TIER LIST */}
-          {kTab==="drifttax"&&(
-            <div>
-              <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"1rem"}}>How much "hype tax" are you paying? Honest price assessments for every platform.</p>
-              {[4,3,2,1,0].map(tier=>{const t=TAX[tier];const tierPlats=kPlats.filter(p=>p.tax===tier);if(tierPlats.length===0)return null;return(
-                <div key={tier} style={{marginBottom:"1rem"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                    <span style={{fontSize:"0.9rem",fontWeight:800,color:t.c,fontFamily:fm}}>{t.l}</span>
-                    <span style={{fontSize:"0.55rem",color:C.td}}>({tierPlats.length} platforms)</span>
-                  </div>
-                  <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
-                    {tierPlats.map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
-                      <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");}} style={{background:C.s1,borderRadius:10,border:`1px solid ${t.c}30`,padding:"0.75rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                          <span style={{fontSize:"0.78rem",fontWeight:700}}>{m?.icon} {p.name}</span>
-                          <span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>{p.budget}</span>
-                        </div>
-                        {p.taxNote&&<p style={{fontSize:"0.58rem",color:t.c,marginTop:4,lineHeight:1.4,fontStyle:"italic"}}>{p.taxNote}</p>}
-                      </div>
-                    );})}
-                  </div>
-                </div>
-              );})}
-            </div>
-          )}
-
-          {/* JUNKYARD GOLD */}
-          {kTab==="junkyard"&&(
-            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
-              {(kMake?junkParts.filter(p=>p.plats.some(pl=>PLATFORMS.find(x=>x.id===pl)?.make===kMake)):junkParts).map((part,i)=>{
-                const partPlats=part.plats.map(pl=>PLATFORMS.find(x=>x.id===pl)).filter(Boolean);
-                return(
-                  <div key={part.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid #D46B0825`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
-                    <div style={{fontSize:"0.78rem",fontWeight:700,color:"#D46B08"}}>{part.name}</div>
-                    <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>{partPlats.map(p=><span key={p.id} style={{fontSize:"0.48rem",padding:"1px 5px",background:C.s2,borderRadius:3,color:C.tm}}>{p.name}</span>)}</div>
-                    <p style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0"}}>{part.desc.slice(0,180)}...</p>
-                    <div style={{fontSize:"0.55rem",padding:"0.3rem",background:"#D46B0808",borderRadius:4,color:"#D46B08"}}>💡 {part.notes.slice(0,120)}...</div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* BUYER CHECKLISTS */}
-          {kTab==="checklists"&&(
-            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
-              {kPlats.filter(p=>p.buyer_checklist).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
-                <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.g}20`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:"0.78rem",fontWeight:700}}>{m?.icon} {p.name}</span>
-                    <span style={{fontSize:"0.52rem",color:C.g,fontFamily:fm}}>{p.buyer_checklist.length} items</span>
-                  </div>
-                  {p.buyer_checklist.map((item,j)=>(
-                    <div key={j} style={{display:"flex",gap:6,marginBottom:3,alignItems:"flex-start"}}>
-                      <div style={{width:13,height:13,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/>
-                      <span style={{fontSize:"0.62rem",color:C.t,lineHeight:1.4}}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              );})}
-            </div>
-          )}
-
-          {/* COMMON MISTAKES */}
-          {kTab==="mistakes"&&(
-            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
-              {kPlats.filter(p=>p.mistakes).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
-                <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.acc}15`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
-                  <div style={{fontSize:"0.78rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name}</div>
-                  {p.mistakes.map((mi,j)=>(
-                    <div key={j} style={{padding:"0.3rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.62rem",color:C.t,lineHeight:1.4}}>❌ {mi}</div>
-                  ))}
-                </div>
-              );})}
-            </div>
-          )}
-
-          {/* MOD ORDERS */}
-          {kTab==="modorder"&&(
-            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
-              {kPlats.filter(p=>p.mod_order).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
-                <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.y}20`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
-                  <div style={{fontSize:"0.78rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name}</div>
-                  <div style={{padding:"0.4rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.62rem",color:C.t,lineHeight:1.6}}>{p.mod_order}</div>
-                </div>
-              );})}
-            </div>
-          )}
+      <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+        <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>📚 Knowledge Base</h1>
+        <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>The stuff buried in dead forum threads — compiled, organized, and honest.</p>
+        <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
+          <button onClick={()=>setKMake(null)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${!kMake?C.acc:C.bdr}`,background:!kMake?C.accD:"transparent",color:!kMake?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>All</button>
+          {MAKES.map(m=><button key={m.id} onClick={()=>setKMake(kMake===m.id?null:m.id)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${kMake===m.id?m.accent:C.bdr}`,background:kMake===m.id?m.accent+"15":"transparent",color:kMake===m.id?m.accent:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>{m.icon} {m.name}</button>)}
         </div>
-        {footer}{bottomNav}
-      </div>
+        <div style={{display:"flex",gap:4,marginBottom:"1rem",flexWrap:"wrap"}}>
+          {kTabs.map(t=><button key={t.id} onClick={()=>setKTab(t.id)} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${kTab===t.id?C.acc:C.bdr}`,background:kTab===t.id?C.accD:"transparent",color:kTab===t.id?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs,fontWeight:kTab===t.id?600:400}}>{t.l}</button>)}
+        </div>
+
+        {kTab==="drifttax"&&<div>
+          <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"1rem"}}>How much "hype tax" are you paying? Honest price assessments for every platform.</p>
+          {[4,3,2,1,0].map(tier=>{const t=TAX[tier];const tp=kPlats.filter(p=>p.tax===tier);if(!tp.length)return null;return(
+            <div key={tier} style={{marginBottom:"1.2rem"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><span style={{fontSize:"0.9rem",fontWeight:800,color:t.c,fontFamily:fm}}>{t.l}</span><span style={{fontSize:"0.55rem",color:C.td}}>({tp.length})</span></div>
+              <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+                {tp.map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+                  <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");setPage("home");}} style={{background:C.s1,borderRadius:10,border:`1px solid ${t.c}30`,padding:"0.75rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+                    <div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:"0.78rem",fontWeight:700}}>{m?.icon} {p.name}</span><span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>{p.budget}</span></div>
+                    {p.taxNote&&<p style={{fontSize:"0.58rem",color:t.c,marginTop:4,lineHeight:1.4,fontStyle:"italic"}}>{p.taxNote}</p>}
+                  </div>
+                );})}
+              </div>
+            </div>
+          );})}
+        </div>}
+
+        {kTab==="junkyard"&&<div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+          {(kMake?junkParts.filter(p=>p.plats.some(pl=>PLATFORMS.find(x=>x.id===pl)?.make===kMake)):junkParts).map((part,i)=>{
+            const pp2=part.plats.map(pl=>PLATFORMS.find(x=>x.id===pl)).filter(Boolean);
+            return(<div key={part.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:"1px solid #D46B0825",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+              <div style={{fontSize:"0.78rem",fontWeight:700,color:"#D46B08"}}>{part.name}</div>
+              <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>{pp2.map(p=><span key={p.id} style={{fontSize:"0.48rem",padding:"1px 5px",background:C.s2,borderRadius:3,color:C.tm}}>{p.name}</span>)}</div>
+              <p style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0"}}>{part.desc.slice(0,180)}...</p>
+              <div style={{fontSize:"0.55rem",padding:"0.3rem",background:"#D46B0808",borderRadius:4,color:"#D46B08"}}>💡 {part.notes.slice(0,120)}...</div>
+            </div>);
+          })}
+        </div>}
+
+        {kTab==="checklists"&&<div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+          {kPlats.filter(p=>p.buyer_checklist).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+            <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.g}20`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:"0.78rem",fontWeight:700}}>{m?.icon} {p.name}</span><span style={{fontSize:"0.52rem",color:C.g,fontFamily:fm}}>{p.buyer_checklist.length} items</span></div>
+              {p.buyer_checklist.map((item,j)=><div key={j} style={{display:"flex",gap:6,marginBottom:3}}><div style={{width:13,height:13,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/><span style={{fontSize:"0.62rem",color:C.t,lineHeight:1.4}}>{item}</span></div>)}
+            </div>
+          );})}
+        </div>}
+
+        {kTab==="mistakes"&&<div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+          {kPlats.filter(p=>p.mistakes).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+            <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.acc}15`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+              <div style={{fontSize:"0.78rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name}</div>
+              {p.mistakes.map((mi,j)=><div key={j} style={{padding:"0.3rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.62rem",color:C.t,lineHeight:1.4}}>❌ {mi}</div>)}
+            </div>
+          );})}
+        </div>}
+
+        {kTab==="modorder"&&<div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+          {kPlats.filter(p=>p.mod_order).map((p,i)=>{const m=MAKES.find(x=>x.id===p.make);return(
+            <div key={p.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${C.y}20`,animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
+              <div style={{fontSize:"0.78rem",fontWeight:700,marginBottom:6}}>{m?.icon} {p.name}</div>
+              <div style={{padding:"0.4rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.62rem",color:C.t,lineHeight:1.6}}>{p.mod_order}</div>
+            </div>
+          );})}
+        </div>}
+      </div></Pg>
     );
   }
 
-  // ═══ HOME / MAKE SELECTION ═══
+  // ═══ HOME ═══
   if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
-      <div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
-        <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
-          <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
-          <p style={{fontSize:"0.85rem",color:C.tm,maxWidth:500,margin:"0 auto",lineHeight:1.5}}>The smartest way to plan your car build. Parts, builds, junkyard secrets, and honest advice for {PLATFORMS.length} platforms.</p>
-          <div style={{display:"flex",gap:12,justifyContent:"center",marginTop:"1rem",flexWrap:"wrap"}}>
-            <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.acc}}>{PLATFORMS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Platforms</div></div>
-            <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.g}}>{PARTS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Parts</div></div>
-            <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.y}}>{BUILDS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Builds</div></div>
-          </div>
-        </div>
-
-        <h2 style={{fontSize:"0.9rem",fontWeight:700,marginBottom:"0.75rem"}}>Choose Your Manufacturer</h2>
-        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
-          {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));return(
-            <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1.2rem",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s,transform 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                <span style={{fontSize:"1.2rem",fontWeight:800}}>{m.icon} {m.name}</span>
-                <span style={{fontSize:"0.55rem",color:m.accent,fontFamily:fm}}>{mPlats.length} cars</span>
-              </div>
-              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{m.tagline}</p>
-              <div style={{fontSize:"0.55rem",color:C.td}}>{mParts.length} parts • {BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length} builds</div>
-            </div>
-          );})}
+    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
+      <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
+        <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
+        <p style={{fontSize:"0.85rem",color:C.tm,maxWidth:500,margin:"0 auto",lineHeight:1.5}}>The smartest way to plan your car build. Parts, builds, junkyard secrets, and honest advice for {PLATFORMS.length} platforms.</p>
+        <div style={{display:"flex",gap:12,justifyContent:"center",marginTop:"1rem",flexWrap:"wrap"}}>
+          <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.acc}}>{PLATFORMS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Platforms</div></div>
+          <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.g}}>{PARTS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Parts</div></div>
+          <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.y}}>{BUILDS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Builds</div></div>
         </div>
       </div>
-      {footer}{bottomNav}
-    </div>
+      <h2 style={{fontSize:"0.9rem",fontWeight:700,marginBottom:"0.75rem"}}>Choose Your Manufacturer</h2>
+      <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
+        {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));return(
+          <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1.2rem",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s,transform 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <span style={{fontSize:"1.2rem",fontWeight:800}}>{m.icon} {m.name}</span>
+              <span style={{fontSize:"0.55rem",color:m.accent,fontFamily:fm}}>{mPlats.length} cars</span>
+            </div>
+            <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{m.tagline}</p>
+            <div style={{fontSize:"0.55rem",color:C.td}}>{mParts.length} parts • {BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length} builds</div>
+          </div>
+        );})}
+      </div>
+    </div></Pg>
   );
 
   // ═══ PLATFORM SELECTION ═══
   if(step==="platform"){const mP=PLATFORMS.filter(p=>p.make===makeId);return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
-      <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
-        <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to manufacturers</button>
-        <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4}}>{make?.icon} {make?.name}</h1>
-        <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>{make?.tagline}</p>
-        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
-          {mP.map((p,i)=>{const pP=PARTS.filter(x=>x.plats.includes(p.id));const pB=BUILDS.filter(x=>x.plat===p.id);const junk=pP.filter(x=>x.cat==="junk");return(
-            <div key={p.id} onClick={()=>{setPlatId(p.id);setStep("vehicle");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.05}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=make?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-                <div><div style={{fontSize:"0.9rem",fontWeight:700}}>{p.name}</div><div style={{fontSize:"0.58rem",color:C.td}}>{p.gen} • {p.hp}HP/{p.tq}TQ • Budget: {p.budget}</div></div>
-                <TaxBadge lv={p.tax}/>
-              </div>
-              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{p.why}</p>
-              <div style={{display:"flex",gap:6,fontSize:"0.55rem",color:C.td,flexWrap:"wrap",marginBottom:4}}>
-                <span style={{padding:"2px 6px",background:C.s2,borderRadius:4}}>{pP.length} parts</span>
-                <span style={{padding:"2px 6px",background:C.s2,borderRadius:4}}>{pB.length} builds</span>
-                {junk.length>0&&<span style={{padding:"2px 6px",background:"#D46B0812",borderRadius:4,color:"#D46B08"}}>🏴‍☠️ {junk.length}</span>}
-                {p.warns&&<span style={{padding:"2px 6px",background:C.yD,borderRadius:4,color:C.y}}>⚠️ {p.warns.length}</span>}
-                {p.buyer_checklist&&<span style={{padding:"2px 6px",background:C.gD,borderRadius:4,color:C.g}}>✓ Checklist</span>}
-              </div>
-              {p.taxNote&&<div style={{fontSize:"0.52rem",color:TAX[p.tax]?.c||C.td,fontStyle:"italic"}}>{p.taxNote}</div>}
+    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+      <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back</button>
+      <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4}}>{make?.icon} {make?.name}</h1>
+      <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>{make?.tagline}</p>
+      <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
+        {mP.map((p,i)=>{const pP=PARTS.filter(x=>x.plats.includes(p.id));const pB=BUILDS.filter(x=>x.plat===p.id);const junk=pP.filter(x=>x.cat==="junk");return(
+          <div key={p.id} onClick={()=>{setPlatId(p.id);setStep("vehicle");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"1rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.05}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=make?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+              <div><div style={{fontSize:"0.9rem",fontWeight:700}}>{p.name}</div><div style={{fontSize:"0.58rem",color:C.td}}>{p.gen} • {p.hp}HP • {p.budget}</div></div>
+              <TaxBadge lv={p.tax}/>
             </div>
-          );})}
-        </div>
+            <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{p.why}</p>
+            <div style={{display:"flex",gap:6,fontSize:"0.55rem",color:C.td,flexWrap:"wrap",marginBottom:4}}>
+              <span style={{padding:"2px 6px",background:C.s2,borderRadius:4}}>{pP.length} parts</span>
+              <span style={{padding:"2px 6px",background:C.s2,borderRadius:4}}>{pB.length} builds</span>
+              {junk.length>0&&<span style={{padding:"2px 6px",background:"#D46B0812",borderRadius:4,color:"#D46B08"}}>🏴‍☠️ {junk.length}</span>}
+              {p.warns&&<span style={{padding:"2px 6px",background:C.yD,borderRadius:4,color:C.y}}>⚠️ {p.warns.length}</span>}
+              {p.buyer_checklist&&<span style={{padding:"2px 6px",background:C.gD,borderRadius:4,color:C.g}}>✓ Checklist</span>}
+            </div>
+            {p.taxNote&&<div style={{fontSize:"0.52rem",color:TAX[p.tax]?.c||C.td,fontStyle:"italic"}}>{p.taxNote}</div>}
+          </div>
+        );})}
       </div>
-      {footer}{bottomNav}
-    </div>
+    </div></Pg>
   );}
 
   // ═══ VEHICLE SELECTION ═══
   if(step==="vehicle")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{myBuildsModal}
-      <div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
-        <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
-        <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
-        <p style={{fontSize:"0.65rem",color:C.td,marginBottom:"0.75rem"}}>{plat?.gen} • {plat?.hp}HP / {plat?.tq}TQ {plat?.tax!==undefined&&<TaxBadge lv={plat.tax}/>}</p>
-
-        {/* About tabs */}
-        <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
-          {[{id:"overview",l:"Overview"},{id:"checklist",l:"Checklist"},{id:"mistakes",l:"Mistakes"},{id:"modorder",l:"Mod Order"}].map(t=>(
-            <button key={t.id} onClick={()=>setAboutTab(t.id)} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${aboutTab===t.id?C.acc:C.bdr}`,background:aboutTab===t.id?C.accD:"transparent",color:aboutTab===t.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:aboutTab===t.id?600:400}}>{t.l}</button>
-          ))}
-        </div>
-
-        {aboutTab==="overview"&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.bdr}`,marginBottom:"1rem"}}><p style={{fontSize:"0.72rem",color:C.tm,lineHeight:1.5}}>{plat?.desc}</p></div>}
-        {aboutTab==="checklist"&&plat?.buyer_checklist&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.g}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.g}}>🔍 Buyer Checklist</h3>{plat.buyer_checklist.map((item,j)=><div key={j} style={{display:"flex",gap:6,marginBottom:4}}><div style={{width:14,height:14,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/><span style={{fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>{item}</span></div>)}</div>}
-        {aboutTab==="mistakes"&&plat?.mistakes&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.acc}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.acc}}>❌ Common Mistakes</h3>{plat.mistakes.map((m,j)=><div key={j} style={{padding:"0.35rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>❌ {m}</div>)}</div>}
-        {aboutTab==="modorder"&&plat?.mod_order&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.y}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.y}}>📋 Mod Order</h3><div style={{padding:"0.5rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.68rem",color:C.t,lineHeight:1.6}}>{plat.mod_order}</div></div>}
-
-        <h2 style={{fontSize:"0.85rem",fontWeight:700,marginTop:"1rem",marginBottom:"0.5rem"}}>Select Your Vehicle</h2>
-        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:8}}>
-          {platVehs.map((v,i)=>(
-            <div key={v.id} onClick={()=>{setVehId(v.id);setStep("builder");}} style={{background:C.s1,borderRadius:8,border:`1px solid ${C.bdr}`,padding:"0.75rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=make?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
-              <div style={{fontSize:"0.85rem",fontWeight:700}}>{v.year}</div>
-              <div style={{fontSize:"0.62rem",color:C.tm}}>{v.trim}</div>
-              <div style={{fontSize:"0.55rem",color:C.td,fontFamily:fm,marginTop:3}}>{v.engine}</div>
-            </div>
-          ))}
-        </div>
+    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+      <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
+      <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
+      <p style={{fontSize:"0.65rem",color:C.td,marginBottom:"0.75rem"}}>{plat?.gen} • {plat?.hp}HP / {plat?.tq}TQ {plat?.tax!==undefined&&<TaxBadge lv={plat.tax}/>}</p>
+      <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
+        {[{id:"overview",l:"Overview"},{id:"checklist",l:"Checklist"},{id:"mistakes",l:"Mistakes"},{id:"modorder",l:"Mod Order"}].map(t=>(
+          <button key={t.id} onClick={()=>setAboutTab(t.id)} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${aboutTab===t.id?C.acc:C.bdr}`,background:aboutTab===t.id?C.accD:"transparent",color:aboutTab===t.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:aboutTab===t.id?600:400}}>{t.l}</button>
+        ))}
       </div>
-      {footer}{bottomNav}
-    </div>
+      {aboutTab==="overview"&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.bdr}`,marginBottom:"1rem"}}><p style={{fontSize:"0.72rem",color:C.tm,lineHeight:1.5}}>{plat?.desc}</p></div>}
+      {aboutTab==="checklist"&&plat?.buyer_checklist&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.g}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.g}}>🔍 Buyer Checklist</h3>{plat.buyer_checklist.map((item,j)=><div key={j} style={{display:"flex",gap:6,marginBottom:4}}><div style={{width:14,height:14,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/><span style={{fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>{item}</span></div>)}</div>}
+      {aboutTab==="mistakes"&&plat?.mistakes&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.acc}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.acc}}>❌ Common Mistakes</h3>{plat.mistakes.map((m2,j)=><div key={j} style={{padding:"0.35rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>❌ {m2}</div>)}</div>}
+      {aboutTab==="modorder"&&plat?.mod_order&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.y}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.y}}>📋 Mod Order</h3><div style={{padding:"0.5rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.68rem",color:C.t,lineHeight:1.6}}>{plat.mod_order}</div></div>}
+      <h2 style={{fontSize:"0.85rem",fontWeight:700,marginTop:"1rem",marginBottom:"0.5rem"}}>Select Your Vehicle</h2>
+      <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:8}}>
+        {platVehs.map((v,i)=>(
+          <div key={v.id} onClick={()=>{setVehId(v.id);setStep("builder");}} style={{background:C.s1,borderRadius:8,border:`1px solid ${C.bdr}`,padding:"0.75rem",cursor:"pointer",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=make?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+            <div style={{fontSize:"0.85rem",fontWeight:700}}>{v.year}</div>
+            <div style={{fontSize:"0.62rem",color:C.tm}}>{v.trim}</div>
+            <div style={{fontSize:"0.55rem",color:C.td,fontFamily:fm,marginTop:3}}>{v.engine}</div>
+          </div>
+        ))}
+      </div>
+    </div></Pg>
   );
 
   // ═══ BUILDER SCREEN ═══
   return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topNav}{authModal}{saveModal}{myBuildsModal}
-      <div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
-        {/* Header */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
-          <div>
-            <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.6rem",fontFamily:fs,padding:0}}>← Back</button>
-            <h1 style={{fontSize:"1rem",fontWeight:800,margin:0}}>{make?.icon} {veh?.year} {veh?.trim}</h1>
-            <div style={{fontSize:"0.58rem",color:C.td}}>{veh?.engine} • {plat?.hp}HP / {plat?.tq}TQ</div>
-          </div>
-          <TaxBadge lv={plat?.tax}/>
+    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
+        <div>
+          <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.6rem",fontFamily:fs,padding:0}}>← Back</button>
+          <h1 style={{fontSize:"1rem",fontWeight:800,margin:0}}>{make?.icon} {veh?.year} {veh?.trim}</h1>
+          <div style={{fontSize:"0.58rem",color:C.td}}>{veh?.engine} • {plat?.hp}HP / {plat?.tq}TQ</div>
         </div>
+        <TaxBadge lv={plat?.tax}/>
+      </div>
 
-        {/* Budget tracker */}
-        <div style={{background:C.s1,borderRadius:10,padding:"0.75rem",border:`1px solid ${C.bdr}`,marginBottom:"0.75rem"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-            <span style={{fontSize:"0.65rem",fontWeight:600}}>Budget</span>
-            <div style={{display:"flex",gap:4}}>
-              {[500,1000,2000,3000,5000].map(b=><button key={b} onClick={()=>setBudget(b)} style={{padding:"2px 6px",borderRadius:4,border:`1px solid ${budget===b?C.acc:C.bdr}`,background:budget===b?C.accD:"transparent",color:budget===b?C.acc:C.tm,fontSize:"0.52rem",cursor:"pointer",fontFamily:fm}}>${b>=1000?(b/1000)+"k":b}</button>)}
-            </div>
-          </div>
-          <div style={{height:6,background:C.s3,borderRadius:3,overflow:"hidden",marginBottom:4}}>
-            <div style={{height:"100%",width:`${bPct}%`,background:bLeft<0?C.acc:bLeft<budget*0.2?C.y:C.g,borderRadius:3,transition:"width 0.3s"}}/>
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.58rem"}}>
-            <span style={{color:C.tm}}>Spent: <span style={{color:C.t,fontFamily:fm,fontWeight:700}}>${tCost}</span></span>
-            <span style={{color:bLeft<0?C.acc:C.g,fontFamily:fm,fontWeight:700}}>{bLeft<0?`$${Math.abs(bLeft)} over`:`$${bLeft} left`}</span>
-          </div>
-          {bParts.length>0&&<div style={{marginTop:6}}>
-            <button onClick={()=>{if(!user){setShowAuth(true);}else{setShowSave(true);setSaveName(plat?.name+" Build");}}} style={{width:"100%",padding:"8px",borderRadius:6,border:"none",background:user?C.g:C.acc,color:user?"#000":"#fff",fontSize:"0.68rem",fontWeight:700,cursor:"pointer",fontFamily:fs}}>{user?"💾 Save This Build":"Sign In to Save Build"}</button>
-          </div>}
+      {/* Budget */}
+      <div style={{background:C.s1,borderRadius:10,padding:"0.75rem",border:`1px solid ${C.bdr}`,marginBottom:"0.75rem"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+          <span style={{fontSize:"0.65rem",fontWeight:600}}>Budget</span>
+          <div style={{display:"flex",gap:4}}>{[500,1000,2000,3000,5000].map(b=><button key={b} onClick={()=>setBudget(b)} style={{padding:"2px 6px",borderRadius:4,border:`1px solid ${budget===b?C.acc:C.bdr}`,background:budget===b?C.accD:"transparent",color:budget===b?C.acc:C.tm,fontSize:"0.52rem",cursor:"pointer",fontFamily:fm}}>${b>=1000?(b/1000)+"k":b}</button>)}</div>
         </div>
+        <div style={{height:6,background:C.s3,borderRadius:3,overflow:"hidden",marginBottom:4}}><div style={{height:"100%",width:`${bPct}%`,background:bLeft<0?C.acc:bLeft<budget*0.2?C.y:C.g,borderRadius:3,transition:"width 0.3s"}}/></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.58rem"}}>
+          <span style={{color:C.tm}}>Spent: <b style={{color:C.t,fontFamily:fm}}>${tCost}</b></span>
+          <span style={{color:bLeft<0?C.acc:C.g,fontFamily:fm,fontWeight:700}}>{bLeft<0?`$${Math.abs(bLeft)} over`:`$${bLeft} left`}</span>
+        </div>
+        {bParts.length>0&&<button onClick={()=>{if(!user||!user.id){setShowAuth(true);}else{setShowSave(true);setSaveName((plat?.name||"My")+" Build");}}} style={{width:"100%",padding:"8px",borderRadius:6,border:"none",background:(user&&user.id)?C.g:C.acc,color:(user&&user.id)?"#000":"#fff",fontSize:"0.68rem",fontWeight:700,cursor:"pointer",fontFamily:fs,marginTop:8}}>{(user&&user.id)?"💾 Save This Build":"Sign In to Save Build"}</button>}
+      </div>
 
-        {/* Build stats */}
-        {bParts.length>0&&(
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6,marginBottom:"0.75rem"}}>
-            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
-              <div style={{fontSize:"1rem",fontWeight:800,color:C.acc}}>+{tHp}</div><div style={{fontSize:"0.48rem",color:C.td}}>HP</div>
-            </div>
-            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
-              <div style={{fontSize:"1rem",fontWeight:800,color:C.y}}>+{tTq}</div><div style={{fontSize:"0.48rem",color:C.td}}>TQ</div>
-            </div>
-            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
-              <div style={{fontSize:"1rem",fontWeight:800,color:C.g}}>{tTime<1?`${Math.round(tTime*60)}m`:`${tTime.toFixed(1)}h`}</div><div style={{fontSize:"0.48rem",color:C.td}}>Install</div>
-            </div>
-            <div style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}>
-              <div style={{fontSize:"1rem",fontWeight:800}}>{bParts.length}</div><div style={{fontSize:"0.48rem",color:C.td}}>Parts</div>
-            </div>
-          </div>
-        )}
+      {/* Build stats */}
+      {bParts.length>0&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:6,marginBottom:"0.75rem"}}>
+        {[{v:`+${tHp}`,l:"HP",c:C.acc},{v:`+${tTq}`,l:"TQ",c:C.y},{v:tTime<1?`${Math.round(tTime*60)}m`:`${tTime.toFixed(1)}h`,l:"Install",c:C.g},{v:bParts.length,l:"Parts",c:C.t}].map((s,i)=>(
+          <div key={i} style={{background:C.s1,borderRadius:8,padding:"0.5rem",textAlign:"center",border:`1px solid ${C.bdr}`}}><div style={{fontSize:"1rem",fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:"0.48rem",color:C.td}}>{s.l}</div></div>
+        ))}
+      </div>}
 
-        {/* Delusion Meter */}
-        {delusion&&(
-          <div style={{background:C.s1,borderRadius:10,padding:"0.65rem",border:`1px solid ${delusion.c}30`,marginBottom:"0.75rem"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-              <span style={{fontSize:"0.65rem",fontWeight:700}}>Delusion Meter™</span>
-              <span style={{fontSize:"0.65rem",fontWeight:800,color:delusion.c}}>{delusion.l}</span>
-            </div>
-            <div style={{height:6,background:C.s3,borderRadius:3,overflow:"hidden",marginBottom:4}}>
-              <div style={{height:"100%",width:`${delusion.w}%`,background:`linear-gradient(90deg,${C.g},${C.y},${C.acc})`,borderRadius:3,animation:"barFill 1s ease-out"}}/>
-            </div>
-            <p style={{fontSize:"0.55rem",color:delusion.c,fontStyle:"italic"}}>{delusion.d}</p>
-          </div>
-        )}
+      {/* Delusion Meter */}
+      {delusion&&<div style={{background:C.s1,borderRadius:10,padding:"0.65rem",border:`1px solid ${delusion.c}30`,marginBottom:"0.75rem"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><span style={{fontSize:"0.65rem",fontWeight:700}}>Delusion Meter™</span><span style={{fontSize:"0.65rem",fontWeight:800,color:delusion.c}}>{delusion.l}</span></div>
+        <div style={{height:6,background:C.s3,borderRadius:3,overflow:"hidden",marginBottom:4}}><div style={{height:"100%",width:`${delusion.w}%`,background:`linear-gradient(90deg,${C.g},${C.y},${C.acc})`,borderRadius:3,animation:"barFill 1s ease-out"}}/></div>
+        <p style={{fontSize:"0.55rem",color:delusion.c,fontStyle:"italic"}}>{delusion.d}</p>
+      </div>}
 
-        {/* Parts by category */}
-        <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Parts Catalog ({pp.length} available)</h2>
-        {CATS.map(cat=>{const cParts=pp.filter(p=>p.cat===cat.id).sort((a,b)=>sortBy==="price"?a.price-b.price:sortBy==="hp"?(b.hp||0)-(a.hp||0):0);if(cParts.length===0)return null;return(
-          <div key={cat.id} style={{marginBottom:"0.75rem"}}>
-            <div style={{fontSize:"0.72rem",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-              <span>{cat.icon}</span>{cat.name}<span style={{fontSize:"0.52rem",color:C.td,fontWeight:400}}>({cParts.length})</span>
-            </div>
-            {cParts.map(part=>{const isSel=Object.values(sel).includes(part.id);const over=!isSel&&budget>0&&part.price>bLeft;return(
-              <div key={part.id} style={{background:isSel?C.accD:C.s1,borderRadius:10,border:`1px solid ${isSel?C.acc:over?C.acc+"30":C.bdr}`,padding:"0.65rem",marginBottom:6,transition:"all 0.2s"}}>
-                <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                  <CatIco cat={part.cat}/>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:"0.75rem",fontWeight:600}}>{part.name}</div>
-                    <div style={{fontSize:"0.55rem",color:C.td}}>{part.brand} • {part.ret}</div>
-                    <p style={{fontSize:"0.6rem",color:C.tm,lineHeight:1.35,margin:"3px 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{part.desc}</p>
-                    <div style={{display:"flex",gap:6,alignItems:"center",marginTop:3}}>
-                      {part.hp>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.acc}}>+{part.hp}HP</span>}
-                      {part.tq>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.y}}>+{part.tq}TQ</span>}
-                      <SkB lv={part.sk}/><span style={{fontSize:"0.48rem",fontFamily:fm,color:C.tm}}>⏱{part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`}</span>
-                    </div>
-                  </div>
-                  <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
-                    <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.85rem"}}>{part.price===0?"FREE":`$${part.price}`}</span>
-                    <div style={{display:"flex",gap:3}}>
-                      <button onClick={()=>selPart(cat.id,part.id)} disabled={over} style={{padding:"3px 8px",borderRadius:4,border:"none",background:isSel?C.acc:over?C.td:C.t,color:isSel?"#fff":C.bg,fontSize:"0.58rem",fontWeight:600,cursor:over?"default":"pointer",fontFamily:fs}}>{isSel?"✓":over?"$$":"Select"}</button>
-                      {part.price>0&&<BuyBtn part={part}/>}
-                    </div>
+      {/* Parts catalog */}
+      <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Parts Catalog ({pp.length})</h2>
+      {CATS.map(cat=>{const cParts=pp.filter(p=>p.cat===cat.id);if(!cParts.length)return null;return(
+        <div key={cat.id} style={{marginBottom:"0.75rem"}}>
+          <div style={{fontSize:"0.72rem",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}><span>{cat.icon}</span>{cat.name}<span style={{fontSize:"0.52rem",color:C.td,fontWeight:400}}>({cParts.length})</span></div>
+          {cParts.map(part=>{const isSel=Object.values(sel).includes(part.id);const over=!isSel&&budget>0&&part.price>bLeft;return(
+            <div key={part.id} style={{background:isSel?C.accD:C.s1,borderRadius:10,border:`1px solid ${isSel?C.acc:over?C.acc+"30":C.bdr}`,padding:"0.65rem",marginBottom:6,transition:"all 0.2s"}}>
+              <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                <CatIco cat={part.cat}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:"0.75rem",fontWeight:600}}>{part.name}</div>
+                  <div style={{fontSize:"0.55rem",color:C.td}}>{part.brand} • {part.ret}</div>
+                  <p style={{fontSize:"0.6rem",color:C.tm,lineHeight:1.35,margin:"3px 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{part.desc}</p>
+                  <div style={{display:"flex",gap:6,alignItems:"center",marginTop:3}}>
+                    {part.hp>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.acc}}>+{part.hp}HP</span>}
+                    {part.tq>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.y}}>+{part.tq}TQ</span>}
+                    <SkB lv={part.sk}/><span style={{fontSize:"0.48rem",fontFamily:fm,color:C.tm}}>⏱{part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`}</span>
                   </div>
                 </div>
-                <button onClick={()=>setExpP(expP===part.id?null:part.id)} style={{fontSize:"0.5rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0,marginTop:2}}>{expP===part.id?"Hide ▴":"Details ▾"}</button>
-                {expP===part.id&&<div style={{marginTop:3,padding:"0.35rem",background:C.bg,borderRadius:6,border:`1px solid ${C.bdr}`}}>
-                  <div style={{fontSize:"0.58rem",color:C.td}}>Skill: <span style={{color:SK[part.sk].c}}>{SK[part.sk].l}</span> • Time: {part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`} • Retailer: <span style={{color:C.tm}}>{part.ret}</span></div>
-                  <div style={{fontSize:"0.58rem",color:C.td,marginTop:1}}>Tools: <span style={{color:C.tm}}>{part.tools}</span></div>
-                  <div style={{fontSize:"0.58rem",padding:3,background:C.s2,borderRadius:4,marginTop:3}}><span style={{color:C.y}}>💡</span> {part.notes}</div>
-                  {part.price>0&&<div style={{marginTop:4}}><BuyBtn part={part}/> <span style={{fontSize:"0.48rem",color:C.td,marginLeft:4}}>Opens {part.ret}</span></div>}
-                </div>}
+                <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
+                  <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.85rem"}}>{part.price===0?"FREE":`$${part.price}`}</span>
+                  <div style={{display:"flex",gap:3}}>
+                    <button onClick={()=>selPart(cat.id,part.id)} disabled={over} style={{padding:"3px 8px",borderRadius:4,border:"none",background:isSel?C.acc:over?C.td:C.t,color:isSel?"#fff":C.bg,fontSize:"0.58rem",fontWeight:600,cursor:over?"default":"pointer",fontFamily:fs}}>{isSel?"✓":over?"$$":"Select"}</button>
+                    {part.price>0&&<BuyBtn part={part}/>}
+                  </div>
+                </div>
               </div>
-            );})}
+              <button onClick={()=>setExpP(expP===part.id?null:part.id)} style={{fontSize:"0.5rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0,marginTop:2}}>{expP===part.id?"Hide ▴":"Details ▾"}</button>
+              {expP===part.id&&<div style={{marginTop:3,padding:"0.35rem",background:C.bg,borderRadius:6,border:`1px solid ${C.bdr}`}}>
+                <div style={{fontSize:"0.58rem",color:C.td}}>Skill: <span style={{color:SK[part.sk].c}}>{SK[part.sk].l}</span> • Time: {part.time<1?`${Math.round(part.time*60)}m`:`${part.time}h`} • Retailer: {part.ret}</div>
+                <div style={{fontSize:"0.58rem",color:C.td,marginTop:1}}>Tools: <span style={{color:C.tm}}>{part.tools}</span></div>
+                <div style={{fontSize:"0.58rem",padding:3,background:C.s2,borderRadius:4,marginTop:3}}><span style={{color:C.y}}>💡</span> {part.notes}</div>
+                {part.price>0&&<div style={{marginTop:4}}><BuyBtn part={part}/> <span style={{fontSize:"0.48rem",color:C.td,marginLeft:4}}>Opens {part.ret}</span></div>}
+              </div>}
+            </div>
+          );})}
+        </div>
+      );})}
+
+      {/* Builds */}
+      {pBuilds.length>0&&<div style={{marginTop:"1.5rem"}}>
+        <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Community Builds ({pBuilds.length})</h2>
+        <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
+          <button onClick={()=>setTierF(null)} style={{padding:"3px 8px",borderRadius:4,border:`1px solid ${!tierF?C.acc:C.bdr}`,background:!tierF?C.accD:"transparent",color:!tierF?C.acc:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>All</button>
+          {Object.entries(TIERS).map(([k,v])=><button key={k} onClick={()=>setTierF(tierF===k?null:k)} style={{padding:"3px 8px",borderRadius:4,border:`1px solid ${tierF===k?v.c:C.bdr}`,background:tierF===k?v.c+"15":"transparent",color:tierF===k?v.c:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{v.icon} {v.l}</button>)}
+        </div>
+        {pBuilds.map((b,i)=>{const t=TIERS[b.tier];return(
+          <div key={b.id} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.75rem",marginBottom:8,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+              <div><div style={{fontSize:"0.8rem",fontWeight:700}}>{b.name}</div><div style={{fontSize:"0.55rem",color:C.td}}>{b.veh} • by {b.author}</div></div>
+              <div style={{textAlign:"right"}}><span style={{fontSize:"0.55rem",padding:"2px 6px",background:t.c+"20",color:t.c,borderRadius:4,fontWeight:600}}>{t.icon} {t.l}</span><div style={{fontSize:"0.72rem",fontWeight:800,fontFamily:fm,marginTop:2}}>${b.cost}</div></div>
+            </div>
+            <button onClick={()=>setExpB(expB===b.id?null:b.id)} style={{fontSize:"0.55rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0}}>{expB===b.id?"Hide ▴":"Read story ▾"}</button>
+            {expB===b.id&&<div style={{marginTop:6}}>
+              <div style={{display:"flex",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                {b.hp>0&&<span style={{fontSize:"0.55rem",fontFamily:fm,color:C.acc}}>+{b.hp}HP</span>}
+                {b.tq>0&&<span style={{fontSize:"0.55rem",fontFamily:fm,color:C.y}}>+{b.tq}TQ</span>}
+                <span style={{fontSize:"0.55rem",fontFamily:fm,color:C.tm}}>⏱ {b.time}</span>
+              </div>
+              <div style={{padding:"0.5rem",background:C.bg,borderRadius:6,fontSize:"0.65rem",color:C.tm,lineHeight:1.5,marginBottom:6}}>{b.story}</div>
+              <div style={{padding:"0.5rem",background:C.gD,borderRadius:6,fontSize:"0.62rem",color:C.g,lineHeight:1.4,marginBottom:4}}>💡 {b.lessons}</div>
+              <div style={{padding:"0.4rem",background:C.yD,borderRadius:6,fontSize:"0.6rem",color:C.y,fontFamily:fm}}>{b.order}</div>
+            </div>}
           </div>
         );})}
-
-        {/* Community builds */}
-        {pBuilds.length>0&&(
-          <div style={{marginTop:"1.5rem"}}>
-            <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Community Builds ({pBuilds.length})</h2>
-            <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
-              <button onClick={()=>setTierF(null)} style={{padding:"3px 8px",borderRadius:4,border:`1px solid ${!tierF?C.acc:C.bdr}`,background:!tierF?C.accD:"transparent",color:!tierF?C.acc:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>All</button>
-              {Object.entries(TIERS).map(([k,v])=><button key={k} onClick={()=>setTierF(tierF===k?null:k)} style={{padding:"3px 8px",borderRadius:4,border:`1px solid ${tierF===k?v.c:C.bdr}`,background:tierF===k?v.c+"15":"transparent",color:tierF===k?v.c:C.tm,fontSize:"0.55rem",cursor:"pointer",fontFamily:fs}}>{v.icon} {v.l}</button>)}
-            </div>
-            {pBuilds.map((b,i)=>{const t=TIERS[b.tier];return(
-              <div key={b.id} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.75rem",marginBottom:8,animation:`fadeUp 0.3s ease-out ${i*0.05}s both`}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
-                  <div>
-                    <div style={{fontSize:"0.8rem",fontWeight:700}}>{b.name}</div>
-                    <div style={{fontSize:"0.55rem",color:C.td}}>{b.veh} • by {b.author}</div>
-                  </div>
-                  <div style={{textAlign:"right"}}>
-                    <span style={{fontSize:"0.55rem",padding:"2px 6px",background:t.c+"20",color:t.c,borderRadius:4,fontWeight:600}}>{t.icon} {t.l}</span>
-                    <div style={{fontSize:"0.72rem",fontWeight:800,fontFamily:fm,marginTop:2}}>${b.cost}</div>
-                  </div>
-                </div>
-                <button onClick={()=>setExpB(expB===b.id?null:b.id)} style={{fontSize:"0.55rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0}}>{expB===b.id?"Hide story ▴":"Read story ▾"}</button>
-                {expB===b.id&&(
-                  <div style={{marginTop:6}}>
-                    <div style={{display:"flex",gap:8,marginBottom:6,flexWrap:"wrap"}}>
-                      {b.hp>0&&<span style={{fontSize:"0.55rem",fontFamily:fm,color:C.acc}}>+{b.hp}HP</span>}
-                      {b.tq>0&&<span style={{fontSize:"0.55rem",fontFamily:fm,color:C.y}}>+{b.tq}TQ</span>}
-                      <span style={{fontSize:"0.55rem",fontFamily:fm,color:C.tm}}>⏱ {b.time}</span>
-                    </div>
-                    <div style={{padding:"0.5rem",background:C.bg,borderRadius:6,fontSize:"0.65rem",color:C.tm,lineHeight:1.5,marginBottom:6}}>{b.story}</div>
-                    <div style={{padding:"0.5rem",background:C.gD,borderRadius:6,fontSize:"0.62rem",color:C.g,lineHeight:1.4,marginBottom:4}}>💡 {b.lessons}</div>
-                    <div style={{padding:"0.4rem",background:C.yD,borderRadius:6,fontSize:"0.6rem",color:C.y,fontFamily:fm}}>{b.order}</div>
-                  </div>
-                )}
-              </div>
-            );})}
-          </div>
-        )}
-      </div>
-      {footer}{bottomNav}
-    </div>
+      </div>}
+    </div></Pg>
   );
 }
