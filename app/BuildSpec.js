@@ -1886,7 +1886,6 @@ export default function App(){
   );
 
   // ═══ PAGE WRAPPER ═══
-  const Pg=({children})=><div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}{children}{siteFooter}{bottomBar}</div>;
 
   // ═══ BROWSE PAGE ═══
   if(page==="browse"){
@@ -1894,7 +1893,7 @@ export default function App(){
     if(browseF.make)filtered=filtered.filter(p=>p.make===browseF.make);
     if(browseF.tax!==null&&browseF.tax!==undefined)filtered=filtered.filter(p=>p.tax===browseF.tax);
     return(
-      <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>🔍 Browse All Platforms</h1>
         <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1.2rem"}}>{PLATFORMS.length} platforms across {MAKES.length} manufacturers</p>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
@@ -1923,7 +1922,7 @@ export default function App(){
             </div>
           );})}
         </div>
-      </div></Pg>
+      </div>{siteFooter}{bottomBar}</div>
     );
   }
 
@@ -1933,7 +1932,7 @@ export default function App(){
     const junkParts=PARTS.filter(p=>p.cat==="junk");
     const kTabs=[{id:"drifttax",l:"🔥 Drift Tax"},{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Checklists"},{id:"mistakes",l:"❌ Mistakes"},{id:"modorder",l:"📋 Mod Order"}];
     return(
-      <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>📚 Knowledge Base</h1>
         <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>The stuff buried in dead forum threads — compiled, organized, and honest.</p>
         <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
@@ -1999,13 +1998,13 @@ export default function App(){
             </div>
           );})}
         </div>}
-      </div></Pg>
+      </div>{siteFooter}{bottomBar}</div>
     );
   }
 
   // ═══ HOME ═══
   if(step==="make")return(
-    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
       <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
         <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
         <p style={{fontSize:"0.85rem",color:C.tm,maxWidth:500,margin:"0 auto",lineHeight:1.5}}>The smartest way to plan your car build. Parts, builds, junkyard secrets, and honest advice for {PLATFORMS.length} platforms.</p>
@@ -2028,12 +2027,12 @@ export default function App(){
           </div>
         );})}
       </div>
-    </div></Pg>
+    </div>{siteFooter}{bottomBar}</div>
   );
 
   // ═══ PLATFORM SELECTION ═══
   if(step==="platform"){const mP=PLATFORMS.filter(p=>p.make===makeId);return(
-    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
       <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back</button>
       <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4}}>{make?.icon} {make?.name}</h1>
       <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>{make?.tagline}</p>
@@ -2056,12 +2055,12 @@ export default function App(){
           </div>
         );})}
       </div>
-    </div></Pg>
+    </div>{siteFooter}{bottomBar}</div>
   );}
 
   // ═══ VEHICLE SELECTION ═══
   if(step==="vehicle")return(
-    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
       <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
       <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
       <p style={{fontSize:"0.65rem",color:C.td,marginBottom:"0.75rem"}}>{plat?.gen} • {plat?.hp}HP / {plat?.tq}TQ {plat?.tax!==undefined&&<TaxBadge lv={plat.tax}/>}</p>
@@ -2084,12 +2083,12 @@ export default function App(){
           </div>
         ))}
       </div>
-    </div></Pg>
+    </div>{siteFooter}{bottomBar}</div>
   );
 
   // ═══ BUILDER SCREEN ═══
   return(
-    <Pg><div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
         <div>
           <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.6rem",fontFamily:fs,padding:0}}>← Back</button>
@@ -2193,6 +2192,6 @@ export default function App(){
           </div>
         );})}
       </div>}
-    </div></Pg>
+    </div>{siteFooter}{bottomBar}</div>
   );
 }
