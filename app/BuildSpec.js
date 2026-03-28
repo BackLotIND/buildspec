@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -2316,8 +2317,9 @@ export default function App(){
   const FL=()=><div style={{position:"fixed",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${C.acc},#FFB703,${C.g})`,zIndex:200}}/>;
   const SkB=({lv,full})=>{const s=SK[lv];return<span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:"0.55rem",fontFamily:fm,color:s.c,background:s.c+"14",padding:"1px 5px",borderRadius:3,whiteSpace:"nowrap"}}>{"●".repeat(lv)}<span style={{opacity:.2}}>{"●".repeat(5-lv)}</span>{full&&<span>{s.l}</span>}</span>;};
   const TaxBadge=({lv})=>{const t=TAX[lv];if(lv===undefined||lv===null)return null;return<span style={{fontSize:"0.55rem",padding:"2px 6px",borderRadius:4,background:t.bg,color:t.c,fontFamily:fm,fontWeight:600,border:`1px solid ${t.c}25`}}>{t.l}</span>;};
-  const getBuyUrl=(part)=>{const b=part.brand.split("/")[0].trim();let n=part.name.replace(/🏴‍☠️\s*/g,"").replace(/⚠️\s*BUDGET:\s*/g,"").replace(/\(×4\)/g,"").trim();const q=encodeURIComponent(n.toLowerCase().includes(b.toLowerCase())?n:b+" "+n);const r=part.ret.toLowerCase();if(r.includes("amazon"))return`https://www.amazon.com/s?k=${q}&tag=${AFF_TAG}`;if(r.includes("ebay"))return`https://www.ebay.com/sch/i.html?_nkw=${q}`;if(r.includes("summit"))return`https://www.summitracing.com/search?query=${q}`;if(r.includes("tire rack"))return`https://www.tirerack.com/tires/TireSearchResults.jsp?search=${q}`;if(r.includes("fcp euro"))return`https://www.fcpeuro.com/search?query=${q}`;if(r.includes("fitment"))return`https://www.fitmentindustries.com/search?q=${q}`;if(r.includes("ecs"))return`https://www.ecstuning.com/Search/?q=${q}`;return`https://www.amazon.com/s?k=${q}&tag=${AFF_TAG}`;};
-  const BuyBtn=({part})=><a href={getBuyUrl(part)} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:3,padding:"3px 8px",borderRadius:4,border:"none",background:"#2EC4B6",color:"#000",fontSize:"0.58rem",fontWeight:600,cursor:"pointer",fontFamily:fs,textDecoration:"none"}}>🛒 Buy</a>;
+  const getBuyUrl=(part)=>{const b=part.brand.split("/")[0].trim();let n=part.name.replace(/🏴‍☠️\s*/g,"").replace(/⚠️\s*BUDGET:\s*/g,"").replace(/\(×4\)/g,"").trim();const q=encodeURIComponent(n.toLowerCase().includes(b.toLowerCase())?n:b+" "+n);const r=part.ret.toLowerCase();if(r.includes("tire rack"))return`https://www.tirerack.com/tires/TireSearchResults.jsp?search=${q}`;if(r.includes("fitment"))return`https://www.fitmentindustries.com/search?q=${q}`;return`https://www.amazon.com/s?k=${q}&tag=${AFF_TAG}`;};
+  const logClick=(part)=>{try{supabase.from('link_clicks').insert({part_id:part.id,part_name:part.name,plat_id:platId}).then(()=>{})}catch(e){}};
+  const BuyBtn=({part})=><a href={getBuyUrl(part)} target="_blank" rel="noopener noreferrer" onClick={e=>{e.stopPropagation();logClick(part);}} style={{display:"inline-flex",alignItems:"center",gap:3,padding:"3px 8px",borderRadius:4,border:"none",background:"#2EC4B6",color:"#000",fontSize:"0.58rem",fontWeight:600,cursor:"pointer",fontFamily:fs,textDecoration:"none"}}>🛒 Buy</a>;
   const CatIco=({cat})=><div style={{width:34,height:34,borderRadius:5,background:cat==="junk"?"#D46B0820":C.s3,border:cat==="junk"?`1px solid #D46B0840`:"none",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.9rem",flexShrink:0}}>{CATS.find(c=>c.id===cat)?.icon||"🔧"}</div>;
   const goBack=()=>{if(step==="builder"){setStep("vehicle");setVehId(null);setSel({});}else if(step==="vehicle"){setStep("platform");setPlatId(null);}else if(step==="platform"){setStep("make");setMakeId(null);}};
   const goHome=()=>{setPage("home");setStep("make");setMakeId(null);setPlatId(null);setVehId(null);setSel({});setSearch("");};
@@ -2577,10 +2579,13 @@ export default function App(){
           {(kMake?junkParts.filter(p=>p.plats.some(pl=>PLATFORMS.find(x=>x.id===pl)?.make===kMake)):junkParts).map((part,i)=>{
             const pp2=part.plats.map(pl=>PLATFORMS.find(x=>x.id===pl)).filter(Boolean);
             return(<div key={part.id} style={{padding:"0.75rem",background:C.s1,borderRadius:10,border:"1px solid #D46B0825",animation:`fadeUp 0.3s ease-out ${i*0.04}s both`}}>
-              <div style={{fontSize:"0.78rem",fontWeight:700,color:"#D46B08"}}>{part.name}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:6}}>
+                <div style={{fontSize:"0.78rem",fontWeight:700,color:"#D46B08"}}>{part.name.replace(/🏴‍☠️\s*/g,"")}</div>
+                {part.price>0&&<span style={{fontSize:"0.62rem",fontWeight:700,color:C.t,fontFamily:"'JetBrains Mono','SF Mono',monospace",flexShrink:0}}>${part.price}</span>}
+              </div>
               <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>{pp2.map(p=><span key={p.id} style={{fontSize:"0.48rem",padding:"1px 5px",background:C.s2,borderRadius:3,color:C.tm}}>{p.name}</span>)}</div>
-              <p style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0"}}>{part.desc.slice(0,180)}...</p>
-              <div style={{fontSize:"0.55rem",padding:"0.3rem",background:"#D46B0808",borderRadius:4,color:"#D46B08"}}>💡 {part.notes.slice(0,120)}...</div>
+              <p style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.5,margin:"0.5rem 0"}}>{part.desc.replace(/🏴‍☠️\s*JUNKYARD:\s*/g,"")}</p>
+              <div style={{fontSize:"0.58rem",padding:"0.5rem",background:"#D46B0812",borderRadius:6,color:"#D46B08",lineHeight:1.4,borderLeft:"2px solid #D46B0840"}}>💡 {part.notes}</div>
             </div>);
           })}
         </div>}
