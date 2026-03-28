@@ -2119,6 +2119,7 @@ export default function App(){
   const saveBuild = auth?.saveBuild || (async()=>({error:'Auth not ready'}));
   const getMyBuilds = auth?.getMyBuilds || (async()=>({data:[]}));
   const deleteBuild = auth?.deleteBuild || (async()=>({}));
+  const getPublicBuilds = auth?.getPublicBuilds || (async()=>({data:[]}));
 
   const[step,setStep]=useState("make");
   const[makeId,setMakeId]=useState(null);
@@ -2148,7 +2149,11 @@ export default function App(){
   const[showSave,setShowSave]=useState(false);
   const[saveName,setSaveName]=useState("");
   const[showMyBuilds,setShowMyBuilds]=useState(false);
+  const[showShare,setShowShare]=useState(false);
+  const[shareUrl,setShareUrl]=useState("");
+  const[featuredBuilds,setFeaturedBuilds]=useState([]);
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
+  useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
 
   const make=MAKES.find(m=>m.id===makeId);
   const plat=PLATFORMS.find(p=>p.id===platId);
@@ -2202,8 +2207,8 @@ export default function App(){
     else{if(!authUser){setAuthErr("Username required");return;}const{error}=await signUp(authEmail,authPass,authUser);if(error)setAuthErr(error.message);else{setAuthOk("Check your email to confirm your account!");}}
   };
   const handleSaveBuild=async()=>{if(!saveName.trim())return;
-    const{error}=await saveBuild({title:saveName,platformId:platId,vehicleId:vehId,makeId,parts:sel,budget,notes:"",isPublic:true,totalCost:tCost,totalHp:tHp,totalTq:tTq});
-    if(!error){setShowSave(false);setSaveName("");}else{setAuthErr(String(error.message||error));}
+    const{data,error}=await saveBuild({title:saveName,platformId:platId,vehicleId:vehId,makeId,parts:sel,budget,notes:"",isPublic:true,totalCost:tCost,totalHp:tHp,totalTq:tTq});
+    if(!error){setShowSave(false);setSaveName("");if(data?.id){setShareUrl(`${window.location.origin}/build/${data.id}`);setShowShare(true);}}else{setAuthErr(String(error.message||error));}
   };
   const loadMyBuilds=async()=>{const{data}=await getMyBuilds();setMyBuilds(data||[]);setShowMyBuilds(true);};
   const loadBuild=(b)=>{setMakeId(b.make_id);setPlatId(b.platform_id);setVehId(b.vehicle_id);setSel(typeof b.parts==="string"?JSON.parse(b.parts):b.parts);setBudget(b.budget);setStep("builder");setPage("home");setShowMyBuilds(false);};
@@ -2326,6 +2331,26 @@ export default function App(){
           <p style={{fontSize:"0.7rem",color:"#999",marginBottom:"1.2rem"}}>{bParts.length} parts • ${tCost} total • +{tHp}HP</p>
           <input value={saveName} onChange={e=>setSaveName(e.target.value)} placeholder="Name your build..." autoFocus onKeyDown={e=>{if(e.key==="Enter")handleSaveBuild();}} style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #2A2A3A",background:"#1A1A25",color:"#fff",fontSize:"0.8rem",marginBottom:14,outline:"none",boxSizing:"border-box"}}/>
           <button onClick={handleSaveBuild} style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:C.g,color:"#000",fontSize:"0.85rem",fontWeight:700,cursor:"pointer"}}>💾 Save Build</button>
+        </div>
+      </div>}
+
+      {/* Share Build Modal */}
+      {showShare&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.88)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setShowShare(false)}>
+        <div onClick={e=>e.stopPropagation()} style={{background:"#12121A",borderRadius:16,padding:"2rem",width:"100%",maxWidth:400,border:`2px solid ${C.g}`,animation:"fadeUp 0.2s ease-out"}}>
+          <div style={{textAlign:"center",marginBottom:"1rem"}}>
+            <div style={{fontSize:"2rem",marginBottom:6}}>🎉</div>
+            <h2 style={{fontSize:"1.2rem",fontWeight:800,color:"#fff",marginBottom:4}}>Build Saved!</h2>
+            <p style={{fontSize:"0.7rem",color:"#999"}}>Your build is live. Share it with the community.</p>
+          </div>
+          <div style={{background:C.s2,borderRadius:8,padding:"10px 12px",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
+            <span style={{flex:1,fontSize:"0.62rem",color:C.tm,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:"'JetBrains Mono','SF Mono',monospace"}}>{shareUrl}</span>
+          </div>
+          <button onClick={()=>{try{navigator.clipboard.writeText(shareUrl)}catch(e){}}} style={{width:"100%",padding:"11px",borderRadius:8,border:"none",background:C.g,color:"#000",fontSize:"0.85rem",fontWeight:700,cursor:"pointer",marginBottom:8}}>📋 Copy Link</button>
+          <div style={{display:"flex",gap:8,marginBottom:12}}>
+            <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Just built this on BuildSpec!")}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" style={{flex:1,padding:"8px",borderRadius:8,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.7rem",fontWeight:600,cursor:"pointer",textAlign:"center",textDecoration:"none",display:"block"}}>𝕏 Share on X</a>
+            <a href={`https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" style={{flex:1,padding:"8px",borderRadius:8,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.7rem",fontWeight:600,cursor:"pointer",textAlign:"center",textDecoration:"none",display:"block"}}>🟠 Reddit</a>
+          </div>
+          <button onClick={()=>setShowShare(false)} style={{width:"100%",background:"none",border:`1px solid ${C.bdr}`,borderRadius:8,color:C.tm,fontSize:"0.7rem",cursor:"pointer",padding:"8px"}}>Done</button>
         </div>
       </div>}
 
@@ -2480,6 +2505,27 @@ export default function App(){
           <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.y}}>{BUILDS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Builds</div></div>
         </div>
       </div>
+      {featuredBuilds.length>0&&<div style={{marginBottom:"2rem"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
+          <h2 style={{fontSize:"0.9rem",fontWeight:700}}>🔥 Featured Community Builds</h2>
+          <span style={{fontSize:"0.55rem",color:C.td}}>Most recent public builds</span>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:8}}>
+          {featuredBuilds.map((b,i)=>{const pm=MAKES.find(x=>x.id===b.make_id);const pp2=PLATFORMS.find(x=>x.id===b.platform_id);return(
+            <a key={b.id} href={`/build/${b.id}`} target="_blank" rel="noopener noreferrer" style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.85rem",cursor:"pointer",textDecoration:"none",color:"inherit",display:"block",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.g} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+                <div style={{fontSize:"0.72rem",fontWeight:700,color:C.t,lineHeight:1.3}}>{b.title}</div>
+                <span style={{fontSize:"0.5rem",padding:"1px 5px",background:`${C.g}20`,color:C.g,borderRadius:4,fontFamily:"'JetBrains Mono','SF Mono',monospace",whiteSpace:"nowrap",marginLeft:4}}>SHARE →</span>
+              </div>
+              <div style={{fontSize:"0.58rem",color:C.tm,marginBottom:6}}>{pm?.icon} {pp2?.name||b.platform_id}</div>
+              <div style={{display:"flex",gap:8,fontSize:"0.55rem"}}>
+                <span style={{color:C.acc,fontWeight:700}}>${(b.total_cost||0).toLocaleString()}</span>
+                <span style={{color:C.g}}>+{b.total_hp||0}HP</span>
+              </div>
+            </a>
+          );})}
+        </div>
+      </div>}
       <h2 style={{fontSize:"0.9rem",fontWeight:700,marginBottom:"0.75rem"}}>Choose Your Manufacturer</h2>
       <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
         {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));return(
