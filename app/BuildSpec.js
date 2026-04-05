@@ -2611,8 +2611,18 @@ export default function App(){
   const[shareUrl,setShareUrl]=useState("");
   const[featuredBuilds,setFeaturedBuilds]=useState([]);
   const[copiedShare,setCopiedShare]=useState(false);
+  const[kArticles,setKArticles]=useState([]);
+  const[kArticlesLoading,setKArticlesLoading]=useState(false);
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
   useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
+  useEffect(()=>{
+    if(page==="knowledge"&&kTab==="articles"&&kArticles.length===0&&!kArticlesLoading){
+      setKArticlesLoading(true);
+      supabase.from("knowledge_articles").select("id,title,slug,category,tags,meta_description,created_at,views").eq("is_published",true).order("created_at",{ascending:false}).limit(6)
+        .then(({data})=>{setKArticles(data||[]);setKArticlesLoading(false);})
+        .catch(()=>setKArticlesLoading(false));
+    }
+  },[page,kTab]);
 
   const make=MAKES.find(m=>m.id===makeId);
   const plat=PLATFORMS.find(p=>p.id===platId);
@@ -2911,7 +2921,7 @@ export default function App(){
   if(page==="knowledge"){
     const kPlats=kMake?PLATFORMS.filter(p=>p.make===kMake):PLATFORMS;
     const junkParts=PARTS.filter(p=>p.cat==="junk");
-    const kTabs=[{id:"drifttax",l:"🔥 Drift Tax"},{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Checklists"},{id:"mistakes",l:"❌ Mistakes"},{id:"modorder",l:"📋 Mod Order"}];
+    const kTabs=[{id:"articles",l:"📰 Articles"},{id:"drifttax",l:"🔥 Drift Tax"},{id:"junkyard",l:"🏴‍☠️ Junkyard Gold"},{id:"checklists",l:"🔍 Checklists"},{id:"mistakes",l:"❌ Mistakes"},{id:"modorder",l:"📋 Mod Order"}];
     return(
       <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>📚 Knowledge Base</h1>
@@ -2923,6 +2933,32 @@ export default function App(){
         <div style={{display:"flex",gap:4,marginBottom:"1rem",flexWrap:"wrap"}}>
           {kTabs.map(t=><button key={t.id} onClick={()=>setKTab(t.id)} style={{padding:"5px 10px",borderRadius:6,border:`1px solid ${kTab===t.id?C.acc:C.bdr}`,background:kTab===t.id?C.accD:"transparent",color:kTab===t.id?C.acc:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs,fontWeight:kTab===t.id?600:400}}>{t.l}</button>)}
         </div>
+
+        {kTab==="articles"&&<div>
+          {kArticlesLoading&&<div style={{textAlign:"center",padding:"3rem",color:C.tm,fontSize:"0.75rem"}}>Loading articles...</div>}
+          {!kArticlesLoading&&kArticles.length===0&&<div style={{textAlign:"center",padding:"3rem",color:C.td,fontSize:"0.75rem"}}>No articles found.</div>}
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:12}}>
+            {kArticles.map((a,i)=>(
+              <a key={a.id} href={`/knowledge/${a.slug}`} target="_blank" rel="noopener noreferrer" style={{display:"block",textDecoration:"none",color:"inherit",background:C.s1,borderRadius:14,border:`1px solid ${C.bdr}`,overflow:"hidden",animation:`fadeUp 0.4s ease-out ${i*0.07}s both`,transition:"transform 0.2s ease,box-shadow 0.2s ease,border-color 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px) scale(1.02)";e.currentTarget.style.boxShadow=`0 10px 28px rgba(0,0,0,0.5)`;e.currentTarget.style.borderColor=C.acc+"60";}} onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";e.currentTarget.style.borderColor=C.bdr;}}>
+                {/* Top accent */}
+                <div style={{height:3,background:`linear-gradient(90deg,${C.acc},${C.acc}40,transparent)`}}/>
+                <div style={{padding:"1rem"}}>
+                  {/* Category badge */}
+                  {a.category&&<div style={{marginBottom:"0.5rem"}}><span style={{fontSize:"0.52rem",padding:"2px 8px",borderRadius:20,background:C.accD,border:`1px solid ${C.acc}30`,color:C.acc,fontFamily:fm,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase"}}>{a.category}</span></div>}
+                  {/* Title */}
+                  <div style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.35,marginBottom:"0.5rem",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{a.title}</div>
+                  {/* Description */}
+                  {a.meta_description&&<p style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.5,marginBottom:"0.75rem",display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{a.meta_description}</p>}
+                  {/* Footer row */}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:"auto"}}>
+                    <span style={{fontSize:"0.6rem",fontWeight:600,color:C.acc}}>Read article →</span>
+                    {a.views>0&&<span style={{fontSize:"0.52rem",color:C.td}}>{a.views.toLocaleString()} views</span>}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>}
 
         {kTab==="drifttax"&&<div>
           <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"1rem"}}>How much "hype tax" are you paying? Honest price assessments for every platform.</p>
