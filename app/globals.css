@@ -65,6 +65,21 @@ input[type="number"] {
   from { width: 0%; }
 }
 
+@keyframes meshDrift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
 /* Mobile touch improvements */
 @media (max-width: 640px) {
   button { min-height: 36px; }

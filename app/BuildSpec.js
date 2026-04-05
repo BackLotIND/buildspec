@@ -2738,29 +2738,60 @@ export default function App(){
   ):null;
 
   const siteFooter=(
-    <footer style={{borderTop:`1px solid ${C.bdr}`,padding:"2rem 1.5rem",background:C.s1,marginTop:"3rem"}}>
-      <div style={{maxWidth:900,margin:"0 auto"}}>
-        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:"1.5rem",marginBottom:"1.5rem"}}>
+    <footer style={{marginTop:"4rem",background:`linear-gradient(to bottom,${C.s1},#0D0D14)`,borderTop:`1px solid rgba(255,255,255,0.06)`}}>
+      {/* Top accent bar */}
+      <div style={{height:2,background:`linear-gradient(90deg,${C.acc},#FFB703,${C.g},transparent)`}}/>
+      <div style={{maxWidth:900,margin:"0 auto",padding:mob?"2rem 1.25rem 1.5rem":"2.5rem 2rem 1.75rem"}}>
+        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"2fr 1fr 1fr 1fr",gap:mob?"1.5rem":"2rem",marginBottom:"2rem"}}>
+          {/* Brand column */}
           <div>
-            <span style={{fontWeight:800,fontFamily:fm,fontSize:"0.9rem"}}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
-            <p style={{fontSize:"0.65rem",color:C.tm,marginTop:6,lineHeight:1.5}}>The smartest way to plan car builds. {PLATFORMS.length} platforms, {PARTS.length} parts, {BUILDS.length} builds. Real knowledge from real builders.</p>
-          </div>
-          <div>
-            <h4 style={{fontSize:"0.65rem",fontWeight:700,color:C.t,marginBottom:8}}>Navigate</h4>
-            <div style={{display:"flex",flexDirection:"column",gap:4}}>
-              {["Home","Browse","Library"].map(l=><span key={l} onClick={()=>setPage(l.toLowerCase()==="library"?"knowledge":l.toLowerCase())} style={{fontSize:"0.62rem",color:C.tm,cursor:"pointer"}}>{l}</span>)}
+            <div style={{fontWeight:900,fontFamily:fm,fontSize:"1.05rem",letterSpacing:"-0.02em",marginBottom:"0.6rem"}}>BUILD<span style={{color:C.acc}}>SPEC</span></div>
+            <p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.65,maxWidth:260,marginBottom:"1rem"}}>The smartest way to plan your car build. Real knowledge, honest prices, no hype.</p>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {[{v:PLATFORMS.length,l:"Platforms",c:C.acc},{v:PARTS.length,l:"Parts",c:C.g},{v:BUILDS.length,l:"Builds",c:C.y}].map(s=>(
+                <div key={s.l} style={{padding:"4px 10px",borderRadius:6,background:C.s2,border:`1px solid ${C.bdr}`}}>
+                  <span style={{fontSize:"0.68rem",fontWeight:800,color:s.c,fontFamily:fm}}>{s.v}</span>
+                  <span style={{fontSize:"0.5rem",color:C.td,marginLeft:4}}>{s.l}</span>
+                </div>
+              ))}
             </div>
           </div>
+          {/* Navigate */}
           <div>
-            <h4 style={{fontSize:"0.65rem",fontWeight:700,color:C.t,marginBottom:8}}>Stats</h4>
-            <div style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.8}}>
-              {MAKES.length} Manufacturers • {PLATFORMS.length} Platforms<br/>{PARTS.length} Parts • {BUILDS.length} Build Guides<br/>{PARTS.filter(p=>p.cat==="junk").length} Junkyard Secrets
+            <h4 style={{fontSize:"0.6rem",fontWeight:700,color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.85rem"}}>Navigate</h4>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[{l:"Home",p:"home"},{l:"Browse",p:"browse"},{l:"Knowledge Library",p:"knowledge"}].map(n=>(
+                <span key={n.l} onClick={()=>{if(n.p==="home")goHome();else setPage(n.p);}} style={{fontSize:"0.68rem",color:C.tm,cursor:"pointer",transition:"color 0.15s"}} onMouseEnter={e=>e.target.style.color=C.t} onMouseLeave={e=>e.target.style.color=C.tm}>{n.l}</span>
+              ))}
+            </div>
+          </div>
+          {/* Top Makes */}
+          <div>
+            <h4 style={{fontSize:"0.6rem",fontWeight:700,color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.85rem"}}>Top Makes</h4>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {MAKES.slice(0,5).map(m=>(
+                <span key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");setPage("home");}} style={{fontSize:"0.68rem",color:C.tm,cursor:"pointer",transition:"color 0.15s"}} onMouseEnter={e=>e.target.style.color=m.accent} onMouseLeave={e=>e.target.style.color=C.tm}>{m.icon} {m.name}</span>
+              ))}
+            </div>
+          </div>
+          {/* About */}
+          <div>
+            <h4 style={{fontSize:"0.6rem",fontWeight:700,color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.85rem"}}>Catalog</h4>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {[`${MAKES.length} Manufacturers`,`${PLATFORMS.length} Platforms`,`${PARTS.length} Parts`,`${BUILDS.filter(b=>b.tier==="junkyard").length} Junkyard Builds`,`${PARTS.filter(p=>p.cat==="junk").length} Junkyard Parts`].map(s=>(
+                <div key={s} style={{fontSize:"0.62rem",color:C.td}}>{s}</div>
+              ))}
             </div>
           </div>
         </div>
-        <div style={{borderTop:`1px solid ${C.bdr}`,paddingTop:"1rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-          <span style={{fontSize:"0.5rem",color:C.td}}>© 2025 BackLot Industries</span>
-          <span style={{fontSize:"0.45rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span>
+        {/* Bottom bar */}
+        <div style={{borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:"1.25rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
+            <span style={{fontSize:"0.58rem",color:C.td}}>© 2025 BackLot Industries</span>
+            <span style={{fontSize:"0.45rem",color:"rgba(80,80,90,0.6)"}}>|</span>
+            <span style={{fontSize:"0.55rem",color:C.td}}>Built for builders.</span>
+          </div>
+          <span style={{fontSize:"0.48rem",color:"rgba(80,80,90,0.6)",maxWidth:300,textAlign:"right"}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span>
         </div>
       </div>
     </footer>
@@ -2958,14 +2989,26 @@ export default function App(){
   // ═══ HOME ═══
   if(step==="make")return(
     <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
-      <div style={{marginBottom:"2rem",animation:"fadeUp 0.5s ease-out",borderRadius:16,overflow:"hidden",border:`1px solid ${C.bdr}`,backgroundImage:`url(${HERO_IMG})`,backgroundSize:"cover",backgroundPosition:"center"}}>
-        <div style={{background:"linear-gradient(to bottom,rgba(6,6,10,0.55) 0%,rgba(6,6,10,0.82) 60%,rgba(10,10,15,0.97) 100%)",padding:mob?"2rem 1.25rem":"2.5rem 2rem",textAlign:"center"}}>
-          <h1 style={{fontSize:mob?"2rem":"3rem",fontWeight:800,marginBottom:8,letterSpacing:"-0.02em"}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
-          <p style={{fontSize:"0.85rem",color:C.tm,maxWidth:500,margin:"0 auto",lineHeight:1.5}}>The smartest way to plan your car build. Parts, builds, junkyard secrets, and honest advice for {PLATFORMS.length} platforms.</p>
-          <div style={{display:"flex",gap:20,justifyContent:"center",marginTop:"1.25rem",flexWrap:"wrap"}}>
-            <div style={{textAlign:"center"}}><div style={{fontSize:"1.6rem",fontWeight:800,color:C.acc}}>{PLATFORMS.length}</div><div style={{fontSize:"0.55rem",color:C.td,letterSpacing:"0.05em",textTransform:"uppercase"}}>Platforms</div></div>
-            <div style={{textAlign:"center"}}><div style={{fontSize:"1.6rem",fontWeight:800,color:C.g}}>{PARTS.length}</div><div style={{fontSize:"0.55rem",color:C.td,letterSpacing:"0.05em",textTransform:"uppercase"}}>Parts</div></div>
-            <div style={{textAlign:"center"}}><div style={{fontSize:"1.6rem",fontWeight:800,color:"#FFB703"}}>{BUILDS.length}</div><div style={{fontSize:"0.55rem",color:C.td,letterSpacing:"0.05em",textTransform:"uppercase"}}>Builds</div></div>
+      <div style={{marginBottom:"2.5rem",animation:"fadeUp 0.6s ease-out",borderRadius:20,overflow:"hidden",border:`1px solid rgba(230,57,70,0.2)`,position:"relative",background:"#07070D"}}>
+        {/* Gradient mesh layers */}
+        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 70% 80% at 15% 60%,rgba(230,57,70,0.18) 0%,transparent 65%), radial-gradient(ellipse 60% 70% at 85% 30%,rgba(46,196,182,0.13) 0%,transparent 60%), radial-gradient(ellipse 50% 60% at 50% 100%,rgba(255,183,3,0.08) 0%,transparent 55%), radial-gradient(ellipse 80% 50% at 50% 0%,rgba(24,144,255,0.06) 0%,transparent 60%)",pointerEvents:"none",zIndex:1}}/>
+        {/* Animated glow orb */}
+        <div style={{position:"absolute",top:"20%",left:"10%",width:300,height:300,borderRadius:"50%",background:"radial-gradient(circle,rgba(230,57,70,0.12) 0%,transparent 70%)",animation:"glowPulse 4s ease-in-out infinite",pointerEvents:"none",zIndex:1}}/>
+        <div style={{position:"absolute",top:"10%",right:"5%",width:250,height:250,borderRadius:"50%",background:"radial-gradient(circle,rgba(46,196,182,0.08) 0%,transparent 70%)",animation:"glowPulse 5s ease-in-out infinite 1.5s",pointerEvents:"none",zIndex:1}}/>
+        {/* Grid pattern overlay */}
+        <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"40px 40px",pointerEvents:"none",zIndex:1}}/>
+        {/* Content */}
+        <div style={{position:"relative",zIndex:2,padding:mob?"2.5rem 1.5rem 2rem":"3.5rem 3rem 2.5rem",textAlign:"center"}}>
+          <div style={{display:"inline-block",padding:"3px 12px",borderRadius:20,background:"rgba(230,57,70,0.12)",border:"1px solid rgba(230,57,70,0.25)",fontSize:"0.58rem",color:C.acc,fontFamily:fm,fontWeight:700,letterSpacing:"0.12em",marginBottom:"1rem",textTransform:"uppercase"}}>Car Build Planner</div>
+          <h1 style={{fontSize:mob?"2.2rem":"3.4rem",fontWeight:900,marginBottom:"0.6rem",letterSpacing:"-0.03em",lineHeight:1.05}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
+          <p style={{fontSize:mob?"0.82rem":"0.95rem",color:C.tm,maxWidth:480,margin:"0 auto 1.75rem",lineHeight:1.6}}>Parts, builds, junkyard secrets, and honest pricing for {PLATFORMS.length} platforms. No fluff.</p>
+          <div style={{display:"flex",gap:mob?16:32,justifyContent:"center",flexWrap:"wrap"}}>
+            {[{v:PLATFORMS.length,l:"Platforms",c:C.acc},{v:PARTS.length,l:"Parts",c:C.g},{v:BUILDS.length,l:"Builds",c:C.y},{v:PARTS.filter(p=>p.cat==="junk").length,l:"Junkyard Finds",c:"#FFB703"}].map(s=>(
+              <div key={s.l} style={{textAlign:"center"}}>
+                <div style={{fontSize:mob?"1.5rem":"1.9rem",fontWeight:900,color:s.c,fontFamily:fm,lineHeight:1}}>{s.v}</div>
+                <div style={{fontSize:"0.5rem",color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>{s.l}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -2992,16 +3035,24 @@ export default function App(){
       </div>}
       <h2 style={{fontSize:"0.9rem",fontWeight:700,marginBottom:"0.75rem"}}>Choose Your Manufacturer</h2>
       <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
-        {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));const img=MAKE_IMGS[m.id];return(
-          <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{backgroundColor:C.s1,backgroundImage:img?`url(${img})`:"none",backgroundSize:"cover",backgroundPosition:"center",borderRadius:12,border:`1px solid ${C.bdr}`,overflow:"hidden",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s,transform 0.2s,box-shadow 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 8px 24px ${m.accent}30`;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
-            <div style={{height:3,background:`linear-gradient(90deg,${m.accent},${m.accent}60)`}}/>
-            <div style={{padding:"1rem",background:"linear-gradient(to bottom,rgba(10,10,15,0.45) 0%,rgba(10,10,15,0.88) 55%,rgba(10,10,15,0.97) 100%)"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                <span style={{fontSize:"1.2rem",fontWeight:800,textShadow:"0 1px 4px rgba(0,0,0,0.8)"}}>{m.icon} {m.name}</span>
-                <span style={{fontSize:"0.55rem",color:m.accent,fontFamily:fm,fontWeight:700}}>{mPlats.length} cars</span>
+        {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));const img=MAKE_IMGS[m.id];const bCount=BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length;return(
+          <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{backgroundColor:"#0D0D14",backgroundImage:img?`url(${img})`:"none",backgroundSize:"cover",backgroundPosition:"center",borderRadius:16,border:`1px solid rgba(255,255,255,0.07)`,overflow:"hidden",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.05}s both`,transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.25s ease,border-color 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.025)";e.currentTarget.style.boxShadow=`0 12px 32px ${m.accent}35,0 0 0 1px ${m.accent}40`;e.currentTarget.style.borderColor=`${m.accent}50`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.boxShadow="none";e.currentTarget.style.borderColor="rgba(255,255,255,0.07)";}}>
+            {/* Accent bar */}
+            <div style={{height:3,background:`linear-gradient(90deg,${m.accent},${m.accent}40,transparent)`}}/>
+            {/* Glass overlay */}
+            <div style={{padding:"1.1rem 1.1rem 1rem",background:"linear-gradient(160deg,rgba(255,255,255,0.055) 0%,rgba(10,10,20,0.72) 40%,rgba(10,10,20,0.92) 100%)",backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.5rem"}}>
+                <div>
+                  <div style={{fontSize:"0.95rem",fontWeight:800,letterSpacing:"-0.01em",lineHeight:1.2,textShadow:"0 1px 8px rgba(0,0,0,0.9)"}}>{m.icon} {m.name}</div>
+                </div>
+                <span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:`${m.accent}22`,border:`1px solid ${m.accent}44`,color:m.accent,fontFamily:fm,fontWeight:700,whiteSpace:"nowrap",marginLeft:6}}>{mPlats.length} cars</span>
               </div>
-              <p style={{fontSize:"0.65rem",color:"#BBBBCC",lineHeight:1.4,marginBottom:8}}>{m.tagline}</p>
-              <div style={{fontSize:"0.55rem",color:C.td}}>{mParts.length} parts · {BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length} builds</div>
+              <p style={{fontSize:"0.63rem",color:"rgba(200,200,215,0.8)",lineHeight:1.5,marginBottom:"0.65rem",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{m.tagline}</p>
+              <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                <span style={{fontSize:"0.5rem",color:"rgba(100,100,115,0.9)"}}>{mParts.length} parts</span>
+                <span style={{fontSize:"0.45rem",color:"rgba(80,80,90,0.7)"}}>·</span>
+                <span style={{fontSize:"0.5rem",color:"rgba(100,100,115,0.9)"}}>{bCount} builds</span>
+              </div>
             </div>
           </div>
         );})}
