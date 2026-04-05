@@ -30,6 +30,29 @@ const MAKES = [
   { id:"audi",name:"Audi",accent:"#B0060D",tagline:"Quattro everything — DSG launches, EA888 tune numbers that don't make sense, and an RS badge that justifies the bill. Most of the time.",icon:"💎" },
 ];
 
+const HERO_IMG = "https://images.pexels.com/photos/3802513/pexels-photo-3802513.jpeg?auto=compress&cs=tinysrgb&w=1400&h=600&fit=crop";
+
+const MAKE_IMGS = {
+  honda:    "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  bmw:      "https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  subaru:   "https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  mazda:    "https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  toyota:   "https://images.pexels.com/photos/3802513/pexels-photo-3802513.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  nissan:   "https://images.pexels.com/photos/1719648/pexels-photo-1719648.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ford:     "https://images.pexels.com/photos/2365572/pexels-photo-2365572.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  chevy:    "https://images.pexels.com/photos/1592384/pexels-photo-1592384.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  vw:       "https://images.pexels.com/photos/463740/pexels-photo-463740.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  dodge:    "https://images.pexels.com/photos/190574/pexels-photo-190574.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  mitsubishi:"https://images.pexels.com/photos/1104768/pexels-photo-1104768.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  lexus:    "https://images.pexels.com/photos/3729464/pexels-photo-3729464.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  infiniti: "https://images.pexels.com/photos/248687/pexels-photo-248687.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  hyundai:  "https://images.pexels.com/photos/306030/pexels-photo-306030.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  jeep:     "https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  ram:      "https://images.pexels.com/photos/2365572/pexels-photo-2365572.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  kia:      "https://images.pexels.com/photos/1719648/pexels-photo-1719648.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  audi:     "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+};
+
 const PLATFORMS = [
   // HYPE TAX TIERS (added to platforms as "tax" field):
   // 0 = No tax (fair price for what it is)
@@ -2935,13 +2958,15 @@ export default function App(){
   // ═══ HOME ═══
   if(step==="make")return(
     <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
-      <div style={{textAlign:"center",marginBottom:"2rem",animation:"fadeUp 0.5s ease-out"}}>
-        <h1 style={{fontSize:mob?"1.8rem":"2.5rem",fontWeight:800,marginBottom:8}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
-        <p style={{fontSize:"0.85rem",color:C.tm,maxWidth:500,margin:"0 auto",lineHeight:1.5}}>The smartest way to plan your car build. Parts, builds, junkyard secrets, and honest advice for {PLATFORMS.length} platforms.</p>
-        <div style={{display:"flex",gap:12,justifyContent:"center",marginTop:"1rem",flexWrap:"wrap"}}>
-          <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.acc}}>{PLATFORMS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Platforms</div></div>
-          <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.g}}>{PARTS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Parts</div></div>
-          <div style={{textAlign:"center"}}><div style={{fontSize:"1.4rem",fontWeight:800,color:C.y}}>{BUILDS.length}</div><div style={{fontSize:"0.55rem",color:C.td}}>Builds</div></div>
+      <div style={{marginBottom:"2rem",animation:"fadeUp 0.5s ease-out",borderRadius:16,overflow:"hidden",border:`1px solid ${C.bdr}`,backgroundImage:`url(${HERO_IMG})`,backgroundSize:"cover",backgroundPosition:"center"}}>
+        <div style={{background:"linear-gradient(to bottom,rgba(6,6,10,0.55) 0%,rgba(6,6,10,0.82) 60%,rgba(10,10,15,0.97) 100%)",padding:mob?"2rem 1.25rem":"2.5rem 2rem",textAlign:"center"}}>
+          <h1 style={{fontSize:mob?"2rem":"3rem",fontWeight:800,marginBottom:8,letterSpacing:"-0.02em"}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
+          <p style={{fontSize:"0.85rem",color:C.tm,maxWidth:500,margin:"0 auto",lineHeight:1.5}}>The smartest way to plan your car build. Parts, builds, junkyard secrets, and honest advice for {PLATFORMS.length} platforms.</p>
+          <div style={{display:"flex",gap:20,justifyContent:"center",marginTop:"1.25rem",flexWrap:"wrap"}}>
+            <div style={{textAlign:"center"}}><div style={{fontSize:"1.6rem",fontWeight:800,color:C.acc}}>{PLATFORMS.length}</div><div style={{fontSize:"0.55rem",color:C.td,letterSpacing:"0.05em",textTransform:"uppercase"}}>Platforms</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:"1.6rem",fontWeight:800,color:C.g}}>{PARTS.length}</div><div style={{fontSize:"0.55rem",color:C.td,letterSpacing:"0.05em",textTransform:"uppercase"}}>Parts</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:"1.6rem",fontWeight:800,color:"#FFB703"}}>{BUILDS.length}</div><div style={{fontSize:"0.55rem",color:C.td,letterSpacing:"0.05em",textTransform:"uppercase"}}>Builds</div></div>
+          </div>
         </div>
       </div>
       {featuredBuilds.length>0&&<div style={{marginBottom:"2rem"}}>
@@ -2967,15 +2992,15 @@ export default function App(){
       </div>}
       <h2 style={{fontSize:"0.9rem",fontWeight:700,marginBottom:"0.75rem"}}>Choose Your Manufacturer</h2>
       <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
-        {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));return(
-          <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,overflow:"hidden",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s,transform 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";}}>
-            <div style={{height:4,background:`linear-gradient(90deg,${m.accent},${m.accent}80)`}}/>
-            <div style={{padding:"1rem"}}>
+        {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));const img=MAKE_IMGS[m.id];return(
+          <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{backgroundColor:C.s1,backgroundImage:img?`url(${img})`:"none",backgroundSize:"cover",backgroundPosition:"center",borderRadius:12,border:`1px solid ${C.bdr}`,overflow:"hidden",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s,transform 0.2s,box-shadow 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 8px 24px ${m.accent}30`;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
+            <div style={{height:3,background:`linear-gradient(90deg,${m.accent},${m.accent}60)`}}/>
+            <div style={{padding:"1rem",background:"linear-gradient(to bottom,rgba(10,10,15,0.45) 0%,rgba(10,10,15,0.88) 55%,rgba(10,10,15,0.97) 100%)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                <span style={{fontSize:"1.2rem",fontWeight:800}}>{m.icon} {m.name}</span>
-                <span style={{fontSize:"0.55rem",color:m.accent,fontFamily:fm}}>{mPlats.length} cars</span>
+                <span style={{fontSize:"1.2rem",fontWeight:800,textShadow:"0 1px 4px rgba(0,0,0,0.8)"}}>{m.icon} {m.name}</span>
+                <span style={{fontSize:"0.55rem",color:m.accent,fontFamily:fm,fontWeight:700}}>{mPlats.length} cars</span>
               </div>
-              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{m.tagline}</p>
+              <p style={{fontSize:"0.65rem",color:"#BBBBCC",lineHeight:1.4,marginBottom:8}}>{m.tagline}</p>
               <div style={{fontSize:"0.55rem",color:C.td}}>{mParts.length} parts · {BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length} builds</div>
             </div>
           </div>
