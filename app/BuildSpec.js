@@ -3062,6 +3062,8 @@ export default function App(){
   const[copiedShare,setCopiedShare]=useState(false);
   const[kArticles,setKArticles]=useState([]);
   const[kArticlesLoading,setKArticlesLoading]=useState(false);
+  const[copeData,setCopeData]=useState([]);
+  const[copeLoading,setCopeLoading]=useState(false);
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
   useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
   useEffect(()=>{
@@ -3070,6 +3072,13 @@ export default function App(){
       supabase.from("knowledge_articles").select("id,title,slug,category,tags,meta_description,created_at,views").eq("is_published",true).order("created_at",{ascending:false}).limit(6)
         .then(({data})=>{setKArticles(data||[]);setKArticlesLoading(false);})
         .catch(()=>setKArticlesLoading(false));
+    }
+    if(page==="knowledge"&&kTab==="drifttax"&&copeData.length===0&&!copeLoading){
+      setCopeLoading(true);
+      supabase.from("buying_verdicts").select("platform_id,verdict,cope_level,hot_take,fair_price_low,fair_price_high,asking_price_low,asking_price_high")
+        .gte("cope_level",8).order("cope_level",{ascending:false}).limit(5)
+        .then(({data})=>{setCopeData(data||[]);setCopeLoading(false);})
+        .catch(()=>setCopeLoading(false));
     }
   },[page,kTab]);
 
@@ -3467,7 +3476,55 @@ export default function App(){
         </div>}
 
         {kTab==="drifttax"&&<div>
-          <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"1rem"}}>How much "hype tax" are you paying? Honest price assessments for every platform.</p>
+          <p style={{fontSize:"0.68rem",color:C.td,marginBottom:"1.25rem"}}>How much "hype tax" are you paying? Honest price assessments for every platform.</p>
+
+          {/* ── How Bad Is The Cope? ── */}
+          <div style={{marginBottom:"2rem",padding:"1rem",background:"#0F0A0A",borderRadius:14,border:"1px solid rgba(230,57,70,0.2)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:"0.85rem"}}>
+              <span style={{fontSize:"1rem"}}>🤡</span>
+              <span style={{fontSize:"0.82rem",fontWeight:800,color:C.acc}}>How Bad Is The Cope?</span>
+              <span style={{fontSize:"0.55rem",color:C.td,marginLeft:"auto",fontFamily:fm}}>LIVE FROM SUPABASE</span>
+            </div>
+            <p style={{fontSize:"0.62rem",color:C.td,marginBottom:"0.85rem",lineHeight:1.5}}>Top 5 platforms where the market has completely lost the plot. Cope level 8+. Sorted by delusion.</p>
+            {copeLoading&&<div style={{textAlign:"center",padding:"1.5rem",color:C.td,fontSize:"0.7rem"}}>Calculating cope...</div>}
+            {!copeLoading&&copeData.length===0&&<div style={{textAlign:"center",padding:"1.5rem",color:C.td,fontSize:"0.7rem"}}>No data loaded.</div>}
+            {!copeLoading&&copeData.map((v,i)=>{
+              const pct=(v.cope_level/10)*100;
+              const barColor=v.cope_level>=10?C.acc:v.cope_level>=9?"#FB8500":"#FF6B35";
+              const fmtK=n=>n>=1000?`$${(n/1000).toFixed(n%1000===0?0:1)}k`:`$${n}`;
+              const over=v.asking_price_low-v.fair_price_low;
+              const platLabel=v.platform_id.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+              const platObj=PLATFORMS.find(p=>p.id===v.platform_id);
+              const makeObj=platObj?MAKES.find(m=>m.id===platObj.make):null;
+              return(
+                <div key={v.platform_id} style={{display:"flex",flexDirection:mob?"column":"row",gap:10,padding:"0.75rem",background:C.s1,borderRadius:10,border:`1px solid ${barColor}25`,marginBottom:8,animation:`fadeUp 0.3s ease-out ${i*0.07}s both`,cursor:platObj?"pointer":"default"}}
+                  onClick={platObj?()=>{setMakeId(platObj.make);setPlatId(platObj.id);setStep("vehicle");setPage("home");}:undefined}>
+                  {/* Rank */}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",width:32,height:32,borderRadius:"50%",background:`${barColor}20`,border:`1px solid ${barColor}40`,flexShrink:0,fontSize:"0.75rem",fontWeight:900,color:barColor,fontFamily:fm}}>#{i+1}</div>
+                  {/* Content */}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:4}}>
+                      <span style={{fontSize:"0.75rem",fontWeight:800,color:C.t}}>{makeObj?.icon} {platLabel}</span>
+                      <span style={{fontSize:"0.58rem",fontWeight:700,color:barColor,fontFamily:fm,flexShrink:0}}>Cope {v.cope_level}/10</span>
+                    </div>
+                    <p style={{fontSize:"0.6rem",color:C.tm,lineHeight:1.4,margin:"0 0 6px",fontStyle:"italic"}}>"{v.hot_take}"</p>
+                    <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6,flexWrap:"wrap"}}>
+                      <span style={{fontSize:"0.55rem",color:C.g,fontFamily:fm}}>Fair: {fmtK(v.fair_price_low)}–{fmtK(v.fair_price_high)}</span>
+                      <span style={{fontSize:"0.5rem",color:C.td}}>→</span>
+                      <span style={{fontSize:"0.55rem",color:barColor,fontFamily:fm}}>Asking: {fmtK(v.asking_price_low)}–{fmtK(v.asking_price_high)}</span>
+                      {over>0&&<span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm}}>↑ ~{fmtK(over)} over fair</span>}
+                    </div>
+                    {/* Cope bar */}
+                    <div style={{height:4,background:"#1A1A25",borderRadius:2,overflow:"hidden"}}>
+                      <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${barColor},${barColor}80)`,borderRadius:2}}/>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <a href="/buy" style={{display:"block",textAlign:"center",marginTop:"0.75rem",fontSize:"0.62rem",color:C.acc,textDecoration:"none",fontWeight:600}}>See all {copeData.length ? "73" : ""} verdicts at /buy →</a>
+          </div>
+
           {[4,3,2,1,0].map(tier=>{const t=TAX[tier];const tp=kPlats.filter(p=>p.tax===tier);if(!tp.length)return null;return(
             <div key={tier} style={{marginBottom:"1.2rem"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><span style={{fontSize:"0.9rem",fontWeight:800,color:t.c,fontFamily:fm}}>{t.l}</span><span style={{fontSize:"0.55rem",color:C.td}}>({tp.length})</span></div>
