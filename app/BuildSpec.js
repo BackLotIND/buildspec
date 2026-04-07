@@ -3064,8 +3064,20 @@ export default function App(){
   const[kArticlesLoading,setKArticlesLoading]=useState(false);
   const[copeData,setCopeData]=useState([]);
   const[copeLoading,setCopeLoading]=useState(false);
+  const[platVerdict,setPlatVerdict]=useState(null);
+  const[platVerdictId,setPlatVerdictId]=useState(null);
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
   useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
+  useEffect(()=>{
+    if(platId&&platId!==platVerdictId){
+      setPlatVerdict(null);setPlatVerdictId(platId);
+      supabase.from("buying_verdicts").select("platform_id,verdict,cope_level,hot_take,fair_price_low,fair_price_high,asking_price_low,asking_price_high,reality_check,alternative_suggestion")
+        .eq("platform_id",platId).maybeSingle()
+        .then(({data})=>{setPlatVerdict(data||null);})
+        .catch(()=>{});
+    }
+    if(!platId){setPlatVerdict(null);setPlatVerdictId(null);}
+  },[platId]);
   useEffect(()=>{
     if(page==="knowledge"&&kTab==="articles"&&kArticles.length===0&&!kArticlesLoading){
       setKArticlesLoading(true);
@@ -3707,6 +3719,50 @@ export default function App(){
   );
 
   // ═══ PLATFORM SELECTION ═══
+  const VCFG={buy:{label:"BUY",color:"#2EC4B6",bg:"#2EC4B610",border:"#2EC4B635",emoji:"✅"},maybe:{label:"MAYBE",color:"#A8D5BA",bg:"#A8D5BA10",border:"#A8D5BA35",emoji:"🤔"},overpriced:{label:"OVERPRICED",color:"#FFB703",bg:"#FFB70310",border:"#FFB70335",emoji:"💸"},cope:{label:"COPE",color:"#FB8500",bg:"#FB850010",border:"#FB850035",emoji:"🤡"},absurd:{label:"ABSURD",color:"#E63946",bg:"#E6394610",border:"#E6394635",emoji:"💀"}};
+  const verdictBanner=platVerdict?(()=>{
+    const vc=VCFG[platVerdict.verdict]||VCFG.maybe;
+    const fmtK=n=>n>=1000?`$${(n/1000).toFixed(n%1000===0?0:1)}k`:`$${n}`;
+    const over=platVerdict.asking_price_low-platVerdict.fair_price_low;
+    const pct=(platVerdict.cope_level/10)*100;
+    return(
+      <div style={{marginBottom:"1rem",borderRadius:12,border:`1px solid ${vc.border}`,background:vc.bg,overflow:"hidden"}}>
+        <div style={{height:3,background:`linear-gradient(90deg,${vc.color},${vc.color}40,transparent)`}}/>
+        <div style={{padding:"0.85rem 1rem"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:"0.5rem",flexWrap:"wrap"}}>
+            <span style={{fontSize:"0.62rem",fontWeight:800,padding:"2px 10px",borderRadius:20,background:`${vc.color}20`,color:vc.color,fontFamily:fm,letterSpacing:"0.08em",border:`1px solid ${vc.border}`}}>{vc.emoji} {vc.label}</span>
+            <span style={{fontSize:"0.58rem",color:C.td,fontFamily:fm}}>BuildSpec Verdict</span>
+            <a href="/buy" style={{marginLeft:"auto",fontSize:"0.55rem",color:vc.color,textDecoration:"none",fontWeight:600,opacity:0.8}}>All verdicts →</a>
+          </div>
+          <p style={{fontSize:"0.72rem",color:C.t,lineHeight:1.45,fontStyle:"italic",margin:"0 0 0.6rem",borderLeft:`2px solid ${vc.color}`,paddingLeft:"0.6rem"}}>"{platVerdict.hot_take}"</p>
+          <div style={{display:"flex",gap:mob?8:16,flexWrap:"wrap",alignItems:"center",marginBottom:"0.6rem"}}>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>FAIR PRICE</span>
+              <span style={{fontSize:"0.72rem",fontWeight:800,color:"#2EC4B6",fontFamily:fm}}>{fmtK(platVerdict.fair_price_low)}–{fmtK(platVerdict.fair_price_high)}</span>
+            </div>
+            <span style={{fontSize:"0.6rem",color:C.td}}>→</span>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <span style={{fontSize:"0.55rem",color:C.td,fontFamily:fm}}>MARKET ASKS</span>
+              <span style={{fontSize:"0.72rem",fontWeight:800,color:vc.color,fontFamily:fm}}>{fmtK(platVerdict.asking_price_low)}–{fmtK(platVerdict.asking_price_high)}</span>
+            </div>
+            {over>0&&<span style={{fontSize:"0.58rem",color:"#FB8500",fontFamily:fm,fontWeight:700}}>↑ ~{fmtK(over)} over fair</span>}
+          </div>
+          {platVerdict.reality_check&&<p style={{fontSize:"0.6rem",color:C.tm,lineHeight:1.5,margin:"0 0 0.5rem"}}>{platVerdict.reality_check}</p>}
+          {platVerdict.alternative_suggestion&&<div style={{fontSize:"0.58rem",color:C.td,background:C.bg,borderRadius:6,padding:"5px 8px",lineHeight:1.4}}>💡 Consider instead: <span style={{color:C.tm}}>{platVerdict.alternative_suggestion}</span></div>}
+          <div style={{marginTop:"0.6rem"}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+              <span style={{fontSize:"0.48rem",color:C.td,fontFamily:fm,textTransform:"uppercase",letterSpacing:"0.06em"}}>Cope Meter</span>
+              <span style={{fontSize:"0.48rem",color:vc.color,fontFamily:fm,fontWeight:700}}>{platVerdict.cope_level}/10</span>
+            </div>
+            <div style={{height:4,background:"#1A1A25",borderRadius:2,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${vc.color},${vc.color}80)`,borderRadius:2}}/>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  })():null;
+
   if(step==="platform"){const mP=PLATFORMS.filter(p=>p.make===makeId);return(
     <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
       <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back</button>
@@ -3739,6 +3795,7 @@ export default function App(){
       <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
       <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
       <p style={{fontSize:"0.65rem",color:C.td,marginBottom:"0.75rem"}}>{plat?.gen} • {plat?.hp}HP / {plat?.tq}TQ {plat?.tax!==undefined&&<TaxBadge lv={plat.tax}/>}</p>
+      {verdictBanner}
       <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
         {[{id:"overview",l:"Overview"},{id:"checklist",l:"Checklist"},{id:"mistakes",l:"Mistakes"},{id:"modorder",l:"Mod Order"}].map(t=>(
           <button key={t.id} onClick={()=>setAboutTab(t.id)} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${aboutTab===t.id?C.acc:C.bdr}`,background:aboutTab===t.id?C.accD:"transparent",color:aboutTab===t.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:aboutTab===t.id?600:400}}>{t.l}</button>
@@ -3773,6 +3830,7 @@ export default function App(){
         <TaxBadge lv={plat?.tax}/>
       </div>
 
+      {verdictBanner}
       {/* Budget */}
       <div style={{background:C.s1,borderRadius:10,padding:"0.75rem",border:`1px solid ${C.bdr}`,marginBottom:"0.75rem"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
