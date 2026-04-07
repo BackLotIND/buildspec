@@ -3376,7 +3376,7 @@ export default function App(){
                 <div><div style={{fontSize:"0.85rem",fontWeight:700}}>{m?.icon} {p.name}</div><div style={{fontSize:"0.6rem",color:C.td}}>{p.gen} • {p.hp}HP</div></div>
                 <TaxBadge lv={p.tax}/>
               </div>
-              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,marginBottom:8}}>{p.tagline}</p>
+              <p style={{fontSize:"0.68rem",color:"#B8B8C8",lineHeight:1.6,marginBottom:8}}>{p.tagline}</p>
               <div style={{fontSize:"0.55rem",color:C.td}}>
                 {pParts.length} parts · {pBlds.length} builds{p.buyer_checklist?" · ✓ checklist":""}
               </div>
@@ -3561,7 +3561,7 @@ export default function App(){
                 {part.price>0&&<span style={{fontSize:"0.62rem",fontWeight:700,color:C.t,fontFamily:"'JetBrains Mono','SF Mono',monospace",flexShrink:0}}>${part.price}</span>}
               </div>
               <div style={{fontSize:"0.5rem",color:C.td,marginTop:3}}>{pp2.map(p=>p.name).join(" · ")}</div>
-              <p style={{fontSize:"0.62rem",color:C.tm,lineHeight:1.5,margin:"0.5rem 0"}}>{part.desc.replace(/🏴‍☠️\s*JUNKYARD:\s*/g,"")}</p>
+              <p style={{fontSize:"0.65rem",color:"#B8B8C8",lineHeight:1.6,margin:"0.5rem 0"}}>{part.desc.replace(/🏴‍☠️\s*JUNKYARD:\s*/g,"")}</p>
               <div style={{fontSize:"0.58rem",padding:"0.5rem",background:"#D46B0812",borderRadius:6,color:"#D46B08",lineHeight:1.4,borderLeft:"2px solid #D46B0840"}}>💡 {part.notes}</div>
             </div>);
           })}
@@ -3777,7 +3777,7 @@ export default function App(){
                 <div><div style={{fontSize:"0.9rem",fontWeight:700}}>{p.name}</div><div style={{fontSize:"0.58rem",color:C.td}}>{p.gen} · {p.hp}HP · {p.budget}</div></div>
                 <TaxBadge lv={p.tax}/>
               </div>
-              <p style={{fontSize:"0.65rem",color:C.tm,lineHeight:1.4,margin:"0.4rem 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{p.why}</p>
+              <p style={{fontSize:"0.68rem",color:"#B8B8C8",lineHeight:1.6,margin:"0.4rem 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{p.why}</p>
               <div style={{fontSize:"0.55rem",color:C.td,marginBottom:4}}>
                 {pP.length} parts · {pB.length} builds{junk.length>0?` · 🏴‍☠️ ${junk.length} junkyard`:""}{p.buyer_checklist?" · ✓ checklist":""}
               </div>
@@ -3801,7 +3801,7 @@ export default function App(){
           <button key={t.id} onClick={()=>setAboutTab(t.id)} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${aboutTab===t.id?C.acc:C.bdr}`,background:aboutTab===t.id?C.accD:"transparent",color:aboutTab===t.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:aboutTab===t.id?600:400}}>{t.l}</button>
         ))}
       </div>
-      {aboutTab==="overview"&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.bdr}`,marginBottom:"1rem"}}><p style={{fontSize:"0.72rem",color:C.tm,lineHeight:1.5}}>{plat?.desc}</p></div>}
+      {aboutTab==="overview"&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.bdr}`,marginBottom:"1rem"}}><p style={{fontSize:"0.75rem",color:"#B8B8C8",lineHeight:1.6}}>{plat?.desc}</p></div>}
       {aboutTab==="checklist"&&plat?.buyer_checklist&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.g}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.g}}>🔍 Buyer Checklist</h3>{plat.buyer_checklist.map((item,j)=><div key={j} style={{display:"flex",gap:6,marginBottom:4}}><div style={{width:14,height:14,borderRadius:3,border:`1px solid ${C.bdr}`,flexShrink:0,marginTop:2}}/><span style={{fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>{item}</span></div>)}</div>}
       {aboutTab==="mistakes"&&plat?.mistakes&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.acc}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.acc}}>❌ Common Mistakes</h3>{plat.mistakes.map((m2,j)=><div key={j} style={{padding:"0.35rem",background:C.bg,borderRadius:4,marginBottom:3,fontSize:"0.68rem",color:C.t,lineHeight:1.4}}>❌ {m2}</div>)}</div>}
       {aboutTab==="modorder"&&plat?.mod_order&&<div style={{background:C.s1,borderRadius:10,padding:"1rem",border:`1px solid ${C.y}20`,marginBottom:"1rem"}}><h3 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:8,color:C.y}}>📋 Mod Order</h3><div style={{padding:"0.5rem",background:C.bg,borderRadius:4,fontFamily:fm,fontSize:"0.68rem",color:C.t,lineHeight:1.6}}>{plat.mod_order}</div></div>}
@@ -3871,7 +3871,7 @@ export default function App(){
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:"0.75rem",fontWeight:600}}>{part.name}</div>
                   <div style={{fontSize:"0.55rem",color:C.td}}>{part.brand} • {part.ret}</div>
-                  <p style={{fontSize:"0.6rem",color:C.tm,lineHeight:1.35,margin:"3px 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{part.desc}</p>
+                  <p style={{fontSize:"0.65rem",color:"#B8B8C8",lineHeight:1.6,margin:"3px 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{part.desc}</p>
                   <div style={{display:"flex",gap:6,alignItems:"center",marginTop:3}}>
                     {part.hp>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.acc}}>+{part.hp}HP</span>}
                     {part.tq>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.y}}>+{part.tq}TQ</span>}
