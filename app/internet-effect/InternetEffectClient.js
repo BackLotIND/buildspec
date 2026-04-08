@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 
 const C = { bg:'#08080B', s1:'#12121A', s2:'#1A1A25', bdr:'#2A2A3A', t:'#EEEEF2', tm:'#9999AA', td:'#666677', acc:'#E63946', g:'#2EC4B6', y:'#FFB703' }
 const fs = "'Inter',system-ui,sans-serif"
@@ -38,6 +38,49 @@ function PriceArrow({ then, now }) {
           {gained?'+':''}{pct}%
         </span>
       )}
+    </div>
+  )
+}
+
+function ShareBar({ carName, severity, sevCfg }) {
+  const [copied, setCopied] = useState(false)
+  const url = 'https://thebuildspec.com/internet-effect'
+  const text = `${carName} — Internet Effect severity ${severity}/10 (${sevCfg.emoji} ${sevCfg.label}). The internet found it and the prices prove it. ${url}`
+
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }).catch(() => {
+      // fallback for older browsers
+      const el = document.createElement('textarea')
+      el.value = url
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }, [url])
+
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+  const redditUrl  = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(`${carName} — Internet Effect severity ${severity}/10 (${sevCfg.emoji} ${sevCfg.label})`)}`
+
+  const btnBase = {fontSize:'0.55rem',fontWeight:700,padding:'4px 10px',borderRadius:6,border:`1px solid ${C.bdr}`,cursor:'pointer',fontFamily:fm,transition:'all 0.15s',lineHeight:1.4,background:'transparent'}
+
+  return (
+    <div style={{display:'flex',gap:6,alignItems:'center',paddingTop:'0.5rem',borderTop:`1px solid ${C.bdr}`}}>
+      <span style={{fontSize:'0.5rem',color:C.td,flexShrink:0}}>Share:</span>
+      <button onClick={copy} title="Copy link" style={{...btnBase,color:copied?C.g:C.tm,borderColor:copied?`${C.g}50`:C.bdr}}>
+        {copied ? '✓ Copied' : '🔗 Copy Link'}
+      </button>
+      <a href={twitterUrl} target="_blank" rel="noopener noreferrer" style={{...btnBase,color:'#1DA1F2',borderColor:'#1DA1F230',textDecoration:'none',display:'inline-block'}}>
+        𝕏 Twitter
+      </a>
+      <a href={redditUrl} target="_blank" rel="noopener noreferrer" style={{...btnBase,color:'#FF4500',borderColor:'#FF450030',textDecoration:'none',display:'inline-block'}}>
+        🤙 Reddit
+      </a>
     </div>
   )
 }
@@ -109,6 +152,9 @@ function EntryCard({ entry }) {
             ⚠ {entry.warning}
           </div>
         )}
+
+        {/* Share */}
+        <ShareBar carName={entry.car_name} severity={entry.severity} sevCfg={cfg} />
       </div>
     </div>
   )
