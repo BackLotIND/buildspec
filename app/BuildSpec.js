@@ -3617,6 +3617,7 @@ export default function App(){
         <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
       ))}
       <a href="/buy" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🤔 Buy?</a>
+      <a href="/internet-effect" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>📉 Internet Effect</a>
     </nav>
   );
 
@@ -3658,7 +3659,7 @@ export default function App(){
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
       <div style={{background:C.bg,textAlign:"center",padding:"2px 0"}}><span style={{fontSize:"0.38rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
       <div style={{background:C.s1+"F0",backdropFilter:"blur(12px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:"calc(6px + env(safe-area-inset-bottom))"}}>
-        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"buy",l:"Buy?",ic:"🤔",href:"/buy"}].map(n=>(
+        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"buy",l:"Buy?",ic:"🤔",href:"/buy"},{id:"internet-effect",l:"Effect",ic:"📉",href:"/internet-effect"}].map(n=>(
           <button key={n.id} onClick={()=>{if(n.href){window.location.href=n.href;return;}if(n.id==="builder"){if(step!=="builder")goHome();}else if(n.id==="home")goHome();else setPage(n.id);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:(n.id==="builder"&&step==="builder")||(n.id!=="builder"&&page===n.id)?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",padding:"4px 8px"}}>
             <span style={{fontSize:"1rem"}}>{n.ic}</span>{n.l}
           </button>
@@ -3690,7 +3691,7 @@ export default function App(){
           <div>
             <h4 style={{fontSize:"0.6rem",fontWeight:700,color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.85rem"}}>Navigate</h4>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {[{l:"Home",p:"home"},{l:"Browse",p:"browse"},{l:"Knowledge Library",p:"knowledge"},{l:"Should You Buy?",href:"/buy"}].map(n=>(
+              {[{l:"Home",p:"home"},{l:"Browse",p:"browse"},{l:"Knowledge Library",p:"knowledge"},{l:"Should You Buy?",href:"/buy"},{l:"The Internet Effect",href:"/internet-effect"}].map(n=>(
                 <span key={n.l} onClick={()=>{if(n.href){window.location.href=n.href;}else if(n.p==="home")goHome();else setPage(n.p);}} style={{fontSize:"0.68rem",color:C.tm,cursor:"pointer",transition:"color 0.15s"}} onMouseEnter={e=>e.target.style.color=C.t} onMouseLeave={e=>e.target.style.color=C.tm}>{n.l}</span>
               ))}
             </div>
