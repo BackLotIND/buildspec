@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Vercel__list_teams",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Bash(npx next:*)",
+      "mcp__claude_ai_Vercel__deploy_to_vercel",
+      "mcp__claude_ai_Vercel__list_projects",
+      "mcp__claude_ai_Vercel__list_deployments",
+      "WebSearch",
+      "WebFetch(domain:unsplash.com)",
+      "Bash(curl -I \"https://images.unsplash.com/photo-wNqd3I1IARU?auto=format&fit=crop&w=600&q=80\")",
+      "Bash(curl -I \"https://images.unsplash.com/photo-AYQLep_PVns?auto=format&fit=crop&w=600&q=80\")",
+      "Bash(curl -I \"https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=600&q=80\")",
+      "Bash(curl -I \"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=100&q=80\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=100&q=80\")",
+      "WebFetch(domain:www.google.com)",
+      "WebFetch(domain:webcache.googleusercontent.com)",
+      "WebFetch(domain:source.unsplash.com)",
+      "WebFetch(domain:api.unsplash.com)",
+      "WebFetch(domain:exactwall.github.io)",
+      "WebFetch(domain:nona-wallpaper.github.io)",
+      "WebFetch(domain:pictwallp.github.io)",
+      "Bash(npm run:*)",
+      "Bash(grep -rn \"fadeUp\\\\|@keyframes\" C:/Users/Olson/Downloads/buildspec-project/buildspec/app/ --include=*.css)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(grep -v \"//.*nav\\\\|navigate\")",
+      "mcp__claude_ai_Supabase__list_tables",
+      "Bash(grep -E \"^\\\\s*\\\\{id:\"\"[^\"\"]*\"\",make:\"\"\\(audi|jeep|ram|kia|lexus|mitsubishi|hyundai|infiniti|dodge|vw\\)\"\"\" \"C:\\\\Users\\\\Olson\\\\Downloads\\\\buildspec-project\\\\buildspec\\\\app\\\\BuildSpec.js\")",
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(node:*)"
+    ]
+  }
+}
