@@ -194,6 +194,19 @@ export default function InternetEffectClient({ entries }) {
           </div>
         </div>
 
+        {/* Quote block */}
+        <div style={{marginBottom:'2rem',padding:'2rem',borderRadius:14,background:C.s1,border:`1px solid ${C.bdr}`,borderLeft:`4px solid ${C.acc}`,position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',top:'-10px',left:'1.5rem',fontSize:'6rem',color:C.acc,opacity:0.06,fontFamily:'Georgia,serif',lineHeight:1,pointerEvents:'none',userSelect:'none'}}>"</div>
+          <blockquote style={{margin:0,position:'relative',zIndex:1}}>
+            <p style={{fontSize:'clamp(1.05rem,2.5vw,1.4rem)',fontWeight:800,color:C.t,lineHeight:1.35,letterSpacing:'-0.02em',marginBottom:'0.75rem'}}>
+              "There is no such thing as a cheap car in 2026. There are only gambles."
+            </p>
+            <p style={{fontSize:'0.78rem',color:C.tm,lineHeight:1.6,margin:0,fontStyle:'italic'}}>
+              Pre-COVID pricing is a dead language. Adjust your expectations or cope harder.
+            </p>
+          </blockquote>
+        </div>
+
         {/* Filters + search */}
         <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:'1.25rem',alignItems:'center'}}>
           {filterBtns.map(f => {
