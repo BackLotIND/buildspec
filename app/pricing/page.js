@@ -39,7 +39,7 @@ const TIERS = [
   {
     id: 'member',
     name: 'Member',
-    price: 7,
+    price: 5,
     period: 'mo',
     tagline: 'The full BuildSpec experience. Knowledge, community, and the ability to post bounties.',
     color: C.g,
@@ -63,7 +63,7 @@ const TIERS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 17,
+    price: 10,
     period: 'mo',
     tagline: 'For builders and sellers. Fulfill bounties, list parts, and get the badge that closes deals.',
     color: C.y,
@@ -129,8 +129,8 @@ export default function PricingPage() {
           </div>
           <h1 style={{fontSize:'clamp(1.8rem,5vw,2.8rem)',fontWeight:900,letterSpacing:'-0.03em',lineHeight:1.1,marginBottom:'0.75rem'}}>
             Free to browse.<br/>
-            <span style={{color:C.g}}>$7 to go deep.</span><br/>
-            <span style={{color:C.y}}>$17 to get paid.</span>
+            <span style={{color:C.g}}>$5 to go deep.</span><br/>
+            <span style={{color:C.y}}>$10 to get paid.</span>
           </h1>
           <p style={{fontSize:'0.85rem',color:C.tm,maxWidth:480,margin:'0 auto',lineHeight:1.65}}>
             No per-seat nonsense. No feature-locked paywalls on basic info. The catalog is free because knowledge should be free. The community and marketplace cost money because running them does.
