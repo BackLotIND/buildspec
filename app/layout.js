@@ -34,13 +34,17 @@ export default function RootLayout({ children }) {
         <style>{`html,body{background:#08080B;color-scheme:dark}`}</style>
         <link rel="manifest" href="/manifest.json" />
 
-        {/* iOS home screen icons — all sizes point to our 192px asset */}
+        {/* Apple touch icons — all requested sizes */}
         <link rel="apple-touch-icon" href="/icon-192.png" />
-        <link rel="apple-touch-icon" sizes="120x120" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="72x72"   href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="128x128" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/icon-192.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png" />
         <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="384x384" href="/icon-512.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
 
         {/* iOS PWA meta */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
