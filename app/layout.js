@@ -28,8 +28,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ background: '#08080B', colorScheme: 'dark' }}>
       <head>
+        {/* Inline dark background to prevent white flash before CSS loads */}
+        <style>{`html,body{background:#08080B;color-scheme:dark}`}</style>
         <link rel="manifest" href="/manifest.json" />
 
         {/* iOS home screen icons — all sizes point to our 192px asset */}

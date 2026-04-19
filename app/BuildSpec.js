@@ -3738,7 +3738,6 @@ export default function App(){
 
   const bottomBar=mob?(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
-      <div style={{background:C.bg,textAlign:"center",padding:"2px 0"}}><span style={{fontSize:"0.38rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
       <div style={{background:C.s1+"F0",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",alignItems:"stretch",paddingBottom:"env(safe-area-inset-bottom)",paddingLeft:"env(safe-area-inset-left)",paddingRight:"env(safe-area-inset-right)"}}>
         {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"bounties",l:"Bounties",ic:"🎯",href:"/bounties"}].map(n=>{
           const active=(n.id==="builder"&&step==="builder")||(n.id!=="builder"&&page===n.id);
@@ -3808,7 +3807,7 @@ export default function App(){
             <span style={{fontSize:"0.45rem",color:"rgba(80,80,90,0.6)"}}>|</span>
             <span style={{fontSize:"0.55rem",color:C.td}}>Built for builders.</span>
           </div>
-          <span style={{fontSize:"0.48rem",color:"rgba(80,80,90,0.6)",maxWidth:300,textAlign:"right"}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span>
+          <span style={{fontSize:"0.48rem",color:"rgba(80,80,90,0.6)",maxWidth:300,textAlign:"right"}}>Prices shown are estimates. Verify before purchasing.</span>
         </div>
       </div>
     </footer>
