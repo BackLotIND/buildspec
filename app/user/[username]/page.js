@@ -12,10 +12,14 @@ const fm = "'JetBrains Mono','SF Mono',monospace"
 
 const SKILL_CFG = {
   beginner:     { label:'Beginner',     color:'#6B7280', bg:'#6B728018', border:'#6B728040', icon:'🔰' },
+  intermediate: { label:'Intermediate', color:'#3B82F6', bg:'#3B82F618', border:'#3B82F640', icon:'🔧' },
+  advanced:     { label:'Advanced',     color:'#8B5CF6', bg:'#8B5CF618', border:'#8B5CF640', icon:'⚡' },
+  shop_tech:    { label:'Shop Tech',    color:'#F97316', bg:'#F9731618', border:'#F9731640', icon:'🛠️' },
+  builder:      { label:'Builder',      color:'#FFB703', bg:'#FFB70318', border:'#FFB70340', icon:'🏆' },
+  // legacy values
   diy:          { label:'DIY',          color:'#3B82F6', bg:'#3B82F618', border:'#3B82F640', icon:'🔧' },
   enthusiast:   { label:'Enthusiast',   color:'#2EC4B6', bg:'#2EC4B618', border:'#2EC4B640', icon:'⚡' },
   experienced:  { label:'Experienced',  color:'#8B5CF6', bg:'#8B5CF618', border:'#8B5CF640', icon:'🏎️' },
-  shop_tech:    { label:'Shop Tech',    color:'#F97316', bg:'#F9731618', border:'#F9731640', icon:'🛠️' },
   professional: { label:'Professional', color:'#FFB703', bg:'#FFB70318', border:'#FFB70340', icon:'🏆' },
 }
 
