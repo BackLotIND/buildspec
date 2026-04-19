@@ -9,6 +9,18 @@ html, body {
   color: #EEEEF2;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+  max-width: 100vw;
+  /* Prevent rubber-band overscroll outside scroll containers */
+  overscroll-behavior: none;
+  /* Remove tap highlight on Android/iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent double-tap zoom delay on interactive elements */
+a, button, select, input, label, [role="button"] {
+  touch-action: manipulation;
 }
 
 select, input, button {
@@ -80,11 +92,30 @@ input[type="number"] {
   50% { transform: translateY(-2px); }
 }
 
-/* Mobile touch improvements */
+/* ── Mobile / iOS native feel ── */
 @media (max-width: 640px) {
-  button { min-height: 36px; }
-  select { min-height: 40px; }
-  input { min-height: 36px; }
+  /* 44px minimum touch targets (Apple HIG) */
+  button { min-height: 44px; }
+  select { min-height: 44px; }
+  input  { min-height: 44px; }
+
+  /* Haptic-style press feedback — subtle scale-down like native iOS */
+  button:active {
+    transform: scale(0.96);
+    transition: transform 0.08s ease;
+  }
+
+  /* Slightly faster release */
+  button {
+    transition: transform 0.15s ease, background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  /* Allow vertical scrolling inside scroll containers */
+  .scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
 }
 
 /* Smooth scrolling */

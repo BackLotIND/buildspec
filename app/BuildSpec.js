@@ -3726,8 +3726,8 @@ export default function App(){
   );
 
   const topBar=(
-    <header style={{position:"sticky",top:0,zIndex:150,background:C.s1+"F0",backdropFilter:"blur(12px)",borderBottom:`1px solid ${C.bdr}`}}>
-      <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",display:"flex",alignItems:"center",gap:mob?8:12}}>
+    <header style={{position:"sticky",top:0,zIndex:150,background:C.s1+"F0",backdropFilter:"blur(12px)",borderBottom:`1px solid ${C.bdr}`,paddingTop:"env(safe-area-inset-top)"}}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",paddingLeft:"calc(16px + env(safe-area-inset-left))",paddingRight:"calc(16px + env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:mob?8:12}}>
         <span style={{fontSize:"1rem",fontWeight:800,fontFamily:fm,cursor:"pointer",flexShrink:0}} onClick={goHome}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
         {searchBar}
         {!mob&&navLinks}
@@ -3739,12 +3739,17 @@ export default function App(){
   const bottomBar=mob?(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
       <div style={{background:C.bg,textAlign:"center",padding:"2px 0"}}><span style={{fontSize:"0.38rem",color:C.td}}>As an Amazon Associate, BuildSpec earns from qualifying purchases.</span></div>
-      <div style={{background:C.s1+"F0",backdropFilter:"blur(12px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",padding:"6px 0",paddingBottom:"calc(6px + env(safe-area-inset-bottom))"}}>
-        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"buy",l:"Buy?",ic:"🤔",href:"/buy"},{id:"internet-effect",l:"Effect",ic:"📉",href:"/internet-effect"},{id:"community",l:"Community",ic:"🧵",href:"/community"},{id:"bounties",l:"Bounties",ic:"🎯",href:"/bounties"},{id:"pricing",l:"Pricing",ic:"💰",href:"/pricing"}].map(n=>(
-          <button key={n.id} onClick={()=>{if(n.href){window.location.href=n.href;return;}if(n.id==="builder"){if(step!=="builder")goHome();}else if(n.id==="home")goHome();else setPage(n.id);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",color:(n.id==="builder"&&step==="builder")||(n.id!=="builder"&&page===n.id)?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",padding:"4px 8px"}}>
-            <span style={{fontSize:"1rem"}}>{n.ic}</span>{n.l}
-          </button>
-        ))}
+      <div style={{background:C.s1+"F0",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",alignItems:"stretch",paddingBottom:"env(safe-area-inset-bottom)",paddingLeft:"env(safe-area-inset-left)",paddingRight:"env(safe-area-inset-right)"}}>
+        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"bounties",l:"Bounties",ic:"🎯",href:"/bounties"}].map(n=>{
+          const active=(n.id==="builder"&&step==="builder")||(n.id!=="builder"&&page===n.id);
+          return(
+            <button key={n.id} onClick={()=>{if(n.href){window.location.href=n.href;return;}if(n.id==="builder"){if(step!=="builder")goHome();}else if(n.id==="home")goHome();else setPage(n.id);}} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",color:active?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",minHeight:44,flex:1,padding:"6px 0",WebkitTapHighlightColor:"transparent",transition:"transform 0.08s ease,color 0.15s"}}>
+              <span style={{fontSize:"1.1rem",lineHeight:1}}>{n.ic}</span>
+              <span style={{fontWeight:active?700:400}}>{n.l}</span>
+              {active&&<span style={{width:4,height:4,borderRadius:"50%",background:C.acc,marginTop:1}}/>}
+            </button>
+          );
+        })}
       </div>
     </div>
   ):null;
@@ -3888,7 +3893,7 @@ export default function App(){
     if(browseF.make)filtered=filtered.filter(p=>p.make===browseF.make);
     if(browseF.tax!==null&&browseF.tax!==undefined)filtered=filtered.filter(p=>p.tax===browseF.tax);
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>🔍 Browse All Platforms</h1>
         <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1.2rem"}}>{PLATFORMS.length} platforms across {MAKES.length} manufacturers</p>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
@@ -3981,7 +3986,7 @@ export default function App(){
       {id:"sw20",title:"Volvo B230F/T Turbo Swap — The Swedish Hot Rod",engines:"Volvo B230FT (turbocharged 2.3L)",donor:"Volvo 740/760 Turbo, 940 Turbo",cost:"$600–$1,500",hp:160,body:"This is the rarest entry. The Volvo B230 engine family fits in any FWD/RWD Volvo from 1984-1998. The B230F (NA, 114HP) upgrades to the B230FT (turbocharged, 160HP) from any Volvo 740 Turbo, 760 Turbo, or 940 Turbo. The FT head, turbo manifold, and CT26 turbo bolt to the F block. This swap transforms elderly Volvos into sleepers with genuine stage 2 potential (250+HP on stock internals with proper mods). Cheap, durable, and nobody knows what you built.",plats:["camaro"]},
     ];
     return(
-      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
         <h1 style={{fontSize:"1.5rem",fontWeight:800,marginBottom:4}}>📚 Knowledge Base</h1>
         <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>The stuff buried in dead forum threads — compiled, organized, and honest.</p>
         <div style={{display:"flex",gap:4,marginBottom:"0.75rem",flexWrap:"wrap"}}>
@@ -4177,7 +4182,7 @@ export default function App(){
 
   // ═══ HOME ═══
   if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
       <div style={{marginBottom:"2.5rem",animation:"fadeUp 0.6s ease-out",borderRadius:20,overflow:"hidden",border:`1px solid rgba(230,57,70,0.2)`,position:"relative",background:"#07070D"}}>
         {/* Gradient mesh layers */}
         <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 70% 80% at 15% 60%,rgba(230,57,70,0.18) 0%,transparent 65%), radial-gradient(ellipse 60% 70% at 85% 30%,rgba(46,196,182,0.13) 0%,transparent 60%), radial-gradient(ellipse 50% 60% at 50% 100%,rgba(255,183,3,0.08) 0%,transparent 55%), radial-gradient(ellipse 80% 50% at 50% 0%,rgba(24,144,255,0.06) 0%,transparent 60%)",pointerEvents:"none",zIndex:1}}/>
@@ -4295,7 +4300,7 @@ export default function App(){
   })():null;
 
   if(step==="platform"){const mP=PLATFORMS.filter(p=>p.make===makeId);return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
       <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back</button>
       <h1 style={{fontSize:"1.3rem",fontWeight:800,marginBottom:4}}>{make?.icon} {make?.name}</h1>
       <p style={{fontSize:"0.72rem",color:C.tm,marginBottom:"1rem"}}>{make?.tagline}</p>
@@ -4322,7 +4327,7 @@ export default function App(){
 
   // ═══ VEHICLE SELECTION ═══
   if(step==="vehicle")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"1.5rem 1rem"}}>
       <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.65rem",fontFamily:fs,marginBottom:"0.75rem",padding:0}}>← Back to {make?.name}</button>
       <h1 style={{fontSize:"1.2rem",fontWeight:800,marginBottom:4}}>{make?.icon} {plat?.name}</h1>
       <p style={{fontSize:"0.65rem",color:C.td,marginBottom:"0.75rem"}}>{plat?.gen} • {plat?.hp}HP / {plat?.tq}TQ {plat?.tax!==undefined&&<TaxBadge lv={plat.tax}/>}</p>
@@ -4351,7 +4356,7 @@ export default function App(){
 
   // ═══ BUILDER SCREEN ═══
   return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?90:0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
+    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"0.75rem 1rem"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
         <div>
           <button onClick={goBack} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:"0.6rem",fontFamily:fs,padding:0}}>← Back</button>

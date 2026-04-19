@@ -33,7 +33,10 @@
       "Bash(grep -E \"^\\\\s*\\\\{id:\"\"[^\"\"]*\"\",make:\"\"\\(audi|jeep|ram|kia|lexus|mitsubishi|hyundai|infiniti|dodge|vw\\)\"\"\" \"C:\\\\Users\\\\Olson\\\\Downloads\\\\buildspec-project\\\\buildspec\\\\app\\\\BuildSpec.js\")",
       "Bash(cat:*)",
       "Bash(python3:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(npm list:*)",
+      "Bash(find C:/Users/Olson/Downloads/buildspec-project/buildspec/app -name manifest* -o -name *.webmanifest)"
     ]
   }
 }
