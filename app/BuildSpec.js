@@ -28,6 +28,11 @@ const MAKES = [
   { id:"ram",name:"Ram",accent:"#CC0000",tagline:"HEMI or go home — the truck that actually tows AND does a 12-second quarter mile",icon:"🐏" },
   { id:"kia",name:"Kia",accent:"#BB0029",tagline:"Korea's long con — they let everyone else collect the sports car rep for 30 years, then dropped the Stinger GT and Elantra N. Rude awakening.",icon:"🏮" },
   { id:"audi",name:"Audi",accent:"#B0060D",tagline:"Quattro everything — DSG launches, EA888 tune numbers that don't make sense, and an RS badge that justifies the bill. Most of the time.",icon:"💎" },
+  { id:"pontiac",name:"Pontiac",accent:"#CC0000",tagline:"Excitement was the word — and then GM killed it. What's left are sleepers that nobody recognizes as threats.",icon:"🔺" },
+  { id:"buick",name:"Buick",accent:"#8B0000",tagline:"Grandma's car with Brembo brakes and torque vectoring — the Regal GS is the sleeper Buick never marketed to anyone under 60.",icon:"🟫" },
+  { id:"acura",name:"Acura",accent:"#CC0000",tagline:"Honda's luxury division hid some serious hardware under boring sheet metal — the TL Type S and NSX prove it.",icon:"🔷" },
+  { id:"volvo",name:"Volvo",accent:"#003087",tagline:"Swedish safety engineers accidentally built a 300HP AWD rocket — the S60R is what happens when the safety department takes a day off.",icon:"🔵" },
+  { id:"mercury",name:"Mercury",accent:"#555555",tagline:"Ford's forgotten brand left one gift: the Marauder, a DOHC V8 muscle car hiding in a Crown Vic body.",icon:"⚫" },
 ];
 
 const HERO_IMG = "https://images.pexels.com/photos/3802513/pexels-photo-3802513.jpeg?auto=compress&cs=tinysrgb&w=1400&h=600&fit=crop";
@@ -51,6 +56,11 @@ const MAKE_IMGS = {
   ram:      "https://images.pexels.com/photos/2365572/pexels-photo-2365572.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   kia:      "https://images.pexels.com/photos/1719648/pexels-photo-1719648.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   audi:     "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  pontiac:  "https://images.pexels.com/photos/1592384/pexels-photo-1592384.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  buick:    "https://images.pexels.com/photos/248687/pexels-photo-248687.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  acura:    "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  volvo:    "https://images.pexels.com/photos/1104768/pexels-photo-1104768.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+  mercury:  "https://images.pexels.com/photos/190574/pexels-photo-190574.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
 };
 
 const PLATFORMS = [
@@ -943,6 +953,50 @@ const PLATFORMS = [
     mod_order:"1. APR Stage 1 tune (88HP, zero hardware) → 2. Haldex service (if not recently done — it's maintenance) → 3. APR downpipe (Stage 2) → 4. Forge FMIC → 5. DSG tune → 6. Coilovers",
     buyer_checklist:["Verify Haldex service history — the oil and filter must be changed every 20k; high-mileage Mk7 R with no service record is a risk","DSG DQ250 shift quality — low-speed shudder means fluid service; aggressive shudder means clutch pack inspection","Check for tuning — APR leaves no OBD trace; intake and downpipe are visible","EA888 carbon buildup — rough idle and hesitation under 2k RPM; check at what mileage last walnut blasted","Test 4Motion AWD engagement — no hesitation or shudder under moderate acceleration from rest","Verify timing chain service on Gen 3 EA888 — same chain tensioner concern as A4 B8; check at 60-80k","Inspect all four brake corners — Golf R buyers drive these hard; assess pad and rotor condition"] },
 
+  // ── SLEEPER ADDITIONS ──────────────────────────────────────────────────────
+  {id:"vibe_gt",make:"pontiac",name:"Pontiac Vibe GT",gen:"2003–2008",hp:170,tq:127,tagline:"Toyota's 2ZZ-GE in a Pontiac badge — the sleeper nobody sees coming",budget:"$2k–$5k",tax:0,taxNote:"No tax. $5-9k for a clean GT. Nobody looks for Pontiac Vibes. The 2ZZ-GE engine is the exact same 170HP screamer as the Celica GT-S and Matrix XRS — tuners just forget it's in here.",
+    desc:"The Vibe GT shares its Toyota 2ZZ-GE 1.8L engine, platform, and most mechanicals with the Toyota Matrix XRS and Celica GT-S. In GT trim: 170HP and a 8,200 RPM redline. Under 2,700 lbs. Practical AWD option exists. This is a sleeper in both senses — nobody knows it's fast, and nobody looks for parts under the Pontiac name (use Toyota Matrix/Corolla cross-references).",
+    why:"The 2ZZ-GE revs to 8,200 RPM and lifts to a second cam profile at 6,200 RPM. Same car, same engine as the Celica GT-S but $2-4k cheaper because it says Pontiac. Every Toyota Matrix XRS part fits. The community is small but the knowledge base is deep — cross-reference everything to Celica GT-S.",
+    warns:["The 2ZZ-GE has an oil consumption issue that worsens with age — check dipstick at every fill-up","VVT-Li (lift) engagement at 6,200 RPM requires oil pressure — low oil kills the system","Automatic trans is weak and boring — buy the 6-speed manual only","The bottom-end is strong but the head gasket can weep on high-mileage examples"],
+    mistakes:["Buying an automatic thinking you'll enjoy the VTEC-like cam lift — the auto kills the engine's character entirely","Not cross-referencing Toyota Matrix XRS / Celica GT-S parts — saves $200-500 vs Pontiac-specific prices","Ignoring oil consumption — the 2ZZ needs fresh oil more often than you think","Lowering without adjusting alignment — the Vibe GT's suspension geometry punishes wrong settings"],
+    mod_order:"1. Oil catch can (2ZZ-GE specific — oil consumption management) → 2. Cold air intake → 3. Exhaust → 4. Suspension → 5. ECU flash (if available) → 6. Wheels/tires",
+    buyer_checklist:["Verify it's the GT trim with 2ZZ-GE — base Vibes have 1ZZ-FE (130HP) — different car entirely","Check oil level and color — low or black oil suggests ignored consumption issue","Rev to 6,200+ RPM and feel for VVT-Li kick — should feel like a second engine","Inspect clutch engagement — these go through clutches if driven hard","Check for frame rust in northern states — same rust points as Matrix/Corolla"],},
+  {id:"regal_gs",make:"buick",name:"Buick Regal GS",gen:"2012–2017",hp:270,tq:295,tagline:"Brembo brakes and torque vectoring in a car your dentist drives",budget:"$2k–$5k",tax:0,taxNote:"No tax. $10-16k for a clean GS. The Regal GS is Opel Insignia OPC hardware wearing a Buick badge. 270HP LTG 2.0T with HiPer Strut and Brembo brakes. Nobody wants a Buick. Their loss.",
+    desc:"The 2012-2017 Regal GS is an Opel Insignia OPC with American dealer pricing and Buick badges. LTG 2.0T makes 270HP (259HP in some years). HiPer Strut front suspension eliminates torque steer on a 270HP FWD car. Brembo front brakes come standard. Some have optional Performance AWD. $10-16k for a car that embarrasses GTIs.",
+    why:"The LTG 2.0T is General Motors' best turbo four — same family as the Cadillac ATS-V base engine. Stage 1 tune pushes 320-340HP with no hardware. HiPer Strut is genuinely advanced suspension engineering that keeps this FWD car composed under power. It's the sleeper that even car people don't know about.",
+    warns:["LTG 2.0T has a timing chain that requires full service before it jumps — budget for chain if over 80k miles","The infotainment/electrical is early Gen GM and has known issues — test everything","FWD GS needs premium tires to exploit the HiPer Strut — cheap rubber wastes the suspension design","AWD system (if equipped) uses Haldex-like unit that needs service every 30-40k miles"],
+    mistakes:["Buying base Regal or Regal Turbo instead of GS — completely different suspension and brakes","Ignoring the timing chain service — same failure mode as the Cruze and Malibu LTG","Running low-octane — the LTG is tuned for premium, significant knock on 87","Cheap coilovers that defeat the purpose of HiPer Strut — use compatible kits only"],
+    mod_order:"1. HPTuners/EFI Live tune → 2. Cold air intake → 3. Intercooler → 4. Exhaust → 5. Suspension → 6. Brakes (Brembos already good — fluid and pads only)",
+    buyer_checklist:["Confirm GS trim — must have Brembo brakes and HiPer Strut","Listen for timing chain rattle on cold start — chains go on high-mileage LTG","Test AWD engagement if equipped (optional on GS)","Check infotainment — Buick early touchscreen has known faults","Test all 4 windows, HVAC, and power seats — electrical gremlins common","Inspect intercooler for oil contamination from PCV system"],},
+  {id:"s60r",make:"volvo",name:"Volvo S60R",gen:"2004–2007",hp:300,tq:295,tagline:"Swedish safety cage with 300HP AWD and a turbocharged 5-cylinder — the S60R is the car Volvo pretended not to make",budget:"$1k–$4k",tax:0,taxNote:"No tax. $5-12k for a clean R. 300HP AWD from a manufacturer known for building tanks. The S60R is obscure, cheap, and ridiculous. Maintenance costs are above average but the driving experience rewards it.",
+    desc:"The 2004-2007 Volvo S60R uses the B5254T4 turbocharged 2.5L inline-5 making 300HP and 295 lb-ft, through a 6-speed manual (or Geartronic auto) and HALDEX AWD. Four-C active suspension is available — an electronically adjustable system that switches between Comfort, Sport, and Advanced modes. 300HP AWD in a car that weighs 3,400 lbs and looks like it belongs in a college parking lot. $5-12k.",
+    why:"300HP from a turbocharged inline-5 with AWD is genuinely fast by any era's standard. The S60R does 0-60 in 5.4 seconds stock. The turbo 5-cyl has a signature sound that nothing else on the road replicates. Stage 1 tune on the B5254T4 pushes 340-360HP. Volvo R enthusiasts are a small, knowledgeable, passionate group — the forums have 20 years of S60R knowledge.",
+    warns:["HALDEX service is mandatory every 30k miles — neglected units fail at $1,500+","ETM (Electronic Throttle Module) is a known failure point — recall covered some but many are aged out","PCV/oil trap system clogs and causes oil leaks and rough idle — a common Volvo issue","The AWD system and Four-C suspension add complexity and cost to every repair"],
+    mistakes:["Buying without checking HALDEX service history — this is the #1 maintenance item","Ignoring ETM issues — the car will start misfiring and running rough; ETM cleaning is a cheap DIY","Using cheap coolant — Volvo requires OAT coolant, wrong type causes corrosion","Thinking IPD is optional — the Swedish aftermarket is small and IPD/Heico are the go-to sources"],
+    mod_order:"1. HALDEX fluid + filter → 2. PCV system clean/replace → 3. IPD sway bars → 4. Tune (DiCE/Torque Pro or custom ECU) → 5. Suspension → 6. Exhaust",
+    buyer_checklist:["Ask about HALDEX service — if unknown, budget $150 immediately","Test ETM response — hesitation at throttle tip-in = ETM issue","Check PCV system — oil residue in intake or rough idle = clogged PCV","Feel Four-C if equipped — switch modes and feel damper change","Listen for boost leaks under hard acceleration — couplings age and crack","Inspect coolant color — green/brown means wrong coolant and possible corrosion"],},
+  {id:"marauder",make:"mercury",name:"Mercury Marauder",gen:"2003–2004",hp:302,tq:318,tagline:"Crown Victoria's evil twin — DOHC V8, Cobra brakes, black only",budget:"$3k–$8k",tax:1,taxNote:"Mild tax. Clean Marauders are $18-30k and rising. They only made 11,000 of them across 2 years. The Marauder is becoming collectible — police auction Crown Vics are $3k, Marauders are $20k. That gap will keep growing.",
+    desc:"Mercury built 11,000 Marauders in 2003-2004. Under the hood: the 4.6L DOHC V8 (same engine as the Lincoln Mark VIII and SVT Mustang Cobra) making 302HP. Cobra 4-wheel disc brakes, rear-biased 50/50 weight distribution, limited-slip differential, and a 4-speed automatic. It's a Crown Victoria with a sports car engine. Available in black only (2003). The rarest and most powerful V8 sedan Ford ever sold for under $35k.",
+    why:"302HP DOHC V8 from the SVT Cobra program in a full-size RWD sedan. The platform is bulletproof — Crown Vic parts are everywhere, the 4.6 DOHC responds to the same mods as every 4.6, and the LSD makes power delivery manageable. For collectors: only 11,000 made, no continuation. For drivers: it's a sleeper that weighs 4,200 lbs and runs 14.2 quarters stock.",
+    warns:["DOHC 4.6 timing chains stretch — listen for rattle at cold start","The 4-speed auto is the weakest link — not rated for heavily modified power","Crown Vic/Marauder air springs in the rear fail with age — replace with coil conversion kit","Values rising fast — buy now or regret it"],
+    mistakes:["Confusing the DOHC 4.6L with the SOHC 4.6L in regular Crown Vics — they're completely different engines","Ignoring timing chain rattle — the DOHC 4.6 chain tensioners stretch and the repair is not cheap","Leaving air springs unreplaced — they sag and the handling suffers enormously","Not buying because of the 4-speed auto — the platform supports a T-56 manual swap for serious builds"],
+    mod_order:"1. Timing chain service if due → 2. Air spring conversion (coil) → 3. Cold air intake → 4. Tune (SCT) → 5. Headers → 6. Exhaust",
+    buyer_checklist:["Listen for timing chain rattle on cold start — critical on high-mileage DOHC 4.6","Check rear suspension — bounce the tail, air springs should not sag","Verify DOHC badges and engine ID — not SOHC from regular Crown Vic","Check for LSD operation — break the rear loose in a safe area","Test all electrical — windows, seat memory, cluster","Confirm title history — many Marauders were tracked and abused"],},
+  {id:"neon_srt4",make:"dodge",name:"Dodge Neon SRT-4",gen:"2003–2005",hp:230,tq:250,tagline:"230HP turbo Neon — Chrysler's accidental giant-killer",budget:"$1k–$4k",tax:1,taxNote:"Mild tax. $5-12k for clean unmolested examples. The SRT-4 community is loyal and prices have crept up. ACR (American Club Racing) packages are $3-5k more. Rust in northern states kills values — find a southern car.",
+    desc:"The SRT-4 takes Dodge's budget Neon chassis, adds a turbocharged 2.4L inline-4 making 230HP (SRT factory-upgraded to 230 in 2004, Stage 2 ACR kit pushed 268HP). FWD, 5-speed manual, 3,025 lbs. Factory Stage 1 and Stage 2 kits were sold at Dodge dealers — the only manufacturer-supported tuning program of its era. With the factory Stage 2 kit: 268HP from a $19k car. It ran 13.2-second quarters stock.",
+    why:"230HP FWD turbo from 2003 is genuinely fast by modern city driving standards. The ED3 2.4L turbo responds well to tunes and bolt-ons — 270HP is easy, 300HP+ is achievable with supporting mods. The community has 20+ years of documented tunes and builds. Factory Stage 1/Stage 2 kits are available used. The Neon SRT-4 was Motor Trend's Car of the Year — they knew something.",
+    warns:["Head bolts are the SRT-4's Achilles heel — the block is prone to head bolt pull-out above 300HP","FWD torque steer is dramatic — wide tires and alignment correction help but don't eliminate it","The 5-speed trans is not strong — 3rd gear synchros are the first to go on modified cars","Rust in salt states is severe — inspect frame rails and rear subframe mounting points"],
+    mistakes:["Pushing past 300HP without head stud upgrade — the stock block pulls head bolts","Cheap tires on a 230HP FWD car — understeer and wheelspin destroy the driving experience","Ignoring the trans — 3rd gear synchro repair is $600-1,000 and it's coming if you shift hard","Modifying without addressing torque steer — upgraded steering rack bushings help significantly"],
+    mod_order:"1. Tune (Mopar Stage 1 or aftermarket) → 2. Intake → 3. Exhaust → 4. Boost controller → 5. Intercooler → 6. Head studs if going 300HP+",
+    buyer_checklist:["Find a southern car — SRT-4 rust is severe in the north","Test 3rd gear synchro — shift hard 2nd-to-3rd and listen for crunch","Check for Stage 1 or Stage 2 Mopar kit — adds significant value","Look under the car for rust at rear subframe mounts","Test boost — should hold 12-14 PSI cleanly","Check head bolt area for coolant or oil seepage near head — early sign of pull-out"],},
+  {id:"mazda3t",make:"mazda",name:"Mazda3 2.5 Turbo",gen:"2021–2024",hp:250,tq:320,tagline:"The turbo Mazda that doesn't look like it has a turbo",budget:"$3k–$6k",tax:0,taxNote:"No tax. $24-32k used for a 250HP turbo AWD compact. The market hasn't realized the Mazda3 2.5T exists yet. Compared to a Golf R or WRX, it's significantly cheaper and arguably prettier.",
+    desc:"The Mazda3 2.5 Turbo uses the SKYACTIV-G 2.5T making 250HP on 93 octane (227HP on 87) and 320 lb-ft of torque, available with AWD. Premium trim required for AWD. At 3,100 lbs with a well-sorted chassis, the 2.5T is the first truly fast Mazda3. The exterior design is legitimately beautiful — Kodo design language. The hatchback body with the turbo engine is the sweet spot.",
+    why:"320 lb-ft of torque from a 2.5T makes the Mazda3 feel punchier than the HP number suggests. AWD is available on the turbo. The community is young but the Mazdaspeed 3 community's knowledge base overlaps — ECU flash options are growing. The SKYACTIV-G platform is well-sorted structurally. It's also simply one of the most attractive compacts sold in the last 10 years.",
+    warns:["The 2.5T requires 93 octane for full power — 227HP on 87 is a significant drop","Aftermarket ECU solutions are newer and less validated than GTI or WRX equivalents","AWD requires the Premium trim — select trim carefully at purchase","The 2.5T auto transmission (torque converter, not DCT) is decent but not sporty"],
+    mistakes:["Running 87 octane in the 2.5T — you're paying for a turbo car and getting NA Mazda3 power","Buying the non-turbo 2.5 and wishing you'd bought the turbo — verify the turbo badge","Expecting Mazdaspeed 3 aftermarket depth — the 2.5T community is smaller and newer","Overlooking tire quality — the AWD is good but cheap tires waste it"],
+    mod_order:"1. ECU tune (limited options — check forum for current best) → 2. Cold air intake → 3. Exhaust (turbo-back) → 4. Suspension → 5. Wheels/tires → 6. Wait for aftermarket to mature",
+    buyer_checklist:["Confirm it's the 2.5 Turbo, not the base 2.5 NA — both exist in similar trim levels","Check turbo badge and verify with SKYACTIV-G 2.5T label under hood","AWD: confirm Premium or Premium Plus trim","Test on 93 octane — ask seller what they've been running","Check for warranty coverage — 2021+ may still have manufacturer coverage","Listen for boost leaks under hard pull — turbo inlet couplings age"],},
+
   {id:"mk8_gti",make:"vw",name:"VW GTI Mk8",gen:"2022–Present",hp:241,tq:273,tagline:"The most advanced GTI ever built — EA888 Gen 4 with a factory LSD, DQ381 DSG, and 301HP from APR Stage 1 in a hot hatch that's been correct for 47 years",budget:"$28k–$38k",tax:2,taxNote:"The Mk8 GTI carries a $4-6k premium over used Mk7 GTI pricing. New is $33-38k. Used 2022-2023 examples are $28-35k. The EA888 Gen 4 is a step forward from Gen 3 — APR's Stage 1 adds 60HP to reach 301HP on 93 octane. The factory LSD is now standard (not optional as on Mk7 Performance model). The DQ381 DSG is stronger than the DQ250. The Mk8 GTI is the best GTI ever made.",
     desc:"The Mk8 GTI uses the EA888 Gen 4 2.0T making 241HP and 273 lb-ft through the DQ381 DSG. The Gen 4 EA888 has improved charge cooling and updated valve timing compared to Gen 3. Standard LSD (not Performance-only as on Mk7). The DQ381 is rated to higher torque than the DQ250 — a meaningful upgrade for Stage 2 power levels. The Mk8's IQ.Drive assistance suite is comprehensive; the driving mode selector is better integrated than on the Mk7.",
     why:"APR Stage 1 adds 60HP on 93 octane — from 241HP to 301HP, no hardware. APR Stage 2 with downpipe pushes 355HP. The factory LSD means every HP goes down effectively. The DQ381 DSG handles Stage 2 torque without the clutch pack concerns of the DQ250. The Mk8 GTI is what you buy when you want the definitive version of the world's best hot hatch.",
@@ -1196,6 +1250,18 @@ const VEHICLES = [
   {id:"cvy3",plat:"camry_v6",year:2022,trim:"Camry XSE V6",engine:"2GR-FKS 3.5L V6 301HP"},{id:"cvy4",plat:"camry_v6",year:2021,trim:"Camry TRD V6",engine:"2GR-FKS 3.5L V6 301HP"},
   {id:"en1",plat:"elantra_n",year:2022,trim:"Elantra N 8DCT",engine:"Theta II 2.0T 276HP"},{id:"en2",plat:"elantra_n",year:2023,trim:"Elantra N 6MT",engine:"Theta II 2.0T 276HP"},
   {id:"en3",plat:"elantra_n",year:2024,trim:"Elantra N 8DCT",engine:"Theta II 2.0T 276HP"},
+  // NEW SLEEPER PLATFORMS
+  {id:"vbgt1",plat:"vibe_gt",year:2003,trim:"Vibe GT 6MT",engine:"2ZZ-GE 1.8L 170HP"},{id:"vbgt2",plat:"vibe_gt",year:2004,trim:"Vibe GT 6MT",engine:"2ZZ-GE 1.8L 170HP"},
+  {id:"vbgt3",plat:"vibe_gt",year:2005,trim:"Vibe GT 6MT",engine:"2ZZ-GE 1.8L 170HP"},{id:"vbgt4",plat:"vibe_gt",year:2006,trim:"Vibe GT AWD",engine:"1ZZ-FE 1.8L 130HP"},
+  {id:"rgs1",plat:"regal_gs",year:2012,trim:"Regal GS FWD 6MT",engine:"LTG 2.0T 270HP"},{id:"rgs2",plat:"regal_gs",year:2014,trim:"Regal GS FWD Auto",engine:"LTG 2.0T 259HP"},
+  {id:"rgs3",plat:"regal_gs",year:2016,trim:"Regal GS FWD",engine:"LTG 2.0T 259HP"},{id:"rgs4",plat:"regal_gs",year:2017,trim:"Regal GS AWD",engine:"LTG 2.0T 259HP"},
+  {id:"s60r1",plat:"s60r",year:2004,trim:"S60R 6MT",engine:"B5254T4 2.5T 300HP"},{id:"s60r2",plat:"s60r",year:2005,trim:"S60R Auto Four-C",engine:"B5254T4 2.5T 300HP"},
+  {id:"s60r3",plat:"s60r",year:2006,trim:"S60R 6MT",engine:"B5254T4 2.5T 300HP"},{id:"s60r4",plat:"s60r",year:2007,trim:"S60R Auto",engine:"B5254T4 2.5T 300HP"},
+  {id:"mar1",plat:"marauder",year:2003,trim:"Marauder (Black Only)",engine:"4.6L DOHC V8 302HP"},{id:"mar2",plat:"marauder",year:2004,trim:"Marauder",engine:"4.6L DOHC V8 302HP"},
+  {id:"srt4a",plat:"neon_srt4",year:2003,trim:"Neon SRT-4",engine:"ED3 2.4T 215HP"},{id:"srt4b",plat:"neon_srt4",year:2004,trim:"Neon SRT-4 Stage 1",engine:"ED3 2.4T 230HP"},
+  {id:"srt4c",plat:"neon_srt4",year:2005,trim:"Neon SRT-4 ACR",engine:"ED3 2.4T 230HP"},
+  {id:"m3t1",plat:"mazda3t",year:2021,trim:"Mazda3 2.5T Hatch AWD",engine:"SKYACTIV-G 2.5T 250HP"},{id:"m3t2",plat:"mazda3t",year:2022,trim:"Mazda3 2.5T Sedan AWD",engine:"SKYACTIV-G 2.5T 250HP"},
+  {id:"m3t3",plat:"mazda3t",year:2023,trim:"Mazda3 2.5T Hatch FWD",engine:"SKYACTIV-G 2.5T 227HP"},{id:"m3t4",plat:"mazda3t",year:2024,trim:"Mazda3 2.5T Hatch AWD",engine:"SKYACTIV-G 2.5T 250HP"},
 ];
 
 const CATS = [
@@ -3515,6 +3581,8 @@ export default function App(){
   const[copeLoading,setCopeLoading]=useState(false);
   const[platVerdict,setPlatVerdict]=useState(null);
   const[platVerdictId,setPlatVerdictId]=useState(null);
+  const[catalogParts,setCatalogParts]=useState([]);
+  const[catalogPartsId,setCatalogPartsId]=useState(null);
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
   useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
   useEffect(()=>{
@@ -3526,6 +3594,16 @@ export default function App(){
         .catch(()=>{});
     }
     if(!platId){setPlatVerdict(null);setPlatVerdictId(null);}
+  },[platId]);
+  useEffect(()=>{
+    if(platId&&platId!==catalogPartsId){
+      setCatalogParts([]);setCatalogPartsId(platId);
+      supabase.from("parts_catalog").select("part_id,name,brand,part_number,category,price_low,price_high,hp_gain,tq_gain,difficulty,description,why_this_part,install_notes,where_to_buy,tags,tier,requires_tune,junkyard_available")
+        .contains("platform_ids",[platId])
+        .then(({data})=>{setCatalogParts(data||[]);})
+        .catch(()=>{});
+    }
+    if(!platId){setCatalogParts([]);setCatalogPartsId(null);}
   },[platId]);
   useEffect(()=>{
     if(page==="knowledge"&&kTab==="articles"&&kArticles.length===0&&!kArticlesLoading){
@@ -4313,7 +4391,7 @@ export default function App(){
       </div>}
 
       {/* Parts catalog */}
-      <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Parts Catalog ({pp.length})</h2>
+      <h2 style={{fontSize:"0.85rem",fontWeight:700,marginBottom:"0.5rem"}}>Parts Catalog ({pp.length + catalogParts.length})</h2>
       {CATS.map(cat=>{const cParts=pp.filter(p=>p.cat===cat.id);if(!cParts.length)return null;return(
         <div key={cat.id} style={{marginBottom:"0.75rem"}}>
           <div style={{fontSize:"0.72rem",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}><span>{cat.icon}</span>{cat.name}<span style={{fontSize:"0.52rem",color:C.td,fontWeight:400}}>({cParts.length})</span></div>
@@ -4350,6 +4428,46 @@ export default function App(){
           );})}
         </div>
       );})}
+
+      {/* DB Parts Catalog */}
+      {catalogParts.length>0&&<div style={{marginTop:"1rem"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:"0.5rem"}}>
+          <h2 style={{fontSize:"0.85rem",fontWeight:700,margin:0}}>Community Parts Catalog ({catalogParts.length})</h2>
+          <span style={{fontSize:"0.5rem",padding:"2px 6px",borderRadius:4,background:`${C.g}20`,color:C.g,fontFamily:fm,fontWeight:600}}>DB</span>
+        </div>
+        {catalogParts.map(part=>{
+          const priceStr=part.price_high&&part.price_high!==part.price_low?`$${part.price_low}–$${part.price_high}`:(part.price_low?`$${part.price_low}`:"—");
+          const catIcon=CATS.find(c=>c.id===part.category)?.icon||"🔧";
+          return(
+            <div key={part.part_id} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.65rem",marginBottom:6}}>
+              <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                <div style={{width:34,height:34,borderRadius:5,background:C.s3,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.9rem",flexShrink:0}}>{catIcon}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:"0.75rem",fontWeight:600}}>{part.name}</div>
+                  <div style={{fontSize:"0.55rem",color:C.td}}>{part.brand}{part.part_number?` • ${part.part_number}`:""}</div>
+                  <p style={{fontSize:"0.65rem",color:"#B8B8C8",lineHeight:1.6,margin:"3px 0",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{part.description}</p>
+                  <div style={{display:"flex",gap:6,alignItems:"center",marginTop:3,flexWrap:"wrap"}}>
+                    {part.hp_gain>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.acc}}>+{part.hp_gain}HP</span>}
+                    {part.tq_gain>0&&<span style={{fontSize:"0.52rem",fontFamily:fm,color:C.y}}>+{part.tq_gain}TQ</span>}
+                    {part.difficulty&&<span style={{display:"inline-flex",alignItems:"center",fontSize:"0.52rem",fontFamily:fm,color:SK[part.difficulty]?.c||C.tm}}>{"●".repeat(part.difficulty)}<span style={{opacity:.2}}>{"●".repeat(5-part.difficulty)}</span></span>}
+                    {part.requires_tune&&<span style={{fontSize:"0.5rem",color:C.y,fontFamily:fm,fontWeight:600}}>⚠️ Tune req.</span>}
+                    {part.junkyard_available&&<span style={{fontSize:"0.5rem",color:"#D46B08",fontFamily:fm,fontWeight:600}}>🏴‍☠️ Junkyard</span>}
+                    {part.tier==="member"||part.tier==="pro"?<span style={{fontSize:"0.5rem",color:C.g,fontFamily:fm,fontWeight:600}}>🔒 {part.tier}</span>:null}
+                  </div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <span style={{fontFamily:fm,fontWeight:700,fontSize:"0.85rem"}}>{priceStr}</span>
+                </div>
+              </div>
+              {part.why_this_part&&<button onClick={()=>setExpP(expP===`cat_${part.part_id}`?null:`cat_${part.part_id}`)} style={{fontSize:"0.5rem",color:C.acc,background:"none",border:"none",cursor:"pointer",fontFamily:fs,padding:0,marginTop:2}}>{expP===`cat_${part.part_id}`?"Hide ▴":"Details ▾"}</button>}
+              {expP===`cat_${part.part_id}`&&<div style={{marginTop:3,padding:"0.35rem",background:C.bg,borderRadius:6,border:`1px solid ${C.bdr}`}}>
+                {part.why_this_part&&<div style={{fontSize:"0.58rem",padding:3,background:C.s2,borderRadius:4,marginBottom:4}}><span style={{color:C.y}}>💡</span> {part.why_this_part}</div>}
+                {part.install_notes&&<div style={{fontSize:"0.58rem",color:C.td,marginTop:2}}>Install: <span style={{color:C.tm}}>{part.install_notes}</span></div>}
+              </div>}
+            </div>
+          );
+        })}
+      </div>}
 
       {/* Builds */}
       {pBuilds.length>0&&<div style={{marginTop:"1.5rem"}}>
