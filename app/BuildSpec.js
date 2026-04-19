@@ -3583,6 +3583,9 @@ export default function App(){
   const[platVerdictId,setPlatVerdictId]=useState(null);
   const[catalogParts,setCatalogParts]=useState([]);
   const[catalogPartsId,setCatalogPartsId]=useState(null);
+  const[feedItems,setFeedItems]=useState([]);
+  const[feedLoading,setFeedLoading]=useState(false);
+  const[feedLiked,setFeedLiked]=useState({});
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
   useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
   useEffect(()=>{if(new URLSearchParams(window.location.search).get("auth")==="1"){setShowAuth(true);window.history.replaceState({},"",window.location.pathname);}},[]);
@@ -3621,6 +3624,23 @@ export default function App(){
         .catch(()=>setCopeLoading(false));
     }
   },[page,kTab]);
+  useEffect(()=>{
+    if(page==="home"&&feedItems.length===0&&!feedLoading){
+      setFeedLoading(true);
+      Promise.all([
+        supabase.from("news_feed").select("id,title,headline,category,like_count,created_at").eq("is_published",true).order("created_at",{ascending:false}).limit(10),
+        supabase.from("build_threads").select("id,title,description,platform_id,make_id,view_count,reply_count,like_count,created_at").order("created_at",{ascending:false}).limit(10),
+        supabase.from("bounties").select("id,title,description,platform_id,make_id,budget_low,budget_high,response_count,created_at").eq("status","open").order("created_at",{ascending:false}).limit(10),
+      ]).then(([{data:newsD},{data:threadsD},{data:bountiesD}])=>{
+        const merged=[
+          ...(newsD||[]).map(n=>({...n,_type:"news"})),
+          ...(threadsD||[]).map(t=>({...t,_type:"thread"})),
+          ...(bountiesD||[]).map(b=>({...b,_type:"bounty"})),
+        ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+        setFeedItems(merged);setFeedLoading(false);
+      }).catch(()=>setFeedLoading(false));
+    }
+  },[page]);
 
   const make=MAKES.find(m=>m.id===makeId);
   const plat=PLATFORMS.find(p=>p.id===platId);
@@ -3692,8 +3712,8 @@ export default function App(){
 
   const navLinks=(
     <nav style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
-      {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
-        <button key={n.id} onClick={()=>{setPage(n.id);if(n.id==="home")goHome();}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
+      {[{id:"home",l:"Home",ic:"🏠"},{id:"explore",l:"Explore",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
+        <button key={n.id} onClick={()=>{if(n.id==="home"){goHome();}else if(n.id==="explore"){setPage("explore");setStep("make");}else{setPage(n.id);}}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
       ))}
       <a href="/buy" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🤔 Buy?</a>
       <a href="/internet-effect" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>📉 Internet Effect</a>
@@ -3741,13 +3761,20 @@ export default function App(){
   const bottomBar=mob?(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
       <div style={{background:C.s1+"F0",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",alignItems:"stretch",paddingBottom:"env(safe-area-inset-bottom)",paddingLeft:"env(safe-area-inset-left)",paddingRight:"env(safe-area-inset-right)"}}>
-        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"news",l:"News",ic:"📰",href:"/news"}].map(n=>{
-          const active=(n.id==="builder"&&step==="builder")||(n.id!=="builder"&&page===n.id);
+        {[{id:"home",l:"Home",ic:"🏠"},{id:"explore",l:"Explore",ic:"🔍"},{id:"post",l:"Post",ic:"➕"},{id:"alerts",l:"Alerts",ic:"🔔"},{id:"profile",l:"Profile",ic:"👤"}].map(n=>{
+          const active=page===n.id||(n.id==="home"&&page==="home"&&step==="make");
+          const handle=()=>{
+            if(n.id==="home"){goHome();}
+            else if(n.id==="explore"){setPage("explore");setStep("make");}
+            else if(n.id==="post"){if(user&&user.id){/* TODO: post modal */}else{setShowAuth(true);setAuthMode("signup");}}
+            else if(n.id==="alerts"){/* placeholder */}
+            else if(n.id==="profile"){if(user&&user.id&&profile?.username){window.location.href=`/user/${profile.username}`;}else{setShowAuth(true);}}
+          };
           return(
-            <button key={n.id} onClick={()=>{if(n.href){window.location.href=n.href;return;}if(n.id==="builder"){if(step!=="builder")goHome();}else if(n.id==="home")goHome();else setPage(n.id);}} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",color:active?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",minHeight:44,flex:1,padding:"6px 0",WebkitTapHighlightColor:"transparent",transition:"transform 0.08s ease,color 0.15s"}}>
-              <span style={{fontSize:"1.1rem",lineHeight:1}}>{n.ic}</span>
+            <button key={n.id} onClick={handle} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:n.id==="post"?"none":"none",border:"none",color:n.id==="post"?C.acc:active?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",minHeight:44,flex:1,padding:"6px 0",WebkitTapHighlightColor:"transparent",transition:"transform 0.08s ease,color 0.15s"}}>
+              <span style={{fontSize:n.id==="post"?"1.3rem":"1.1rem",lineHeight:1,fontWeight:n.id==="post"?900:400}}>{n.ic}</span>
               <span style={{fontWeight:active?700:400}}>{n.l}</span>
-              {active&&<span style={{width:4,height:4,borderRadius:"50%",background:C.acc,marginTop:1}}/>}
+              {active&&n.id!=="post"&&<span style={{width:4,height:4,borderRadius:"50%",background:C.acc,marginTop:1}}/>}
             </button>
           );
         })}
@@ -3778,8 +3805,8 @@ export default function App(){
           <div>
             <h4 style={{fontSize:"0.6rem",fontWeight:700,color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.85rem"}}>Navigate</h4>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {[{l:"Home",p:"home"},{l:"Browse",p:"browse"},{l:"Knowledge Library",p:"knowledge"},{l:"News",href:"/news"},{l:"Should You Buy?",href:"/buy"},{l:"The Internet Effect",href:"/internet-effect"},{l:"Community",href:"/community"},{l:"Bounty Board",href:"/bounties"},{l:"Pricing",href:"/pricing"}].map(n=>(
-                <span key={n.l} onClick={()=>{if(n.href){window.location.href=n.href;}else if(n.p==="home")goHome();else setPage(n.p);}} style={{fontSize:"0.68rem",color:C.tm,cursor:"pointer",transition:"color 0.15s"}} onMouseEnter={e=>e.target.style.color=C.t} onMouseLeave={e=>e.target.style.color=C.tm}>{n.l}</span>
+              {[{l:"Home",p:"home"},{l:"Explore",p:"explore",step:"make"},{l:"Browse All",p:"browse"},{l:"Knowledge Library",p:"knowledge"},{l:"News",href:"/news"},{l:"Should You Buy?",href:"/buy"},{l:"The Internet Effect",href:"/internet-effect"},{l:"Community",href:"/community"},{l:"Bounty Board",href:"/bounties"},{l:"Pricing",href:"/pricing"}].map(n=>(
+                <span key={n.l} onClick={()=>{if(n.href){window.location.href=n.href;}else if(n.p==="home")goHome();else if(n.p==="explore"){setPage("explore");setStep("make");}else setPage(n.p);}} style={{fontSize:"0.68rem",color:C.tm,cursor:"pointer",transition:"color 0.15s"}} onMouseEnter={e=>e.target.style.color=C.t} onMouseLeave={e=>e.target.style.color=C.tm}>{n.l}</span>
               ))}
             </div>
           </div>
@@ -4181,7 +4208,105 @@ export default function App(){
     );
   }
 
-  // ═══ HOME ═══
+  // ═══ HOME FEED ═══
+  if(page==="home"&&step==="make"){
+    const timeAgo=(d)=>{const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return`${s}s`;if(s<3600)return`${Math.floor(s/60)}m`;if(s<86400)return`${Math.floor(s/3600)}h`;return`${Math.floor(s/86400)}d`;};
+    const FEED_CAT={market_watch:{l:"Market Watch",c:"#3B82F6"},industry_roast:{l:"Industry Roast",c:"#E63946"},hidden_gem:{l:"Hidden Gem",c:"#2EC4B6"},rip:{l:"RIP",c:"#6B7280"},price_alert:{l:"Price Alert",c:"#F97316"}};
+    return(
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}
+        <div style={{maxWidth:600,margin:"0 auto",padding:"1rem 1rem 2rem"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem",paddingTop:"0.25rem"}}>
+            <div>
+              <h1 style={{fontSize:"1.1rem",fontWeight:800,margin:0,letterSpacing:"-0.02em"}}>Feed</h1>
+              <p style={{fontSize:"0.6rem",color:C.td,margin:"2px 0 0"}}>News · Builds · Bounties</p>
+            </div>
+            <button onClick={()=>{setPage("explore");setStep("make");}} style={{padding:"6px 14px",borderRadius:8,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>🔍 Explore</button>
+          </div>
+          {feedLoading&&<div style={{textAlign:"center",padding:"3rem 0",color:C.td}}>
+            <div style={{fontSize:"1.5rem",marginBottom:8}}>⏳</div>
+            <div style={{fontSize:"0.72rem"}}>Loading feed…</div>
+          </div>}
+          {!feedLoading&&feedItems.length===0&&<div style={{textAlign:"center",padding:"3rem 0",color:C.td}}>
+            <div style={{fontSize:"2rem",marginBottom:8}}>🏎️</div>
+            <div style={{fontSize:"0.75rem"}}>Feed is quiet. Check back soon.</div>
+          </div>}
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {feedItems.map((item,i)=>{
+              if(item._type==="news"){
+                const cat=FEED_CAT[item.category]||{l:item.category,c:C.tm};
+                const liked=feedLiked[item.id];
+                return(
+                  <div key={`news-${item.id}`} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                      <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:cat.c+"20",color:cat.c,border:`1px solid ${cat.c}40`,fontFamily:fm,letterSpacing:"0.06em"}}>{cat.l}</span>
+                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm}}>{timeAgo(item.created_at)}</span>
+                    </div>
+                    <div style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3,marginBottom:item.headline?6:10}}>{item.title}</div>
+                    {item.headline&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 10px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.headline}</p>}
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <button onClick={async()=>{if(liked)return;setFeedLiked(p=>({...p,[item.id]:true}));setFeedItems(arr=>arr.map(x=>x.id===item.id&&x._type==="news"?{...x,like_count:(x.like_count||0)+1}:x));await supabase.rpc("increment_like",{row_id:item.id}).catch(()=>{});}} style={{background:"none",border:`1px solid ${liked?C.acc:C.bdr}`,borderRadius:20,padding:"3px 10px",color:liked?C.acc:C.td,fontSize:"0.58rem",cursor:liked?"default":"pointer",fontFamily:fs,display:"flex",alignItems:"center",gap:4}}>
+                        {liked?"❤️":"🤍"} {item.like_count||0}
+                      </button>
+                      <a href="/news" style={{fontSize:"0.58rem",color:C.td,textDecoration:"none",marginLeft:"auto",opacity:0.7}}>Read more →</a>
+                    </div>
+                  </div>
+                );
+              }
+              if(item._type==="thread"){
+                const tm2=MAKES.find(x=>x.id===item.make_id);
+                const tp2=PLATFORMS.find(x=>x.id===item.platform_id);
+                return(
+                  <div key={`thread-${item.id}`} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                        <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:"#7C3AED20",color:"#A78BFA",border:"1px solid #7C3AED40",fontFamily:fm}}>🔧 Build Thread</span>
+                        {tp2&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.s2,color:C.td,fontFamily:fm}}>{tm2?.icon} {tp2.name}</span>}
+                      </div>
+                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm,flexShrink:0,marginLeft:8}}>{timeAgo(item.created_at)}</span>
+                    </div>
+                    <div style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3,marginBottom:item.description?6:10}}>{item.title}</div>
+                    {item.description&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 10px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.description}</p>}
+                    <div style={{display:"flex",gap:12,fontSize:"0.58rem",color:C.td}}>
+                      <span>👁 {item.view_count||0}</span>
+                      <span>💬 {item.reply_count||0}</span>
+                      <span>❤️ {item.like_count||0}</span>
+                    </div>
+                  </div>
+                );
+              }
+              if(item._type==="bounty"){
+                const bm2=MAKES.find(x=>x.id===item.make_id);
+                const bp2=PLATFORMS.find(x=>x.id===item.platform_id);
+                const fK=n=>n>=1000?`$${(n/1000).toFixed(n%1000===0?0:1)}k`:`$${n}`;
+                return(
+                  <div key={`bounty-${item.id}`} style={{background:C.s1,borderRadius:12,border:"1px solid #F9731625",padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                        <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:"#F9731620",color:"#F97316",border:"1px solid #F9731640",fontFamily:fm}}>🎯 Bounty</span>
+                        {item.budget_low&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.g+"18",color:C.g,fontFamily:fm,border:`1px solid ${C.g}30`}}>{fK(item.budget_low)}–{fK(item.budget_high)}</span>}
+                        {bp2&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.s2,color:C.td,fontFamily:fm}}>{bm2?.icon} {bp2.name}</span>}
+                      </div>
+                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm,flexShrink:0,marginLeft:8}}>{timeAgo(item.created_at)}</span>
+                    </div>
+                    <div style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3,marginBottom:item.description?6:10}}>{item.title}</div>
+                    {item.description&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 10px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.description}</p>}
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                      <span style={{fontSize:"0.58rem",color:C.td}}>💬 {item.response_count||0} responses</span>
+                      <a href="/bounties" style={{fontSize:"0.58rem",color:"#F97316",textDecoration:"none",fontWeight:600}}>View bounty →</a>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })}
+          </div>
+        </div>
+        {siteFooter}{bottomBar}
+      </div>
+    );
+  }
+
+  // ═══ EXPLORE (manufacturer grid) ═══
   if(step==="make")return(
     <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
       <div style={{marginBottom:"2.5rem",animation:"fadeUp 0.6s ease-out",borderRadius:20,overflow:"hidden",border:`1px solid rgba(230,57,70,0.2)`,position:"relative",background:"#07070D"}}>
@@ -4194,8 +4319,8 @@ export default function App(){
         <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"40px 40px",pointerEvents:"none",zIndex:1}}/>
         {/* Content */}
         <div style={{position:"relative",zIndex:2,padding:mob?"2.5rem 1.5rem 2rem":"3.5rem 3rem 2.5rem",textAlign:"center"}}>
-          <div style={{display:"inline-block",padding:"3px 12px",borderRadius:20,background:"rgba(230,57,70,0.12)",border:"1px solid rgba(230,57,70,0.25)",fontSize:"0.58rem",color:C.acc,fontFamily:fm,fontWeight:700,letterSpacing:"0.12em",marginBottom:"1rem",textTransform:"uppercase"}}>Car Build Planner</div>
-          <h1 style={{fontSize:mob?"2.2rem":"3.4rem",fontWeight:900,marginBottom:"0.6rem",letterSpacing:"-0.03em",lineHeight:1.05}}>BUILD<span style={{color:C.acc}}>SPEC</span></h1>
+          <div style={{display:"inline-block",padding:"3px 12px",borderRadius:20,background:"rgba(230,57,70,0.12)",border:"1px solid rgba(230,57,70,0.25)",fontSize:"0.58rem",color:C.acc,fontFamily:fm,fontWeight:700,letterSpacing:"0.12em",marginBottom:"1rem",textTransform:"uppercase"}}>Explore Platforms</div>
+          <h1 style={{fontSize:mob?"2rem":"2.8rem",fontWeight:900,marginBottom:"0.6rem",letterSpacing:"-0.03em",lineHeight:1.05}}>Choose Your Make</h1>
           <p style={{fontSize:mob?"0.82rem":"0.95rem",color:C.tm,maxWidth:480,margin:"0 auto 1.75rem",lineHeight:1.6}}>Parts, builds, junkyard secrets, and honest pricing for {PLATFORMS.length} platforms. No fluff.</p>
           <div style={{display:"flex",gap:mob?16:32,justifyContent:"center",flexWrap:"wrap"}}>
             {[{v:PLATFORMS.length,l:"Platforms",c:C.acc},{v:PARTS.length,l:"Parts",c:C.g},{v:BUILDS.length,l:"Builds",c:C.y},{v:PARTS.filter(p=>p.cat==="junk").length,l:"Junkyard Finds",c:"#FFB703"}].map(s=>(
