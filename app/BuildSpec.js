@@ -3585,6 +3585,7 @@ export default function App(){
   const[catalogPartsId,setCatalogPartsId]=useState(null);
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
   useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
+  useEffect(()=>{if(new URLSearchParams(window.location.search).get("auth")==="1"){setShowAuth(true);window.history.replaceState({},"",window.location.pathname);}},[]);
   useEffect(()=>{
     if(platId&&platId!==platVerdictId){
       setPlatVerdict(null);setPlatVerdictId(platId);

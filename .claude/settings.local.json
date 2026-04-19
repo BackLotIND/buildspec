@@ -36,7 +36,11 @@
       "Bash(node:*)",
       "Bash(npm install:*)",
       "Bash(npm list:*)",
-      "Bash(find C:/Users/Olson/Downloads/buildspec-project/buildspec/app -name manifest* -o -name *.webmanifest)"
+      "Bash(find C:/Users/Olson/Downloads/buildspec-project/buildspec/app -name manifest* -o -name *.webmanifest)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/Olson/Downloads/buildspec-project/buildspec/app/$f/**)",
+      "Bash(done)"
     ]
   }
 }

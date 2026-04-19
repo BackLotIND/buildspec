@@ -195,7 +195,7 @@ export default function InternetEffectClient({ entries }) {
   return (
     <div style={{minHeight:'100vh',background:C.bg,color:C.t,fontFamily:fs}}>
       {/* Header */}
-      <header style={{borderBottom:`1px solid ${C.bdr}`,padding:'12px 16px',background:C.s1,position:'sticky',top:0,zIndex:50}}>
+      <header style={{borderBottom:`1px solid ${C.bdr}`,paddingTop:'calc(12px + env(safe-area-inset-top))',paddingRight:'16px',paddingBottom:'12px',paddingLeft:'16px',background:C.s1,position:'sticky',top:0,zIndex:50}}>
         <div style={{maxWidth:1000,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
           <a href="/" style={{fontSize:'1rem',fontWeight:800,fontFamily:fm,textDecoration:'none',color:C.t,flexShrink:0}}>
             BUILD<span style={{color:C.acc}}>SPEC</span>

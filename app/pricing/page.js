@@ -1,3 +1,7 @@
+import { Suspense } from 'react'
+import CheckoutButton from './CheckoutButton'
+import PricingBanner from './PricingBanner'
+
 export const metadata = {
   title: 'Pricing — BuildSpec',
   description: 'Free to browse. Member for the full experience. Pro to get paid. No fluff, no per-seat nonsense.',
@@ -22,7 +26,6 @@ const TIERS = [
     color: C.tm,
     highlight: false,
     cta: 'Start Browsing',
-    ctaHref: '/',
     features: [
       { text: 'Full platform & parts database', included: true },
       { text: 'Build guides and mod order', included: true },
@@ -46,7 +49,6 @@ const TIERS = [
     highlight: true,
     badge: 'Most Popular',
     cta: 'Become a Member',
-    ctaHref: '/signup?plan=member',
     features: [
       { text: 'Everything in Free', included: true },
       { text: 'Full knowledge base access', included: true },
@@ -69,7 +71,6 @@ const TIERS = [
     color: C.y,
     highlight: false,
     cta: 'Go Pro',
-    ctaHref: '/signup?plan=pro',
     features: [
       { text: 'Everything in Member', included: true },
       { text: 'Fulfill bounties & get paid', included: true, note: 'Direct payouts' },
@@ -107,8 +108,8 @@ export default function PricingPage() {
   return (
     <div style={{minHeight:'100vh',background:C.bg,color:C.t,fontFamily:fs}}>
       {/* Header */}
-      <header style={{borderBottom:`1px solid ${C.bdr}`,padding:'12px 16px',background:C.s1,position:'sticky',top:0,zIndex:50}}>
-        <div style={{maxWidth:960,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+      <header style={{borderBottom:`1px solid ${C.bdr}`,background:C.s1,position:'sticky',top:0,zIndex:50,paddingTop:'env(safe-area-inset-top)'}}>
+        <div style={{maxWidth:960,margin:'0 auto',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
           <a href="/" style={{fontSize:'1rem',fontWeight:800,fontFamily:fm,textDecoration:'none',color:C.t}}>
             BUILD<span style={{color:C.acc}}>SPEC</span>
           </a>
@@ -121,6 +122,11 @@ export default function PricingPage() {
       </header>
 
       <div style={{maxWidth:960,margin:'0 auto',padding:'3rem 1rem 5rem'}}>
+
+        {/* Success / canceled banner from Stripe redirect */}
+        <Suspense fallback={null}>
+          <PricingBanner />
+        </Suspense>
 
         {/* Hero */}
         <div style={{textAlign:'center',marginBottom:'3rem'}}>
@@ -137,7 +143,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Cards */}
+        {/* Tier cards */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:16,alignItems:'start',marginBottom:'3rem'}}>
           {TIERS.map(tier => (
             <div key={tier.id} style={{
@@ -182,22 +188,24 @@ export default function PricingPage() {
                   <p style={{fontSize:'0.68rem',color:C.tm,lineHeight:1.55,margin:0}}>{tier.tagline}</p>
                 </div>
 
-                {/* CTA */}
-                <a href={tier.ctaHref} style={{
-                  display:'block',
-                  textAlign:'center',
-                  padding:'10px 0',
-                  borderRadius:8,
-                  background: tier.highlight ? tier.color : 'transparent',
-                  color: tier.highlight ? '#08080B' : tier.color,
-                  border:`1px solid ${tier.color}${tier.highlight ? '' : '60'}`,
-                  textDecoration:'none',
-                  fontWeight:700,
-                  fontSize:'0.78rem',
-                  transition:'opacity 0.15s',
-                }}>
-                  {tier.cta}
-                </a>
+                {/* CTA — free tier is a plain link, paid tiers call Stripe */}
+                {tier.id === 'free' ? (
+                  <a href="/" style={{
+                    display:'block',textAlign:'center',padding:'10px 0',borderRadius:8,
+                    background:'transparent',color:tier.color,
+                    border:`1px solid ${tier.color}60`,textDecoration:'none',
+                    fontWeight:700,fontSize:'0.78rem',transition:'opacity 0.15s',
+                  }}>
+                    {tier.cta}
+                  </a>
+                ) : (
+                  <CheckoutButton
+                    plan={tier.id}
+                    cta={tier.cta}
+                    highlight={tier.highlight}
+                    color={tier.color}
+                  />
+                )}
 
                 {/* Divider */}
                 <div style={{borderTop:`1px solid ${C.bdr}`}}/>
@@ -223,12 +231,12 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* FAQ / reassurance row */}
+        {/* FAQ */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:12,marginBottom:'3rem'}}>
           {[
             {q:'Cancel anytime?', a:'Yes. No contracts, no cancellation fees. Stop whenever. Your data stays accessible on the free tier.'},
-            {q:'What\'s a bounty?', a:'Post a job — "needs a B-swap, Portland area" — and verified Pro builders bid on it. You pick your builder.'},
-            {q:'What\'s a Verified Seller?', a:'Pros go through a lightweight verification. It\'s a trust signal to buyers that you\'re a real builder with a real reputation.'},
+            {q:"What's a bounty?", a:'Post a job — "needs a B-swap, Portland area" — and verified Pro builders bid on it. You pick your builder.'},
+            {q:"What's a Verified Seller?", a:"Pros go through a lightweight verification. It's a trust signal to buyers that you're a real builder with a real reputation."},
             {q:'Free really free?', a:'The full platform database, all verdicts, all build guides — yes. Free forever. We make money on the marketplace, not the catalog.'},
           ].map(item => (
             <div key={item.q} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:'1rem'}}>
