@@ -3697,6 +3697,7 @@ export default function App(){
       <a href="/buy" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🤔 Buy?</a>
       <a href="/internet-effect" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>📉 Internet Effect</a>
       <a href="/community" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🧵 Community</a>
+      <a href="/news" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>📰 News</a>
       <a href="/bounties" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🎯 Bounties</a>
       <a href="/pricing" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>💰 Pricing</a>
     </nav>
@@ -3739,7 +3740,7 @@ export default function App(){
   const bottomBar=mob?(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:150}}>
       <div style={{background:C.s1+"F0",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderTop:`1px solid ${C.bdr}`,display:"flex",justifyContent:"space-around",alignItems:"stretch",paddingBottom:"env(safe-area-inset-bottom)",paddingLeft:"env(safe-area-inset-left)",paddingRight:"env(safe-area-inset-right)"}}>
-        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"bounties",l:"Bounties",ic:"🎯",href:"/bounties"}].map(n=>{
+        {[{id:"home",l:"Home",ic:"🏠"},{id:"browse",l:"Browse",ic:"🔍"},{id:"builder",l:"Build",ic:"🔧"},{id:"knowledge",l:"Library",ic:"📚"},{id:"news",l:"News",ic:"📰",href:"/news"}].map(n=>{
           const active=(n.id==="builder"&&step==="builder")||(n.id!=="builder"&&page===n.id);
           return(
             <button key={n.id} onClick={()=>{if(n.href){window.location.href=n.href;return;}if(n.id==="builder"){if(step!=="builder")goHome();}else if(n.id==="home")goHome();else setPage(n.id);}} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",color:active?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",minHeight:44,flex:1,padding:"6px 0",WebkitTapHighlightColor:"transparent",transition:"transform 0.08s ease,color 0.15s"}}>
@@ -3776,7 +3777,7 @@ export default function App(){
           <div>
             <h4 style={{fontSize:"0.6rem",fontWeight:700,color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.85rem"}}>Navigate</h4>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {[{l:"Home",p:"home"},{l:"Browse",p:"browse"},{l:"Knowledge Library",p:"knowledge"},{l:"Should You Buy?",href:"/buy"},{l:"The Internet Effect",href:"/internet-effect"},{l:"Community",href:"/community"},{l:"Bounty Board",href:"/bounties"},{l:"Pricing",href:"/pricing"}].map(n=>(
+              {[{l:"Home",p:"home"},{l:"Browse",p:"browse"},{l:"Knowledge Library",p:"knowledge"},{l:"News",href:"/news"},{l:"Should You Buy?",href:"/buy"},{l:"The Internet Effect",href:"/internet-effect"},{l:"Community",href:"/community"},{l:"Bounty Board",href:"/bounties"},{l:"Pricing",href:"/pricing"}].map(n=>(
                 <span key={n.l} onClick={()=>{if(n.href){window.location.href=n.href;}else if(n.p==="home")goHome();else setPage(n.p);}} style={{fontSize:"0.68rem",color:C.tm,cursor:"pointer",transition:"color 0.15s"}} onMouseEnter={e=>e.target.style.color=C.t} onMouseLeave={e=>e.target.style.color=C.tm}>{n.l}</span>
               ))}
             </div>
