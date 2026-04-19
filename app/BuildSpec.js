@@ -3586,6 +3586,10 @@ export default function App(){
   const[feedItems,setFeedItems]=useState([]);
   const[feedLoading,setFeedLoading]=useState(false);
   const[feedLiked,setFeedLiked]=useState({});
+  const[exploreQ,setExploreQ]=useState("");
+  const[exploreRemote,setExploreRemote]=useState({articles:[],users:[],bounties:[]});
+  const[exploreSearching,setExploreSearching]=useState(false);
+  const[popularNews,setPopularNews]=useState([]);
   useEffect(()=>{const ck=()=>setMob(window.innerWidth<768);ck();window.addEventListener("resize",ck);return()=>window.removeEventListener("resize",ck);},[]);
   useEffect(()=>{getPublicBuilds(6).then(({data})=>setFeaturedBuilds(data||[]));},[]);
   useEffect(()=>{if(new URLSearchParams(window.location.search).get("auth")==="1"){setShowAuth(true);window.history.replaceState({},"",window.location.pathname);}},[]);
@@ -3641,6 +3645,28 @@ export default function App(){
       }).catch(()=>setFeedLoading(false));
     }
   },[page]);
+  useEffect(()=>{
+    if(page==="explore"&&popularNews.length===0){
+      supabase.from("news_feed").select("id,title,category,like_count,created_at").eq("is_published",true).order("like_count",{ascending:false}).limit(4)
+        .then(({data})=>setPopularNews(data||[])).catch(()=>{});
+    }
+  },[page]);
+  useEffect(()=>{
+    if(!exploreQ||exploreQ.length<2){setExploreRemote({articles:[],users:[],bounties:[]});setExploreSearching(false);return;}
+    setExploreSearching(true);
+    const t=setTimeout(()=>{
+      const q=`%${exploreQ}%`;
+      Promise.all([
+        supabase.from("knowledge_articles").select("id,title,slug,category,meta_description").eq("is_published",true).ilike("title",q).limit(5),
+        supabase.from("profiles").select("id,username,display_name,skill_level,subscription_tier").eq("is_public",true).ilike("username",q).limit(5),
+        supabase.from("bounties").select("id,title,description,budget_low,budget_high,platform_id,make_id").eq("status","open").ilike("title",q).limit(5),
+      ]).then(([{data:ar},{data:us},{data:bo}])=>{
+        setExploreRemote({articles:ar||[],users:us||[],bounties:bo||[]});
+        setExploreSearching(false);
+      }).catch(()=>setExploreSearching(false));
+    },320);
+    return()=>clearTimeout(t);
+  },[exploreQ]);
 
   const make=MAKES.find(m=>m.id===makeId);
   const plat=PLATFORMS.find(p=>p.id===platId);
@@ -4306,79 +4332,230 @@ export default function App(){
     );
   }
 
-  // ═══ EXPLORE (manufacturer grid) ═══
-  if(step==="make")return(
-    <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}<div style={{maxWidth:900,margin:"0 auto",padding:"2rem 1rem"}}>
-      <div style={{marginBottom:"2.5rem",animation:"fadeUp 0.6s ease-out",borderRadius:20,overflow:"hidden",border:`1px solid rgba(230,57,70,0.2)`,position:"relative",background:"#07070D"}}>
-        {/* Gradient mesh layers */}
-        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 70% 80% at 15% 60%,rgba(230,57,70,0.18) 0%,transparent 65%), radial-gradient(ellipse 60% 70% at 85% 30%,rgba(46,196,182,0.13) 0%,transparent 60%), radial-gradient(ellipse 50% 60% at 50% 100%,rgba(255,183,3,0.08) 0%,transparent 55%), radial-gradient(ellipse 80% 50% at 50% 0%,rgba(24,144,255,0.06) 0%,transparent 60%)",pointerEvents:"none",zIndex:1}}/>
-        {/* Animated glow orb */}
-        <div style={{position:"absolute",top:"20%",left:"10%",width:300,height:300,borderRadius:"50%",background:"radial-gradient(circle,rgba(230,57,70,0.12) 0%,transparent 70%)",animation:"glowPulse 4s ease-in-out infinite",pointerEvents:"none",zIndex:1}}/>
-        <div style={{position:"absolute",top:"10%",right:"5%",width:250,height:250,borderRadius:"50%",background:"radial-gradient(circle,rgba(46,196,182,0.08) 0%,transparent 70%)",animation:"glowPulse 5s ease-in-out infinite 1.5s",pointerEvents:"none",zIndex:1}}/>
-        {/* Grid pattern overlay */}
-        <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"40px 40px",pointerEvents:"none",zIndex:1}}/>
-        {/* Content */}
-        <div style={{position:"relative",zIndex:2,padding:mob?"2.5rem 1.5rem 2rem":"3.5rem 3rem 2.5rem",textAlign:"center"}}>
-          <div style={{display:"inline-block",padding:"3px 12px",borderRadius:20,background:"rgba(230,57,70,0.12)",border:"1px solid rgba(230,57,70,0.25)",fontSize:"0.58rem",color:C.acc,fontFamily:fm,fontWeight:700,letterSpacing:"0.12em",marginBottom:"1rem",textTransform:"uppercase"}}>Explore Platforms</div>
-          <h1 style={{fontSize:mob?"2rem":"2.8rem",fontWeight:900,marginBottom:"0.6rem",letterSpacing:"-0.03em",lineHeight:1.05}}>Choose Your Make</h1>
-          <p style={{fontSize:mob?"0.82rem":"0.95rem",color:C.tm,maxWidth:480,margin:"0 auto 1.75rem",lineHeight:1.6}}>Parts, builds, junkyard secrets, and honest pricing for {PLATFORMS.length} platforms. No fluff.</p>
-          <div style={{display:"flex",gap:mob?16:32,justifyContent:"center",flexWrap:"wrap"}}>
-            {[{v:PLATFORMS.length,l:"Platforms",c:C.acc},{v:PARTS.length,l:"Parts",c:C.g},{v:BUILDS.length,l:"Builds",c:C.y},{v:PARTS.filter(p=>p.cat==="junk").length,l:"Junkyard Finds",c:"#FFB703"}].map(s=>(
-              <div key={s.l} style={{textAlign:"center"}}>
-                <div style={{fontSize:mob?"1.5rem":"1.9rem",fontWeight:900,color:s.c,fontFamily:fm,lineHeight:1}}>{s.v}</div>
-                <div style={{fontSize:"0.5rem",color:C.td,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>{s.l}</div>
-              </div>
-            ))}
-          </div>
+  // ═══ EXPLORE ═══
+  if(step==="make"){
+    const lq=exploreQ.trim().toLowerCase();
+    const isQ=lq.length>=2;
+    const platRes=isQ?PLATFORMS.filter(p=>p.name.toLowerCase().includes(lq)||p.tagline.toLowerCase().includes(lq)||p.gen.toLowerCase().includes(lq)).slice(0,6):[];
+    const partRes=isQ?PARTS.filter(p=>p.name.toLowerCase().includes(lq)||(p.brand||"").toLowerCase().includes(lq)).slice(0,6):[];
+    const totalRes=platRes.length+partRes.length+exploreRemote.articles.length+exploreRemote.users.length+exploreRemote.bounties.length;
+    const trending=[...PLATFORMS].sort((a,b)=>{
+      const sA=PARTS.filter(p=>p.plats.includes(a.id)).length*2+BUILDS.filter(x=>x.plat===a.id).length;
+      const sB=PARTS.filter(p=>p.plats.includes(b.id)).length*2+BUILDS.filter(x=>x.plat===b.id).length;
+      return sB-sA;
+    }).slice(0,8);
+    const SRH=(({label,color,count,children})=>count===0?null:(
+      <div style={{marginBottom:"1.5rem"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:"0.6rem"}}>
+          <span style={{fontSize:"0.6rem",fontWeight:700,color,fontFamily:fm,textTransform:"uppercase",letterSpacing:"0.08em"}}>{label}</span>
+          <span style={{fontSize:"0.52rem",color:C.td,background:C.s2,padding:"1px 6px",borderRadius:10}}>{count}</span>
         </div>
+        {children}
       </div>
-      {featuredBuilds.length>0&&<div style={{marginBottom:"2rem"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
-          <h2 style={{fontSize:"0.9rem",fontWeight:700}}>🔥 Featured Community Builds</h2>
-          <span style={{fontSize:"0.55rem",color:C.td}}>Most recent public builds</span>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:8}}>
-          {featuredBuilds.map((b,i)=>{const pm=MAKES.find(x=>x.id===b.make_id);const pp2=PLATFORMS.find(x=>x.id===b.platform_id);return(
-            <a key={b.id} href={`/build/${b.id}`} target="_blank" rel="noopener noreferrer" style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.85rem",cursor:"pointer",textDecoration:"none",color:"inherit",display:"block",animation:`fadeUp 0.4s ease-out ${i*0.06}s both`,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.g} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-                <div style={{fontSize:"0.72rem",fontWeight:700,color:C.t,lineHeight:1.3}}>{b.title}</div>
-                <span style={{fontSize:"0.5rem",padding:"1px 5px",background:`${C.g}20`,color:C.g,borderRadius:4,fontFamily:"'JetBrains Mono','SF Mono',monospace",whiteSpace:"nowrap",marginLeft:4}}>SHARE →</span>
-              </div>
-              <div style={{fontSize:"0.58rem",color:C.tm,marginBottom:6}}>{pm?.icon} {pp2?.name||b.platform_id}</div>
-              <div style={{display:"flex",gap:8,fontSize:"0.55rem"}}>
-                <span style={{color:C.acc,fontWeight:700}}>${(b.total_cost||0).toLocaleString()}</span>
-                <span style={{color:C.g}}>+{b.total_hp||0}HP</span>
-              </div>
-            </a>
-          );})}
-        </div>
-      </div>}
-      <h2 style={{fontSize:"0.9rem",fontWeight:700,marginBottom:"0.75rem"}}>Choose Your Manufacturer</h2>
-      <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
-        {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));const img=MAKE_IMGS[m.id];const bCount=BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length;return(
-          <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{backgroundColor:"#0D0D14",backgroundImage:img?`url(${img})`:"none",backgroundSize:"cover",backgroundPosition:"center",borderRadius:16,border:`1px solid rgba(255,255,255,0.07)`,overflow:"hidden",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.05}s both`,transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.25s ease,border-color 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.025)";e.currentTarget.style.boxShadow=`0 12px 32px ${m.accent}35,0 0 0 1px ${m.accent}40`;e.currentTarget.style.borderColor=`${m.accent}50`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.boxShadow="none";e.currentTarget.style.borderColor="rgba(255,255,255,0.07)";}}>
-            {/* Accent bar */}
-            <div style={{height:3,background:`linear-gradient(90deg,${m.accent},${m.accent}40,transparent)`}}/>
-            {/* Glass overlay */}
-            <div style={{padding:"1.1rem 1.1rem 1rem",background:"linear-gradient(160deg,rgba(255,255,255,0.055) 0%,rgba(10,10,20,0.72) 40%,rgba(10,10,20,0.92) 100%)",backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.5rem"}}>
-                <div>
-                  <div style={{fontSize:"0.95rem",fontWeight:800,letterSpacing:"-0.01em",lineHeight:1.2,textShadow:"0 1px 8px rgba(0,0,0,0.9)"}}>{m.icon} {m.name}</div>
-                </div>
-                <span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:`${m.accent}22`,border:`1px solid ${m.accent}44`,color:m.accent,fontFamily:fm,fontWeight:700,whiteSpace:"nowrap",marginLeft:6}}>{mPlats.length} cars</span>
-              </div>
-              <p style={{fontSize:"0.63rem",color:"rgba(200,200,215,0.8)",lineHeight:1.5,marginBottom:"0.65rem",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{m.tagline}</p>
-              <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                <span style={{fontSize:"0.5rem",color:"rgba(100,100,115,0.9)"}}>{mParts.length} parts</span>
-                <span style={{fontSize:"0.45rem",color:"rgba(80,80,90,0.7)"}}>·</span>
-                <span style={{fontSize:"0.5rem",color:"rgba(100,100,115,0.9)"}}>{bCount} builds</span>
-              </div>
+    ));
+    const NCATS={market_watch:{l:"Market Watch",c:"#3B82F6"},industry_roast:{l:"Industry Roast",c:"#E63946"},hidden_gem:{l:"Hidden Gem",c:"#2EC4B6"},rip:{l:"RIP",c:"#6B7280"},price_alert:{l:"Price Alert",c:"#F97316"}};
+    return(
+      <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}
+        <div style={{maxWidth:900,margin:"0 auto",padding:"1.25rem 1rem 3rem"}}>
+
+          {/* ── Universal Search Bar ── */}
+          <div style={{marginBottom:"1.5rem"}}>
+            <div style={{position:"relative"}}>
+              <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem",pointerEvents:"none",opacity:0.5}}>🔍</span>
+              <input
+                value={exploreQ}
+                onChange={e=>setExploreQ(e.target.value)}
+                placeholder="Search platforms, parts, articles, builders, bounties…"
+                autoComplete="off"
+                style={{width:"100%",padding:"13px 44px 13px 42px",borderRadius:12,border:`1.5px solid ${isQ?C.acc:C.bdr}`,background:C.s1,color:C.t,fontSize:"0.82rem",fontFamily:fs,outline:"none",boxSizing:"border-box",transition:"border-color 0.2s"}}
+              />
+              {exploreQ&&<button onClick={()=>setExploreQ("")} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:C.td,fontSize:"1rem",cursor:"pointer",padding:"4px",lineHeight:1}}>✕</button>}
             </div>
+            {isQ&&<div style={{marginTop:6,fontSize:"0.6rem",color:C.td,display:"flex",gap:8,alignItems:"center"}}>
+              {exploreSearching?<span>Searching…</span>:<span>{totalRes} result{totalRes!==1?"s":""} for <span style={{color:C.t,fontWeight:600}}>"{exploreQ}"</span></span>}
+            </div>}
           </div>
-        );})}
+
+          {/* ── SEARCH RESULTS ── */}
+          {isQ&&(
+            <div>
+              {/* Platforms */}
+              <SRH label="Platforms" color={C.acc} count={platRes.length}>
+                <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+                  {platRes.map(p=>{const pm=MAKES.find(x=>x.id===p.make);return(
+                    <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");}} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.75rem",cursor:"pointer",display:"flex",gap:10,alignItems:"flex-start",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=pm?.accent||C.acc} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+                      <div style={{width:34,height:34,borderRadius:8,background:pm?.accent+"20",border:`1px solid ${pm?.accent}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1rem",flexShrink:0}}>{pm?.icon||"🚗"}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:"0.8rem",fontWeight:700,color:C.t}}>{p.name}</div>
+                        <div style={{fontSize:"0.58rem",color:C.td}}>{p.gen} · {p.hp}HP · {p.budget}</div>
+                        <TaxBadge lv={p.tax}/>
+                      </div>
+                    </div>
+                  );})}
+                </div>
+              </SRH>
+
+              {/* Parts */}
+              <SRH label="Parts" color={C.g} count={partRes.length}>
+                <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+                  {partRes.map(p=>{const cat=CATS.find(c=>c.id===p.cat);return(
+                    <div key={p.id} onClick={()=>{setMakeId(PLATFORMS.find(x=>p.plats.includes(x.id))?.make);setPlatId(p.plats[0]);setStep("builder");}} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.75rem",cursor:"pointer",display:"flex",gap:10,alignItems:"flex-start",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.g} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+                      <div style={{width:34,height:34,borderRadius:8,background:C.g+"18",border:`1px solid ${C.g}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1rem",flexShrink:0}}>{cat?.icon||"🔧"}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:"0.78rem",fontWeight:700,color:C.t,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.name}</div>
+                        <div style={{fontSize:"0.58rem",color:C.td}}>{p.brand} · ${p.price}</div>
+                        {p.hp>0&&<span style={{fontSize:"0.52rem",color:C.g,fontFamily:fm}}>+{p.hp}HP</span>}
+                      </div>
+                    </div>
+                  );})}
+                </div>
+              </SRH>
+
+              {/* Articles */}
+              <SRH label="Articles" color="#3B82F6" count={exploreRemote.articles.length}>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {exploreRemote.articles.map(a=>(
+                    <a key={a.id} href={`/knowledge/${a.slug}`} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.7rem 0.85rem",textDecoration:"none",display:"flex",alignItems:"center",gap:10,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor="#3B82F6"} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+                      <span style={{fontSize:"1.1rem",flexShrink:0}}>📄</span>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:"0.78rem",fontWeight:700,color:C.t,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.title}</div>
+                        {a.meta_description&&<div style={{fontSize:"0.6rem",color:C.td,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.meta_description}</div>}
+                      </div>
+                      <span style={{fontSize:"0.52rem",color:"#3B82F6",fontFamily:fm,flexShrink:0}}>Read →</span>
+                    </a>
+                  ))}
+                </div>
+              </SRH>
+
+              {/* Users */}
+              <SRH label="Builders" color="#A78BFA" count={exploreRemote.users.length}>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {exploreRemote.users.map(u=>(
+                    <a key={u.id} href={`/user/${u.username}`} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.7rem 0.85rem",textDecoration:"none",display:"flex",alignItems:"center",gap:10,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor="#A78BFA"} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+                      <div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#7C3AED,#A78BFA)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.85rem",fontWeight:800,color:"#fff",flexShrink:0,fontFamily:fm}}>{(u.username||"?")[0].toUpperCase()}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:"0.78rem",fontWeight:700,color:C.t}}>{u.display_name||u.username}</div>
+                        <div style={{fontSize:"0.6rem",color:C.td}}>@{u.username}{u.subscription_tier&&u.subscription_tier!=="free"&&<span style={{marginLeft:6,color:"#FFB703"}}>★ {u.subscription_tier}</span>}</div>
+                      </div>
+                      <span style={{fontSize:"0.52rem",color:"#A78BFA",fontFamily:fm,flexShrink:0}}>View →</span>
+                    </a>
+                  ))}
+                </div>
+              </SRH>
+
+              {/* Bounties */}
+              <SRH label="Bounties" color="#F97316" count={exploreRemote.bounties.length}>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {exploreRemote.bounties.map(b=>{const bm=MAKES.find(x=>x.id===b.make_id);const bp=PLATFORMS.find(x=>x.id===b.platform_id);const fK=n=>n>=1000?`$${(n/1000).toFixed(n%1000===0?0:1)}k`:`$${n}`;return(
+                    <a key={b.id} href="/bounties" style={{background:C.s1,borderRadius:10,border:"1px solid #F9731625",padding:"0.7rem 0.85rem",textDecoration:"none",display:"flex",alignItems:"center",gap:10,transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor="#F97316"} onMouseLeave={e=>e.currentTarget.style.borderColor="#F9731625"}>
+                      <span style={{fontSize:"1.1rem",flexShrink:0}}>🎯</span>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:"0.78rem",fontWeight:700,color:C.t,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{b.title}</div>
+                        <div style={{fontSize:"0.6rem",color:C.td}}>{bm?.icon} {bp?.name||b.platform_id}{b.budget_low?` · ${fK(b.budget_low)}–${fK(b.budget_high)} budget`:""}</div>
+                      </div>
+                      <span style={{fontSize:"0.52rem",color:"#F97316",fontFamily:fm,flexShrink:0}}>View →</span>
+                    </a>
+                  );})}
+                </div>
+              </SRH>
+
+              {!exploreSearching&&totalRes===0&&(
+                <div style={{textAlign:"center",padding:"3rem 1rem",color:C.td}}>
+                  <div style={{fontSize:"1.8rem",marginBottom:8}}>🔍</div>
+                  <div style={{fontSize:"0.8rem"}}>No results for <strong style={{color:C.t}}>"{exploreQ}"</strong></div>
+                  <div style={{fontSize:"0.65rem",marginTop:6,color:C.td}}>Try a make name, part type, or builder username</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── DEFAULT STATE (not searching) ── */}
+          {!isQ&&(
+            <>
+              {/* Trending Platforms */}
+              <div style={{marginBottom:"2rem"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.75rem"}}>
+                  <h2 style={{fontSize:"0.88rem",fontWeight:800,margin:0}}>🔥 Trending Platforms</h2>
+                  <span style={{fontSize:"0.55rem",color:C.td}}>By parts & build activity</span>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:mob?"1fr 1fr":"repeat(4,1fr)",gap:8}}>
+                  {trending.map((p,i)=>{const pm=MAKES.find(x=>x.id===p.make);const pParts=PARTS.filter(x=>x.plats.includes(p.id));const pBuilds=BUILDS.filter(x=>x.plat===p.id);return(
+                    <div key={p.id} onClick={()=>{setMakeId(p.make);setPlatId(p.id);setStep("vehicle");}} style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.75rem",cursor:"pointer",position:"relative",overflow:"hidden",transition:"border-color 0.2s,transform 0.15s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=pm?.accent||C.acc;e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.bdr;e.currentTarget.style.transform="translateY(0)";}}>
+                      <div style={{height:2,background:`linear-gradient(90deg,${pm?.accent||C.acc},${pm?.accent||C.acc}40)`,position:"absolute",top:0,left:0,right:0}}/>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+                        <div style={{fontSize:"1rem"}}>{pm?.icon||"🚗"}</div>
+                        {i<3&&<span style={{fontSize:"0.45rem",padding:"1px 5px",borderRadius:10,background:i===0?"#FFB70320":i===1?"#9999AA20":"#66667720",color:i===0?"#FFB703":i===1?"#9999AA":"#666677",fontFamily:fm,fontWeight:700}}>#{i+1}</span>}
+                      </div>
+                      <div style={{fontSize:"0.75rem",fontWeight:700,color:C.t,lineHeight:1.2,marginBottom:3}}>{p.name}</div>
+                      <div style={{fontSize:"0.55rem",color:C.td}}>{p.gen}</div>
+                      <div style={{display:"flex",gap:6,marginTop:6,fontSize:"0.5rem",color:C.td}}>
+                        <span style={{color:C.g}}>{pParts.length} parts</span>
+                        <span>·</span>
+                        <span>{pBuilds.length} builds</span>
+                      </div>
+                    </div>
+                  );})}
+                </div>
+              </div>
+
+              {/* Popular Content */}
+              {(popularNews.length>0||featuredBuilds.length>0)&&(
+                <div style={{marginBottom:"2rem"}}>
+                  <h2 style={{fontSize:"0.88rem",fontWeight:800,marginBottom:"0.75rem"}}>⭐ Popular Content</h2>
+                  <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+                    {popularNews.slice(0,2).map(n=>{const cat=NCATS[n.category]||{l:n.category,c:C.tm};return(
+                      <a key={n.id} href="/news" style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.85rem",textDecoration:"none",display:"block",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=cat.c} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+                        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+                          <span style={{fontSize:"0.5rem",padding:"2px 7px",borderRadius:20,background:cat.c+"20",color:cat.c,border:`1px solid ${cat.c}35`,fontFamily:fm,fontWeight:700}}>{cat.l}</span>
+                          <span style={{fontSize:"0.5rem",color:C.td,marginLeft:"auto"}}>❤️ {n.like_count||0}</span>
+                        </div>
+                        <div style={{fontSize:"0.78rem",fontWeight:700,color:C.t,lineHeight:1.3}}>{n.title}</div>
+                      </a>
+                    );})}
+                    {featuredBuilds.slice(0,2).map(b=>{const pm=MAKES.find(x=>x.id===b.make_id);const pp2=PLATFORMS.find(x=>x.id===b.platform_id);return(
+                      <a key={b.id} href={`/build/${b.id}`} target="_blank" rel="noopener noreferrer" style={{background:C.s1,borderRadius:10,border:`1px solid ${C.bdr}`,padding:"0.85rem",textDecoration:"none",display:"block",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.g} onMouseLeave={e=>e.currentTarget.style.borderColor=C.bdr}>
+                        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+                          <span style={{fontSize:"0.5rem",padding:"2px 7px",borderRadius:20,background:C.g+"20",color:C.g,border:`1px solid ${C.g}35`,fontFamily:fm,fontWeight:700}}>Community Build</span>
+                          <span style={{fontSize:"0.5rem",color:C.acc,fontWeight:700,marginLeft:"auto"}}>${(b.total_cost||0).toLocaleString()}</span>
+                        </div>
+                        <div style={{fontSize:"0.78rem",fontWeight:700,color:C.t,lineHeight:1.3}}>{b.title}</div>
+                        <div style={{fontSize:"0.6rem",color:C.td,marginTop:3}}>{pm?.icon} {pp2?.name||b.platform_id} · +{b.total_hp||0}HP</div>
+                      </a>
+                    );})}
+                  </div>
+                </div>
+              )}
+
+              {/* Manufacturer Grid */}
+              <div>
+                <h2 style={{fontSize:"0.88rem",fontWeight:800,marginBottom:"0.75rem"}}>All Manufacturers</h2>
+                <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
+                  {MAKES.map((m,i)=>{const mPlats=PLATFORMS.filter(p=>p.make===m.id);const mParts=PARTS.filter(p=>p.plats.some(pl=>mPlats.map(x=>x.id).includes(pl)));const img=MAKE_IMGS[m.id];const bCount=BUILDS.filter(b=>mPlats.map(x=>x.id).includes(b.plat)).length;return(
+                    <div key={m.id} onClick={()=>{setMakeId(m.id);setStep("platform");}} style={{backgroundColor:"#0D0D14",backgroundImage:img?`url(${img})`:"none",backgroundSize:"cover",backgroundPosition:"center",borderRadius:16,border:`1px solid rgba(255,255,255,0.07)`,overflow:"hidden",cursor:"pointer",animation:`fadeUp 0.4s ease-out ${i*0.04}s both`,transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.25s ease,border-color 0.2s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.025)";e.currentTarget.style.boxShadow=`0 12px 32px ${m.accent}35,0 0 0 1px ${m.accent}40`;e.currentTarget.style.borderColor=`${m.accent}50`;}} onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0) scale(1)";e.currentTarget.style.boxShadow="none";e.currentTarget.style.borderColor="rgba(255,255,255,0.07)";}}>
+                      <div style={{height:3,background:`linear-gradient(90deg,${m.accent},${m.accent}40,transparent)`}}/>
+                      <div style={{padding:"1.1rem 1.1rem 1rem",background:"linear-gradient(160deg,rgba(255,255,255,0.055) 0%,rgba(10,10,20,0.72) 40%,rgba(10,10,20,0.92) 100%)",backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.5rem"}}>
+                          <div style={{fontSize:"0.95rem",fontWeight:800,letterSpacing:"-0.01em",lineHeight:1.2,textShadow:"0 1px 8px rgba(0,0,0,0.9)"}}>{m.icon} {m.name}</div>
+                          <span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:`${m.accent}22`,border:`1px solid ${m.accent}44`,color:m.accent,fontFamily:fm,fontWeight:700,whiteSpace:"nowrap",marginLeft:6}}>{mPlats.length} cars</span>
+                        </div>
+                        <p style={{fontSize:"0.63rem",color:"rgba(200,200,215,0.8)",lineHeight:1.5,marginBottom:"0.65rem",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{m.tagline}</p>
+                        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                          <span style={{fontSize:"0.5rem",color:"rgba(100,100,115,0.9)"}}>{mParts.length} parts</span>
+                          <span style={{fontSize:"0.45rem",color:"rgba(80,80,90,0.7)"}}>·</span>
+                          <span style={{fontSize:"0.5rem",color:"rgba(100,100,115,0.9)"}}>{bCount} builds</span>
+                        </div>
+                      </div>
+                    </div>
+                  );})}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        {siteFooter}{bottomBar}
       </div>
-    </div>{siteFooter}{bottomBar}</div>
-  );
+    );
+  }
 
   // ═══ PLATFORM SELECTION ═══
   const VCFG={buy:{label:"BUY",color:"#2EC4B6",bg:"#2EC4B610",border:"#2EC4B635",emoji:"✅"},maybe:{label:"MAYBE",color:"#A8D5BA",bg:"#A8D5BA10",border:"#A8D5BA35",emoji:"🤔"},overpriced:{label:"OVERPRICED",color:"#FFB703",bg:"#FFB70310",border:"#FFB70335",emoji:"💸"},cope:{label:"COPE",color:"#FB8500",bg:"#FB850010",border:"#FB850035",emoji:"🤡"},absurd:{label:"ABSURD",color:"#E63946",bg:"#E6394610",border:"#E6394635",emoji:"💀"}};
