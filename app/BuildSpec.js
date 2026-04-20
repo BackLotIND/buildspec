@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import PostModal from "./PostModal";
+import NotificationsTab, { useUnreadCount } from "./NotificationsTab";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -3588,6 +3589,8 @@ export default function App(){
   const[feedLoading,setFeedLoading]=useState(false);
   const[feedLiked,setFeedLiked]=useState({});
   const[showPost,setShowPost]=useState(false);
+  const[showAlerts,setShowAlerts]=useState(false);
+  const unreadNotifCount=useUnreadCount(user,supabase);
   const[exploreQ,setExploreQ]=useState("");
   const[exploreRemote,setExploreRemote]=useState({articles:[],users:[],bounties:[]});
   const[exploreSearching,setExploreSearching]=useState(false);
@@ -3795,12 +3798,15 @@ export default function App(){
             if(n.id==="home"){goHome();}
             else if(n.id==="explore"){setPage("explore");setStep("make");}
             else if(n.id==="post"){if(user&&user.id){setShowPost(true);}else{setShowAuth(true);setAuthMode("signup");}}
-            else if(n.id==="alerts"){/* placeholder */}
+            else if(n.id==="alerts"){if(user&&user.id){setShowAlerts(true);}else{setShowAuth(true);setAuthMode("signup");}}
             else if(n.id==="profile"){if(user&&user.id&&profile?.username){window.location.href=`/user/${profile.username}`;}else{setShowAuth(true);}}
           };
           return(
             <button key={n.id} onClick={handle} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:n.id==="post"?"none":"none",border:"none",color:n.id==="post"?C.acc:active?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",minHeight:44,flex:1,padding:"6px 0",WebkitTapHighlightColor:"transparent",transition:"transform 0.08s ease,color 0.15s"}}>
-              <span style={{fontSize:n.id==="post"?"1.3rem":"1.1rem",lineHeight:1,fontWeight:n.id==="post"?900:400}}>{n.ic}</span>
+              <span style={{fontSize:n.id==="post"?"1.3rem":"1.1rem",lineHeight:1,fontWeight:n.id==="post"?900:400,position:"relative",display:"inline-block"}}>
+                {n.ic}
+                {n.id==="alerts"&&unreadNotifCount>0&&<span style={{position:"absolute",top:-4,right:-6,background:C.acc,color:"#fff",borderRadius:"50%",minWidth:14,height:14,fontSize:"0.45rem",fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 2px",lineHeight:1}}>{unreadNotifCount>99?"99+":unreadNotifCount}</span>}
+              </span>
               <span style={{fontWeight:active?700:400}}>{n.l}</span>
               {active&&n.id!=="post"&&<span style={{width:4,height:4,borderRadius:"50%",background:C.acc,marginTop:1}}/>}
             </button>
@@ -3938,6 +3944,9 @@ export default function App(){
           }
         </div>
       </div>}
+
+      {/* Notifications */}
+      {showAlerts&&<NotificationsTab onClose={()=>setShowAlerts(false)} user={user} supabase={supabase}/>}
 
       {/* Post Creation Modal */}
       {showPost&&user&&<PostModal
