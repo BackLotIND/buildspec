@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import PostModal from "./PostModal";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -3586,6 +3587,7 @@ export default function App(){
   const[feedItems,setFeedItems]=useState([]);
   const[feedLoading,setFeedLoading]=useState(false);
   const[feedLiked,setFeedLiked]=useState({});
+  const[showPost,setShowPost]=useState(false);
   const[exploreQ,setExploreQ]=useState("");
   const[exploreRemote,setExploreRemote]=useState({articles:[],users:[],bounties:[]});
   const[exploreSearching,setExploreSearching]=useState(false);
@@ -3792,7 +3794,7 @@ export default function App(){
           const handle=()=>{
             if(n.id==="home"){goHome();}
             else if(n.id==="explore"){setPage("explore");setStep("make");}
-            else if(n.id==="post"){if(user&&user.id){/* TODO: post modal */}else{setShowAuth(true);setAuthMode("signup");}}
+            else if(n.id==="post"){if(user&&user.id){setShowPost(true);}else{setShowAuth(true);setAuthMode("signup");}}
             else if(n.id==="alerts"){/* placeholder */}
             else if(n.id==="profile"){if(user&&user.id&&profile?.username){window.location.href=`/user/${profile.username}`;}else{setShowAuth(true);}}
           };
@@ -3936,6 +3938,15 @@ export default function App(){
           }
         </div>
       </div>}
+
+      {/* Post Creation Modal */}
+      {showPost&&user&&<PostModal
+        onClose={()=>setShowPost(false)}
+        user={user}
+        supabase={supabase}
+        makes={MAKES.map(m=>({id:m.id,name:m.name,icon:m.icon}))}
+        platforms={PLATFORMS.map(p=>({id:p.id,make:p.make,name:p.name,gen:p.gen}))}
+      />}
     </>
   );
 
