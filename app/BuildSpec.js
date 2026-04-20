@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import PostModal from "./PostModal";
 import NotificationsTab, { useUnreadCount } from "./NotificationsTab";
 import ProfileTab from "./ProfileTab";
+import FeedCard from "./FeedCard";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -4250,8 +4251,6 @@ export default function App(){
 
   // ═══ HOME FEED ═══
   if(page==="home"&&step==="make"){
-    const timeAgo=(d)=>{const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return`${s}s`;if(s<3600)return`${Math.floor(s/60)}m`;if(s<86400)return`${Math.floor(s/3600)}h`;return`${Math.floor(s/86400)}d`;};
-    const FEED_CAT={market_watch:{l:"Market Watch",c:"#3B82F6"},industry_roast:{l:"Industry Roast",c:"#E63946"},hidden_gem:{l:"Hidden Gem",c:"#2EC4B6"},rip:{l:"RIP",c:"#6B7280"},price_alert:{l:"Price Alert",c:"#F97316"}};
     return(
       <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}
         <div style={{maxWidth:600,margin:"0 auto",padding:"0.75rem 1rem 2rem"}}>
@@ -4274,100 +4273,20 @@ export default function App(){
             <div style={{fontSize:"0.75rem"}}>{feedItems.length===0?"Feed is quiet. Check back soon.":"Nothing here yet."}</div>
           </div>}
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {feedItems.filter(x=>feedFilter==="all"||x._type===feedFilter).map((item,i)=>{
-              if(item._type==="news"){
-                const cat=FEED_CAT[item.category]||{l:item.category,c:C.tm};
-                const liked=feedLiked[item.id];
-                return(
-                  <div key={`news-${item.id}`} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                      <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:cat.c+"20",color:cat.c,border:`1px solid ${cat.c}40`,fontFamily:fm,letterSpacing:"0.06em"}}>{cat.l}</span>
-                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm}}>{timeAgo(item.created_at)}</span>
-                    </div>
-                    <div style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3,marginBottom:item.headline?6:10}}>{item.title}</div>
-                    {item.headline&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 10px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.headline}</p>}
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <button onClick={async()=>{if(liked)return;setFeedLiked(p=>({...p,[item.id]:true}));setFeedItems(arr=>arr.map(x=>x.id===item.id&&x._type==="news"?{...x,like_count:(x.like_count||0)+1}:x));await supabase.rpc("increment_like",{row_id:item.id}).catch(()=>{});}} style={{background:"none",border:`1px solid ${liked?C.acc:C.bdr}`,borderRadius:20,padding:"3px 10px",color:liked?C.acc:C.td,fontSize:"0.58rem",cursor:liked?"default":"pointer",fontFamily:fs,display:"flex",alignItems:"center",gap:4}}>
-                        {liked?"❤️":"🤍"} {item.like_count||0}
-                      </button>
-                      <a href="/news" style={{fontSize:"0.58rem",color:C.td,textDecoration:"none",marginLeft:"auto",opacity:0.7}}>Read more →</a>
-                    </div>
-                  </div>
-                );
-              }
-              if(item._type==="thread"){
-                const tm2=MAKES.find(x=>x.id===item.make_id);
-                const tp2=PLATFORMS.find(x=>x.id===item.platform_id);
-                return(
-                  <div key={`thread-${item.id}`} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.bdr}`,padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                        <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:"#7C3AED20",color:"#A78BFA",border:"1px solid #7C3AED40",fontFamily:fm}}>🔧 Build Thread</span>
-                        {tp2&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.s2,color:C.td,fontFamily:fm}}>{tm2?.icon} {tp2.name}</span>}
-                      </div>
-                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm,flexShrink:0,marginLeft:8}}>{timeAgo(item.created_at)}</span>
-                    </div>
-                    <div style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3,marginBottom:item.description?6:10}}>{item.title}</div>
-                    {item.description&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 10px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.description}</p>}
-                    <div style={{display:"flex",gap:12,fontSize:"0.58rem",color:C.td}}>
-                      <span>👁 {item.view_count||0}</span>
-                      <span>💬 {item.reply_count||0}</span>
-                      <span>❤️ {item.like_count||0}</span>
-                    </div>
-                  </div>
-                );
-              }
-              if(item._type==="bounty"){
-                const bm2=MAKES.find(x=>x.id===item.make_id);
-                const bp2=PLATFORMS.find(x=>x.id===item.platform_id);
-                const fK=n=>n>=1000?`$${(n/1000).toFixed(n%1000===0?0:1)}k`:`$${n}`;
-                return(
-                  <div key={`bounty-${item.id}`} style={{background:C.s1,borderRadius:12,border:"1px solid #F9731625",padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                        <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:"#F9731620",color:"#F97316",border:"1px solid #F9731640",fontFamily:fm}}>🎯 Bounty</span>
-                        {item.budget_low&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.g+"18",color:C.g,fontFamily:fm,border:`1px solid ${C.g}30`}}>{fK(item.budget_low)}–{fK(item.budget_high)}</span>}
-                        {bp2&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.s2,color:C.td,fontFamily:fm}}>{bm2?.icon} {bp2.name}</span>}
-                      </div>
-                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm,flexShrink:0,marginLeft:8}}>{timeAgo(item.created_at)}</span>
-                    </div>
-                    <div style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3,marginBottom:item.description?6:10}}>{item.title}</div>
-                    {item.description&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 10px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.description}</p>}
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                      <span style={{fontSize:"0.58rem",color:C.td}}>💬 {item.response_count||0} responses</span>
-                      <a href="/bounties" style={{fontSize:"0.58rem",color:"#F97316",textDecoration:"none",fontWeight:600}}>View bounty →</a>
-                    </div>
-                  </div>
-                );
-              }
-              if(item._type==="review"){
-                const rm=MAKES.find(x=>x.id===item.make_id);
-                const rp=PLATFORMS.find(x=>x.id===item.platform_id);
-                const stars=Array.from({length:5},(_,idx)=>idx<item.rating?"★":"☆").join("");
-                const ratingColor=item.rating>=4?C.g:item.rating===3?C.y:C.acc;
-                return(
-                  <div key={`review-${item.id}`} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.g}25`,padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                        <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:`${C.g}18`,color:C.g,border:`1px solid ${C.g}40`,fontFamily:fm}}>⭐ Part Review</span>
-                        {rp&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.s2,color:C.td,fontFamily:fm}}>{rm?.icon} {rp.name}</span>}
-                      </div>
-                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm,flexShrink:0,marginLeft:8}}>{timeAgo(item.created_at)}</span>
-                    </div>
-                    <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
-                      <span style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3}}>{item.part_name}</span>
-                      <span style={{fontSize:"0.75rem",color:ratingColor,fontFamily:fm,letterSpacing:"0.05em"}}>{stars}</span>
-                    </div>
-                    {item.title&&<div style={{fontSize:"0.7rem",fontWeight:600,color:C.tm,marginBottom:4}}>{item.title}</div>}
-                    {item.content&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 8px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.content}</p>}
-                    <div style={{display:"flex",alignItems:"center",gap:8,fontSize:"0.58rem",color:C.td}}>
-                      {item.would_recommend&&<span style={{color:C.g}}>✓ Recommended</span>}
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })}
+            {feedItems.filter(x=>feedFilter==="all"||x._type===feedFilter).map((item,i)=>(
+              <FeedCard
+                key={`${item._type}-${item.id}`}
+                item={item}
+                i={i}
+                user={user}
+                profile={profile}
+                supabase={supabase}
+                makes={MAKES}
+                platforms={PLATFORMS}
+                liked={!!feedLiked[item.id]}
+                onLike={async(id)=>{setFeedLiked(p=>({...p,[id]:true}));setFeedItems(arr=>arr.map(x=>x.id===id&&x._type==="news"?{...x,like_count:(x.like_count||0)+1}:x));await supabase.rpc("increment_like",{row_id:id}).catch(()=>{});}}
+              />
+            ))}
           </div>
         </div>
         {siteFooter}{bottomBar}
