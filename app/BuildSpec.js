@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import PostModal from "./PostModal";
 import NotificationsTab, { useUnreadCount } from "./NotificationsTab";
+import ProfileTab from "./ProfileTab";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -3591,6 +3592,7 @@ export default function App(){
   const[showPost,setShowPost]=useState(false);
   const[feedFilter,setFeedFilter]=useState("all");
   const[showAlerts,setShowAlerts]=useState(false);
+  const[showProfile,setShowProfile]=useState(false);
   const unreadNotifCount=useUnreadCount(user,supabase);
   const[exploreQ,setExploreQ]=useState("");
   const[exploreRemote,setExploreRemote]=useState({articles:[],users:[],bounties:[]});
@@ -3788,7 +3790,7 @@ export default function App(){
             else if(n.id==="explore"){setPage("explore");setStep("make");}
             else if(n.id==="post"){if(user&&user.id){setShowPost(true);}else{setShowAuth(true);setAuthMode("signup");}}
             else if(n.id==="alerts"){if(user&&user.id){setShowAlerts(true);}else{setShowAuth(true);setAuthMode("signup");}}
-            else if(n.id==="profile"){if(user&&user.id&&profile?.username){window.location.href=`/user/${profile.username}`;}else{setShowAuth(true);}}
+            else if(n.id==="profile"){setShowProfile(true);}
           };
           return(
             <button key={n.id} onClick={handle} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:n.id==="post"?"none":"none",border:"none",color:n.id==="post"?C.acc:active?C.acc:C.tm,cursor:"pointer",fontFamily:fs,fontSize:"0.5rem",minHeight:44,flex:1,padding:"6px 0",WebkitTapHighlightColor:"transparent",transition:"transform 0.08s ease,color 0.15s"}}>
@@ -3936,6 +3938,9 @@ export default function App(){
 
       {/* Notifications */}
       {showAlerts&&<NotificationsTab onClose={()=>setShowAlerts(false)} user={user} supabase={supabase}/>}
+
+      {/* Profile */}
+      {showProfile&&<ProfileTab onClose={()=>setShowProfile(false)} onShowAuth={(mode)=>{setShowProfile(false);setAuthMode(mode);setShowAuth(true);}}/>}
 
       {/* Post Creation Modal */}
       {showPost&&user&&<PostModal
