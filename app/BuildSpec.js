@@ -3589,6 +3589,7 @@ export default function App(){
   const[feedLoading,setFeedLoading]=useState(false);
   const[feedLiked,setFeedLiked]=useState({});
   const[showPost,setShowPost]=useState(false);
+  const[feedFilter,setFeedFilter]=useState("all");
   const[showAlerts,setShowAlerts]=useState(false);
   const unreadNotifCount=useUnreadCount(user,supabase);
   const[exploreQ,setExploreQ]=useState("");
@@ -4248,24 +4249,27 @@ export default function App(){
     const FEED_CAT={market_watch:{l:"Market Watch",c:"#3B82F6"},industry_roast:{l:"Industry Roast",c:"#E63946"},hidden_gem:{l:"Hidden Gem",c:"#2EC4B6"},rip:{l:"RIP",c:"#6B7280"},price_alert:{l:"Price Alert",c:"#F97316"}};
     return(
       <div style={{minHeight:"100vh",background:C.bg,color:C.t,fontFamily:fs,paddingBottom:mob?"calc(100px + env(safe-area-inset-bottom))":0}}><FL/>{topBar}{modals}
-        <div style={{maxWidth:600,margin:"0 auto",padding:"1rem 1rem 2rem"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem",paddingTop:"0.25rem"}}>
-            <div>
-              <h1 style={{fontSize:"1.1rem",fontWeight:800,margin:0,letterSpacing:"-0.02em"}}>Feed</h1>
-              <p style={{fontSize:"0.6rem",color:C.td,margin:"2px 0 0"}}>News · Builds · Bounties</p>
+        <div style={{maxWidth:600,margin:"0 auto",padding:"0.75rem 1rem 2rem"}}>
+          <div style={{paddingTop:"0.15rem",marginBottom:"0.75rem"}}>
+            <h1 style={{fontSize:"0.95rem",fontWeight:700,margin:"0 0 10px",color:C.t}}>{(user&&(profile?.display_name||profile?.username))?`Hey, ${profile.display_name||profile.username} 👋`:"Your Feed"}</h1>
+            <div style={{display:"flex",gap:6,overflowX:"auto",WebkitOverflowScrolling:"touch",paddingBottom:2}}>
+              {[{id:"all",l:"All"},{id:"news",l:"News"},{id:"thread",l:"Builds"},{id:"bounty",l:"Bounties"},{id:"review",l:"Reviews"}].map(f=>(
+                <button key={f.id} onClick={()=>setFeedFilter(f.id)} style={{flexShrink:0,padding:"5px 13px",borderRadius:20,border:`1px solid ${feedFilter===f.id?C.acc:C.bdr}`,background:feedFilter===f.id?C.accD:"transparent",color:feedFilter===f.id?C.acc:C.tm,fontSize:"0.62rem",fontWeight:feedFilter===f.id?700:400,cursor:"pointer",fontFamily:fs,whiteSpace:"nowrap",transition:"border-color 0.15s,color 0.15s,background 0.15s"}}>
+                  {f.l}
+                </button>
+              ))}
             </div>
-            <button onClick={()=>{setPage("explore");setStep("make");}} style={{padding:"6px 14px",borderRadius:8,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.62rem",cursor:"pointer",fontFamily:fs}}>🔍 Explore</button>
           </div>
           {feedLoading&&<div style={{textAlign:"center",padding:"3rem 0",color:C.td}}>
             <div style={{fontSize:"1.5rem",marginBottom:8}}>⏳</div>
             <div style={{fontSize:"0.72rem"}}>Loading feed…</div>
           </div>}
-          {!feedLoading&&feedItems.length===0&&<div style={{textAlign:"center",padding:"3rem 0",color:C.td}}>
+          {!feedLoading&&feedItems.filter(x=>feedFilter==="all"||x._type===feedFilter).length===0&&<div style={{textAlign:"center",padding:"3rem 0",color:C.td}}>
             <div style={{fontSize:"2rem",marginBottom:8}}>🏎️</div>
-            <div style={{fontSize:"0.75rem"}}>Feed is quiet. Check back soon.</div>
+            <div style={{fontSize:"0.75rem"}}>{feedItems.length===0?"Feed is quiet. Check back soon.":"Nothing here yet."}</div>
           </div>}
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {feedItems.map((item,i)=>{
+            {feedItems.filter(x=>feedFilter==="all"||x._type===feedFilter).map((item,i)=>{
               if(item._type==="news"){
                 const cat=FEED_CAT[item.category]||{l:item.category,c:C.tm};
                 const liked=feedLiked[item.id];
