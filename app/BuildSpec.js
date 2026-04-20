@@ -3640,11 +3640,13 @@ export default function App(){
         supabase.from("news_feed").select("id,title,headline,category,like_count,created_at").eq("is_published",true).order("created_at",{ascending:false}).limit(10),
         supabase.from("build_threads").select("id,title,description,platform_id,make_id,view_count,reply_count,like_count,created_at").order("created_at",{ascending:false}).limit(10),
         supabase.from("bounties").select("id,title,description,platform_id,make_id,budget_low,budget_high,response_count,created_at").eq("status","open").order("created_at",{ascending:false}).limit(10),
-      ]).then(([{data:newsD},{data:threadsD},{data:bountiesD}])=>{
+        supabase.from("part_reviews").select("id,part_name,platform_id,make_id,rating,title,content,would_recommend,created_at").order("created_at",{ascending:false}).limit(10),
+      ]).then(([{data:newsD},{data:threadsD},{data:bountiesD},{data:reviewsD}])=>{
         const merged=[
           ...(newsD||[]).map(n=>({...n,_type:"news"})),
           ...(threadsD||[]).map(t=>({...t,_type:"thread"})),
           ...(bountiesD||[]).map(b=>({...b,_type:"bounty"})),
+          ...(reviewsD||[]).map(r=>({...r,_type:"review"})),
         ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
         setFeedItems(merged);setFeedLoading(false);
       }).catch(()=>setFeedLoading(false));
@@ -3741,19 +3743,6 @@ export default function App(){
 
   // ═══ SHARED UI PIECES (as JSX, not components, to avoid focus issues) ═══
 
-  const navLinks=(
-    <nav style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
-      {[{id:"home",l:"Home",ic:"🏠"},{id:"explore",l:"Explore",ic:"🔍"},{id:"knowledge",l:"Library",ic:"📚"}].map(n=>(
-        <button key={n.id} onClick={()=>{if(n.id==="home"){goHome();}else if(n.id==="explore"){setPage("explore");setStep("make");}else{setPage(n.id);}}} style={{padding:"5px 8px",borderRadius:6,border:"none",background:page===n.id?C.accD:"transparent",color:page===n.id?C.acc:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:page===n.id?600:400,whiteSpace:"nowrap"}}>{n.ic} {n.l}</button>
-      ))}
-      <a href="/buy" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🤔 Buy?</a>
-      <a href="/internet-effect" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>📉 Internet Effect</a>
-      <a href="/community" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🧵 Community</a>
-      <a href="/news" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>📰 News</a>
-      <a href="/bounties" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>🎯 Bounties</a>
-      <a href="/pricing" style={{padding:"5px 8px",borderRadius:6,border:"none",background:"transparent",color:C.tm,fontSize:"0.6rem",cursor:"pointer",fontFamily:fs,fontWeight:400,whiteSpace:"nowrap",textDecoration:"none"}}>💰 Pricing</a>
-    </nav>
-  );
 
   const signInBtn=(user&&user.id)
     ?<div style={{display:"flex",gap:4,alignItems:"center",flexShrink:0}}>
@@ -3783,7 +3772,6 @@ export default function App(){
       <div style={{maxWidth:900,margin:"0 auto",padding:"10px 16px",paddingLeft:"calc(16px + env(safe-area-inset-left))",paddingRight:"calc(16px + env(safe-area-inset-right))",display:"flex",alignItems:"center",gap:mob?8:12}}>
         <span style={{fontSize:"1rem",fontWeight:800,fontFamily:fm,cursor:"pointer",flexShrink:0}} onClick={goHome}>BUILD<span style={{color:C.acc}}>SPEC</span></span>
         {searchBar}
-        {!mob&&navLinks}
         {signInBtn}
       </div>
     </header>
@@ -4339,6 +4327,32 @@ export default function App(){
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                       <span style={{fontSize:"0.58rem",color:C.td}}>💬 {item.response_count||0} responses</span>
                       <a href="/bounties" style={{fontSize:"0.58rem",color:"#F97316",textDecoration:"none",fontWeight:600}}>View bounty →</a>
+                    </div>
+                  </div>
+                );
+              }
+              if(item._type==="review"){
+                const rm=MAKES.find(x=>x.id===item.make_id);
+                const rp=PLATFORMS.find(x=>x.id===item.platform_id);
+                const stars=Array.from({length:5},(_,idx)=>idx<item.rating?"★":"☆").join("");
+                const ratingColor=item.rating>=4?C.g:item.rating===3?C.y:C.acc;
+                return(
+                  <div key={`review-${item.id}`} style={{background:C.s1,borderRadius:12,border:`1px solid ${C.g}25`,padding:"0.9rem 1rem",animation:`fadeUp 0.3s ease-out ${i*0.03}s both`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                        <span style={{fontSize:"0.52rem",fontWeight:700,padding:"2px 8px",borderRadius:20,background:`${C.g}18`,color:C.g,border:`1px solid ${C.g}40`,fontFamily:fm}}>⭐ Part Review</span>
+                        {rp&&<span style={{fontSize:"0.52rem",padding:"2px 7px",borderRadius:20,background:C.s2,color:C.td,fontFamily:fm}}>{rm?.icon} {rp.name}</span>}
+                      </div>
+                      <span style={{fontSize:"0.52rem",color:C.td,fontFamily:fm,flexShrink:0,marginLeft:8}}>{timeAgo(item.created_at)}</span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
+                      <span style={{fontSize:"0.85rem",fontWeight:700,color:C.t,lineHeight:1.3}}>{item.part_name}</span>
+                      <span style={{fontSize:"0.75rem",color:ratingColor,fontFamily:fm,letterSpacing:"0.05em"}}>{stars}</span>
+                    </div>
+                    {item.title&&<div style={{fontSize:"0.7rem",fontWeight:600,color:C.tm,marginBottom:4}}>{item.title}</div>}
+                    {item.content&&<p style={{fontSize:"0.68rem",color:C.tm,lineHeight:1.5,margin:"0 0 8px",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{item.content}</p>}
+                    <div style={{display:"flex",alignItems:"center",gap:8,fontSize:"0.58rem",color:C.td}}>
+                      {item.would_recommend&&<span style={{color:C.g}}>✓ Recommended</span>}
                     </div>
                   </div>
                 );
