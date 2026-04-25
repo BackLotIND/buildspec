@@ -9,8 +9,8 @@ export const viewport = {
 }
 
 export const metadata = {
-  title: 'BuildSpec — Plan Your Car Build',
-  description: 'Car build planner with parts, knowledge, and community',
+  title: 'BuildSpec — Car enthusiast platform with builds, parts knowledge, bounties, and community. 117 platforms. Free to browse.',
+  description: 'BuildSpec — Car enthusiast platform with builds, parts knowledge, bounties, and community. 117 platforms. Free to browse.',
   keywords: 'car build planner, aftermarket parts, civic build, wrx build, 335i build, mustang build, silverado build, gti build, miata build, tacoma build, crown vic build, rx7 build, pcpartpicker cars, car mods, junkyard swaps, truck mods, drift tax',
   manifest: '/manifest.json',
   appleWebApp: {
@@ -19,10 +19,16 @@ export const metadata = {
     title: 'BuildSpec',
   },
   openGraph: {
-    title: 'BuildSpec — Plan Your Car Build',
-    description: 'Car build planner with parts, knowledge, and community',
+    title: 'BuildSpec — Car enthusiast platform with builds, parts knowledge, bounties, and community. 117 platforms. Free to browse.',
+    description: 'BuildSpec — Car enthusiast platform with builds, parts knowledge, bounties, and community. 117 platforms. Free to browse.',
     type: 'website',
     url: 'https://thebuildspec.com',
+    siteName: 'BuildSpec',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BuildSpec — Car enthusiast platform with builds, parts knowledge, bounties, and community. 117 platforms. Free to browse.',
+    description: 'BuildSpec — Car enthusiast platform with builds, parts knowledge, bounties, and community. 117 platforms. Free to browse.',
   },
 }
 

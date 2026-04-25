@@ -3858,9 +3858,12 @@ export default function App(){
         {/* Bottom bar */}
         <div style={{borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:"1.25rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
-            <span style={{fontSize:"0.58rem",color:C.td}}>© 2025 BackLot Industries</span>
+            <span style={{fontSize:"0.58rem",color:C.td}}>© 2026 BackLot Industries</span>
             <span style={{fontSize:"0.45rem",color:"rgba(80,80,90,0.6)"}}>|</span>
             <span style={{fontSize:"0.55rem",color:C.td}}>Built for builders.</span>
+            <span style={{fontSize:"0.45rem",color:"rgba(80,80,90,0.6)"}}>|</span>
+            <a href="/terms" style={{fontSize:"0.55rem",color:C.td,textDecoration:"none"}}>Terms</a>
+            <a href="/privacy" style={{fontSize:"0.55rem",color:C.td,textDecoration:"none"}}>Privacy</a>
           </div>
           <span style={{fontSize:"0.48rem",color:"rgba(80,80,90,0.6)",maxWidth:300,textAlign:"right"}}>Prices shown are estimates. Verify before purchasing.</span>
         </div>
