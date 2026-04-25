@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import PostModal from "./PostModal";
 import NotificationsTab, { useUnreadCount } from "./NotificationsTab";
 import ProfileTab from "./ProfileTab";
-import FeedCard from "./FeedCard";
+import FeedCard, { FeedSkeleton } from "./FeedCard";
 
 // ═══════════════════════════════════════════════════════════════
 // BUILDSPEC v7 — Deep Knowledge Edition
@@ -3589,6 +3589,7 @@ export default function App(){
   const[catalogPartsId,setCatalogPartsId]=useState(null);
   const[feedItems,setFeedItems]=useState([]);
   const[feedLoading,setFeedLoading]=useState(false);
+  const[feedError,setFeedError]=useState(false);
   const[feedLiked,setFeedLiked]=useState({});
   const[showPost,setShowPost]=useState(false);
   const[feedFilter,setFeedFilter]=useState("all");
@@ -3637,24 +3638,28 @@ export default function App(){
         .catch(()=>setCopeLoading(false));
     }
   },[page,kTab]);
+  const loadFeed=()=>{
+    setFeedLoading(true);setFeedError(false);
+    Promise.allSettled([
+      supabase.from("news_feed").select("id,title,headline,category,like_count,created_at").eq("is_published",true).order("created_at",{ascending:false}).limit(15),
+      supabase.from("build_threads").select("id,title,description,platform_id,make_id,view_count,reply_count,like_count,created_at").order("created_at",{ascending:false}).limit(15),
+      supabase.from("bounties").select("id,title,description,platform_id,make_id,budget_low,budget_high,response_count,created_at").order("created_at",{ascending:false}).limit(15),
+      supabase.from("part_reviews").select("id,part_name,platform_id,make_id,rating,title,content,would_recommend,created_at").order("created_at",{ascending:false}).limit(15),
+    ]).then(([newsR,threadsR,bountiesR,reviewsR])=>{
+      const get=(r,type)=>{
+        if(r.status==="rejected"){console.error("feed fetch",type,r.reason);return[];}
+        if(r.value.error){console.error("feed query",type,r.value.error);return[];}
+        return(r.value.data||[]).map(x=>({...x,_type:type}));
+      };
+      const merged=[...get(newsR,"news"),...get(threadsR,"thread"),...get(bountiesR,"bounty"),...get(reviewsR,"review")]
+        .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+      setFeedItems(merged);
+      setFeedError(merged.length===0);
+      setFeedLoading(false);
+    });
+  };
   useEffect(()=>{
-    if(page==="home"&&feedItems.length===0&&!feedLoading){
-      setFeedLoading(true);
-      Promise.all([
-        supabase.from("news_feed").select("id,title,headline,category,like_count,created_at").eq("is_published",true).order("created_at",{ascending:false}).limit(10),
-        supabase.from("build_threads").select("id,title,description,platform_id,make_id,view_count,reply_count,like_count,created_at").order("created_at",{ascending:false}).limit(10),
-        supabase.from("bounties").select("id,title,description,platform_id,make_id,budget_low,budget_high,response_count,created_at").eq("status","open").order("created_at",{ascending:false}).limit(10),
-        supabase.from("part_reviews").select("id,part_name,platform_id,make_id,rating,title,content,would_recommend,created_at").order("created_at",{ascending:false}).limit(10),
-      ]).then(([{data:newsD},{data:threadsD},{data:bountiesD},{data:reviewsD}])=>{
-        const merged=[
-          ...(newsD||[]).map(n=>({...n,_type:"news"})),
-          ...(threadsD||[]).map(t=>({...t,_type:"thread"})),
-          ...(bountiesD||[]).map(b=>({...b,_type:"bounty"})),
-          ...(reviewsD||[]).map(r=>({...r,_type:"review"})),
-        ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-        setFeedItems(merged);setFeedLoading(false);
-      }).catch(()=>setFeedLoading(false));
-    }
+    if(page==="home"&&feedItems.length===0&&!feedLoading){loadFeed();}
   },[page]);
   useEffect(()=>{
     if(page==="explore"&&popularNews.length===0){
@@ -4267,13 +4272,15 @@ export default function App(){
               ))}
             </div>
           </div>
-          {feedLoading&&<div style={{textAlign:"center",padding:"3rem 0",color:C.td}}>
-            <div style={{fontSize:"1.5rem",marginBottom:8}}>⏳</div>
-            <div style={{fontSize:"0.72rem"}}>Loading feed…</div>
+          {feedLoading&&<div style={{display:"flex",flexDirection:"column",gap:10}}><FeedSkeleton/></div>}
+          {!feedLoading&&feedError&&<div style={{textAlign:"center",padding:"2.5rem 0",color:C.td}}>
+            <div style={{fontSize:"1.5rem",marginBottom:8}}>⚠️</div>
+            <div style={{fontSize:"0.75rem",marginBottom:12}}>Couldn't load the feed.</div>
+            <button onClick={loadFeed} style={{padding:"7px 20px",borderRadius:8,border:`1px solid ${C.bdr}`,background:"transparent",color:C.tm,fontSize:"0.7rem",cursor:"pointer",fontFamily:fs}}>Retry</button>
           </div>}
-          {!feedLoading&&feedItems.filter(x=>feedFilter==="all"||x._type===feedFilter).length===0&&<div style={{textAlign:"center",padding:"3rem 0",color:C.td}}>
+          {!feedLoading&&!feedError&&feedItems.filter(x=>feedFilter==="all"||x._type===feedFilter).length===0&&<div style={{textAlign:"center",padding:"2.5rem 0",color:C.td}}>
             <div style={{fontSize:"2rem",marginBottom:8}}>🏎️</div>
-            <div style={{fontSize:"0.75rem"}}>{feedItems.length===0?"Feed is quiet. Check back soon.":"Nothing here yet."}</div>
+            <div style={{fontSize:"0.75rem"}}>Nothing here yet.</div>
           </div>}
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {feedItems.filter(x=>feedFilter==="all"||x._type===feedFilter).map((item,i)=>(
@@ -4292,7 +4299,7 @@ export default function App(){
             ))}
           </div>
         </div>
-        {siteFooter}{bottomBar}
+        {!mob&&siteFooter}{bottomBar}
       </div>
     );
   }
